@@ -123,10 +123,10 @@ TrainWindow(const int x, const int y)
 		pty += 65;
 
 		// add and delete points
-		// Fl_Button* ap = new Fl_Button(605,pty,80,20,"Add Curve");
-		// ap->callback((Fl_Callback*)addCurve,this);
-		// Fl_Button* dp = new Fl_Button(690,pty,80,20,"Delete Curve");
-		// dp->callback((Fl_Callback*)deleteCurve,this);
+		Fl_Button* ac = new Fl_Button(605,pty,80,20,"Add Curve");
+		ac->callback((Fl_Callback*)addCurve,this);
+		Fl_Button* dc = new Fl_Button(690,pty,80,20,"Delete Curve");
+		dc->callback((Fl_Callback*)deleteCurve,this);
 		// pty += 25;
 		// // reset the points
 		// resetButton = new Fl_Button(735,pty,60,20,"Reset");

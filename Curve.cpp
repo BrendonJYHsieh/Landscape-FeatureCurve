@@ -47,12 +47,12 @@ void Curve::
 resetPoints()
 //============================================================================
 {
-
+	int r = rand() % 30 +10;
 	points.clear();
-	points.push_back(ControlPoint(Pnt3f(25,5,0)));
-	points.push_back(ControlPoint(Pnt3f(0,5,25)));
-	points.push_back(ControlPoint(Pnt3f(-25,5,0)));
-	points.push_back(ControlPoint(Pnt3f(0,5,-25)));
+	points.push_back(ControlPoint(Pnt3f(r,5,0)));
+	points.push_back(ControlPoint(Pnt3f(0,5,r)));
+	points.push_back(ControlPoint(Pnt3f(-r,5,0)));
+	points.push_back(ControlPoint(Pnt3f(0,5,-r)));
 
 	// we had better put the train back at the start of the track...
 	trainU = 0.0;

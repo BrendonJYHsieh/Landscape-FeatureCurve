@@ -20,6 +20,7 @@
 *************************************************************************/
 #pragma once
 
+#include<iostream>
 #include <time.h>
 #include <math.h>
 
@@ -185,3 +186,19 @@ void saveCB(Fl_Widget*, TrainWindow* tw)
 
 // 	tw->damageMe();
 // }
+
+void addCurve(Fl_Widget*, TrainWindow* tw)
+//===========================================================================
+{
+	tw->trainView->Curves.push_back(Curve());
+	std::cout << tw->trainView->Curves.size() << "\n";
+}
+
+
+void deleteCurve(Fl_Widget*, TrainWindow* tw)
+//===========================================================================
+{
+	tw->trainView->Curves.erase(tw->trainView->Curves.begin()+tw->trainView->SelectedCurve);
+	std::cout << tw->trainView->Curves.size() << "\n";
+}
+
