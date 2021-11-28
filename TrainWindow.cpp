@@ -188,8 +188,8 @@ void TrainWindow::
 damageMe()
 //========================================================================
 {
-	if (trainView->selectedCube >= ((int)m_Track.points.size()))
-		trainView->selectedCube = 0;
+	// if (trainView->SelectedNode >= ((int)trainView->Curves[trainView->SelectedCurve].points.size()))
+	// 	trainView->SelectedNode = 0;
 	trainView->damage(1);
 }
 

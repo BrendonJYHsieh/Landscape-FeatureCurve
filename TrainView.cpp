@@ -408,6 +408,9 @@ void TrainView::drawStuff(bool doingShadows)
 			Pnt3f q0 = GMT(p1.pos, p2.pos, p3.pos,p4.pos ,t);
 			Pnt3f q1 = GMT(p1.pos, p2.pos, p3.pos,p4.pos ,t += 0.01);
 			glBegin(GL_LINES);
+			if (!doingShadows) {
+				glColor3ub(0, 255, 0);
+			}
 			glVertex3f(q0.x,q0.y,q0.z);
 			glVertex3f(q1.x,q1.y,q1.z);
 			glEnd();
@@ -447,6 +450,7 @@ void TrainView::
 doPick()
 //========================================================================
 {
+	std::cout<<"do pick\n";
 	// since we'll need to do some GL stuff so we make this window as 
 	// active window
 	make_current();		

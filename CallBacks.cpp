@@ -191,14 +191,25 @@ void addCurve(Fl_Widget*, TrainWindow* tw)
 //===========================================================================
 {
 	tw->trainView->Curves.push_back(Curve());
-	std::cout << tw->trainView->Curves.size() << "\n";
+	tw->damageMe();
 }
 
 
 void deleteCurve(Fl_Widget*, TrainWindow* tw)
 //===========================================================================
 {
-	tw->trainView->Curves.erase(tw->trainView->Curves.begin()+tw->trainView->SelectedCurve);
-	std::cout << tw->trainView->Curves.size() << "\n";
+	if( tw->trainView->selectedCube!=-1){
+		tw->trainView->Curves.erase(tw->trainView->Curves.begin()+tw->trainView->SelectedCurve);
+		tw->trainView->selectedCube = -1;
+		for(int i=0;i<tw->trainView->Curves.size();i++){
+			tw->trainView->selectedCube +=tw->trainView->Curves[i].points.size();
+		}
+		std::cout<<tw->trainView->selectedCube<<"\n";
+	}
+	
+	if(!tw->trainView->Curves.size()){
+		tw->trainView->selectedCube = -1;
+	}
+	tw->damageMe();
 }
 
