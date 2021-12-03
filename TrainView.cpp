@@ -33,7 +33,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include "GL/glu.h"
-
+#include <math.h>
 #include "TrainView.H"
 #include "TrainWindow.H"
 #include "Utilities/3DUtils.H"
@@ -63,8 +63,8 @@ TrainView(int x, int y, int w, int h, const char* l)
 	resetArcball();
 
 	//Test//
-	Curves.push_back(Curve());
-	Curves.push_back(Curve());
+	//Curves.push_back(Curve());
+	//Curves.push_back(Curve());
 }
 
 //************************************************************************
@@ -283,7 +283,7 @@ void TrainView::draw()
 
 	setupFloor();
 	glDisable(GL_LIGHTING);
-	drawFloor(400,20);
+	drawFloor(200,200);
 
 
 	//*********************************************************************
@@ -416,7 +416,56 @@ void TrainView::drawStuff(bool doingShadows)
 			glEnd();
 		}
 	}
+	// #define PI 3.1415926
+	// float H = 30, W = 30;
+	// float L = sqrt(H * H + W * W);
+	// float sita = acos((L * L + W * W - H * H) / (4 * L * W));
+	// float a = acos((L * L + W * W - H * H) / (2 * L * W));
+	// std::cout << "a:" << a << "\n";
+	// std::cout << "sita:" << sita << "\n";
+	// float R = L / sin(a);
+	// std::cout << "R:" << R << "\n";
 	
+	// float mega = PI / 2 + sita - a;
+	// float max = atan2(H - R * sin(mega), W - R * cos(mega));
+	// float min = atan2(-R * sin(mega), -R * cos(mega));
+	// std::cout << "Max:" << max << "\n";
+	// std::cout << "Min:" << min << "\n";
+	// float divide = 100;
+	// float interval = (max - min) / divide;
+	// if (!doingShadows)
+	// glColor3ub(240, 60, 60);
+
+	// float temp = min;
+	// glBegin(GL_LINES);
+	// for (int i = 0; i < divide; i++) {
+	// 	float x = R * (cos(mega) + cos(temp));
+	// 	float y = R * (sin(mega) + sin(temp));
+	// 	std::cout << "X:" << x << " Y:" << y << "\n";
+	// 	temp += interval;
+	// 	glVertex3f(x, y , 0);
+	// }
+	// glEnd();
+
+	// std::cout << "Temp:" << temp << "\n";
+	// temp = min;
+	// glBegin(GL_LINES);
+	// for (int i = 0; i < divide; i++) {
+	// 	float x = R * (cos(mega) + cos(temp))-2*W;
+	// 	float y = R * (sin(mega) + sin(temp));
+	// 	//std::cout << "X:" << x << " Y:" << y << "\n";
+	// 	temp += interval;
+	// 	glVertex3f(-x, y, 0);
+	// }
+	// glEnd();
+
+	// glBegin(GL_LINES);
+	// 	glVertex3f(0, 0.1, 0);
+	// 	glVertex3f(W, 0.1, 0);
+	// 	glVertex3f(W, 0.1, 0);
+	// 	glVertex3f(W, H, 0);
+	// glEnd();
+
 		
 #ifdef EXAMPLE_SOLUTION
 	drawTrack(this, doingShadows);
