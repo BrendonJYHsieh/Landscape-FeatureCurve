@@ -32,12 +32,16 @@
 //#include "GL/gl.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/ext.hpp>
 #include "GL/glu.h"
 #include <math.h>
 #include "TrainView.H"
 #include "TrainWindow.H"
 #include "Utilities/3DUtils.H"
 
+//
+#include "Shader.h"
 #ifdef EXAMPLE_SOLUTION
 #	include "TrainExample/TrainExample.H"
 #endif
@@ -406,22 +410,22 @@ void TrainView::drawStuff(bool doingShadows)
 	// don't draw the control points if you're driving 
 	// (otherwise you get sea-sick as you drive through them)
 	if (!tw->trainCam->value()) {
-		int ii=0;
+		int ii = 0;
 		int temp = selectedCube;
-		for (ii = 0;ii < Curves.size(); ii++) {
-			if(temp <= Curves[ii].points.size()-1){
+		for (ii = 0; ii < Curves.size(); ii++) {
+			if (temp <= Curves[ii].points.size() - 1) {
 				break;
 			}
-			else{
+			else {
 				temp -= Curves[ii].points.size();
 			}
 		}
 		SelectedCurve = ii;
 		SelectedNode = temp;
-		for (int i = 0;i < Curves.size(); i++) {
-			for(int j=0;j<Curves[i].points.size();j++){
+		for (int i = 0; i < Curves.size(); i++) {
+			for (int j = 0; j < Curves[i].points.size(); j++) {
 				if (!doingShadows) {
-					if(SelectedCurve==i&&j==SelectedNode)
+					if (SelectedCurve == i && j == SelectedNode)
 						glColor3ub(240, 240, 30);
 					else
 						glColor3ub(240, 60, 60);
@@ -435,7 +439,8 @@ void TrainView::drawStuff(bool doingShadows)
 	// TODO: 
 	// call your own track drawing code
 	//####################################################################
-	for(int i=0;i<Curves.size();i++){
+	vector<float> vertexs;
+	for (int i = 0; i < Curves.size(); i++) {
 		float t = 0;
 		ControlPoint p1 = Curves[i].points[0];
 		ControlPoint p2 = Curves[i].points[1];
@@ -443,55 +448,97 @@ void TrainView::drawStuff(bool doingShadows)
 		ControlPoint p4 = Curves[i].points[3];
 		Pnt3f c;
 		for (int j = 0; j < 100; j++) {
-			Pnt3f q0 = GMT(p1.pos, p2.pos, p3.pos,p4.pos ,t);
-			Pnt3f q1 = GMT(p1.pos, p2.pos, p3.pos,p4.pos ,t += 0.01);
+			Pnt3f q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
+			Pnt3f q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 0.01);
 			glBegin(GL_LINES);
 			if (!doingShadows) {
 				glColor3ub(0, 255, 0);
 			}
-			glVertex3f(q0.x,0,q0.z);
-			glVertex3f(q1.x,0,q1.z);
+			glVertex3f(q0.x, q0.y, q0.z);
+			glVertex3f(q1.x, q1.y, q1.z);
 			glEnd();
 			if (!doingShadows) {
 				glColor3ub(255, 0, 0);
 			}
-			float d = rand()%5+5;
+			float d = rand() % 5 + 5;
 			//right
-			if(q0.x<q1.x){
-				glBegin(GL_QUADS);
+			if (q0.x < q1.x) {
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q1.x);
+				vertexs.push_back(q1.z);
+				vertexs.push_back(0.0f);
+				Test(q0, q1, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				//
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				Test(q1, q0, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(0);
+				/*glBegin(GL_QUADS);
 				glVertex3f(q0.x, 1, q0.z);
 				glVertex3f(q1.x, 1, q1.z);
 				Test(q0, q1, c, 3);
 				glVertex3f(c.x, 1, c.z);
 				Test(q1, q0, c, 3);
 				glVertex3f(c.x, 1, c.z);
-				glEnd();
+				glEnd();*/
 			}
-			else{
-				glBegin(GL_QUADS);
+			else {
+				/*glBegin(GL_QUADS);
 				glVertex3f(q0.x, 1, q0.z);
 				glVertex3f(q1.x, 1, q1.z);
 				Test1(q0, q1, c, 3);
 				glVertex3f(c.x, 1, c.z);
 				Test1(q1, q0, c, 3);
 				glVertex3f(c.x, 1, c.z);
-				glEnd();
+				glEnd();*/
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q1.x);
+				vertexs.push_back(q1.z);
+				vertexs.push_back(0.0f);
+				Test1(q0, q1, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				//
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				Test1(q1, q0, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(0);
 			}
 			//left
 			if (!doingShadows) {
 				glColor3ub(0, 255, 0);
 			}
-			if(q0.x<q1.x){
+			if (q0.x < q1.x) {
 				glBegin(GL_QUADS);
 				glVertex3f(q1.x, 1, q1.z);
 				Test1(q0, q1, c, 5);
 				glVertex3f(c.x, 1, c.z);
-				Test1(q1, q0, c,5);
+				Test1(q1, q0, c, 5);
 				glVertex3f(c.x, 1, c.z);
 				glVertex3f(q0.x, 1, q0.z);
 				glEnd();
 			}
-			else{
+			else {
 				glBegin(GL_QUADS);
 				glVertex3f(q1.x, 1, q1.z);
 				Test(q0, q1, c, 5);
@@ -501,10 +548,10 @@ void TrainView::drawStuff(bool doingShadows)
 				glVertex3f(q0.x, 1, q0.z);
 				glEnd();
 			}
-			
+
 		}
 	}
-	
+
 	// #define PI 3.1415926
 	// float H = 30, W = 30;
 	// float L = sqrt(H * H + W * W);
@@ -514,7 +561,7 @@ void TrainView::drawStuff(bool doingShadows)
 	// std::cout << "sita:" << sita << "\n";
 	// float R = L / sin(a);
 	// std::cout << "R:" << R << "\n";
-	
+
 	// float mega = PI / 2 + sita - a;
 	// float max = atan2(H - R * sin(mega), W - R * cos(mega));
 	// float min = atan2(-R * sin(mega), -R * cos(mega));
@@ -555,23 +602,71 @@ void TrainView::drawStuff(bool doingShadows)
 	// 	glVertex3f(W, H, 0);
 	// glEnd();
 
-		
+	Shader ourShader("../src/Shaders/vertex.vs", "../src/Shaders/fragment.fs"); 
+
+	float vertices[] = {
+	10.0f, 10.0f, 0.0f, 1.0f,0.0f,0.0f,
+	-10.0f, 10.0f, 0.0f, 0.0f,1.0f,0.0f,
+	10.0f,-10.0f, 0.0f, 0.0f,0.0f,1.0f,
+	};
+
+	unsigned int VBO, VAO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	// uncomment this call to draw in wireframe polygons.
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	// create transformations
+    
+	ourShader.use();
+
+	glm::mat4 view;
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+
+	glm::mat4 projection;
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+	glm::mat4 model = glm::mat4(1.0f);
+
+	// pass transformation matrices to the shader
+	ourShader.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+	ourShader.setMat4("view", view);
+	ourShader.setMat4("model", model);
+
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
+	// optional: de-allocate all resources once they've outlived their purpose:
+	// ------------------------------------------------------------------------
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glUseProgram(0);
 #ifdef EXAMPLE_SOLUTION
-	drawTrack(this, doingShadows);
+		drawTrack(this, doingShadows);
 #endif
 
-	// draw the train
-	//####################################################################
-	// TODO: 
-	//	call your own train drawing code
-	//####################################################################
+		// draw the train
+		//####################################################################
+		// TODO: 
+		//	call your own train drawing code
+		//####################################################################
 #ifdef EXAMPLE_SOLUTION
 	// don't draw the train if you're looking out the front window
-	if (!tw->trainCam->value())
-		drawTrain(this, doingShadows);
+		if (!tw->trainCam->value())
+			drawTrain(this, doingShadows);
 #endif
 }
-
 // 
 //************************************************************************
 //
