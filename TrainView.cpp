@@ -42,12 +42,49 @@
 #	include "TrainExample/TrainExample.H"
 #endif
 
+using namespace std;
+
 Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 	Pnt3f q0;
 	q0.x  = pow(1-t,3) * p1.x + 3*t * pow(1-t,2) * p2.x + 3*t*t*(1-t)* p3.x + t*t*t *p4.x;
 	q0.y  = pow(1-t,3) * p1.y + 3*t * pow(1-t,2) * p2.y + 3*t*t*(1-t)* p3.y + t*t*t *p4.y;
 	q0.z  = pow(1-t,3) * p1.z + 3*t * pow(1-t,2) * p2.z + 3*t*t*(1-t)* p3.z + t*t*t *p4.z;
 	return q0;
+}
+void Test(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
+	bool t = false;
+	float m = (B.z - A.z) / (B.x - A.x);
+	float _m = -1 / m;
+	float bb = (_m * B.x) - B.z;
+	float a = _m , b = -1, c = bb;
+	float d = m, e = -1, f = -length*sqrt(m*m+1) + (m * B.x - B.z);
+
+
+	float det = -_m + m;
+	C.x = (c * e - b * f) / det;
+	C.z = (-d * c + a * f) / det;
+
+}
+void Test1(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
+	bool t = false;
+	float m = (B.z - A.z) / (B.x - A.x);
+	float _m = -1 / m;
+	float bb = (_m * B.x) - B.z;
+	float a = _m , b = -1, c = bb;
+	float d = m, e = -1, f = length*sqrt(m*m+1) + (m * B.x - B.z);
+
+	float det = -_m + m;
+	C.x = (c * e - b * f) / det;
+	C.z = (-d * c + a * f) / det;
+
+	
+	// double tmpx = (A.x - B.x) / (A.z - B.z) * (C.z - B.z) + B.x;
+	// if (B.x<A.x) {
+	// 	f = + length*sqrt(m*m+1) + (m * B.x - B.z);
+	// 	float det = -_m + m;
+	// 	C.x = (c * e - b * f) / det;
+	// 	C.z = (-d * c + a * f) / det;
+	// }
 }
 //************************************************************************
 //
@@ -404,6 +441,7 @@ void TrainView::drawStuff(bool doingShadows)
 		ControlPoint p2 = Curves[i].points[1];
 		ControlPoint p3 = Curves[i].points[2];
 		ControlPoint p4 = Curves[i].points[3];
+		Pnt3f c;
 		for (int j = 0; j < 100; j++) {
 			Pnt3f q0 = GMT(p1.pos, p2.pos, p3.pos,p4.pos ,t);
 			Pnt3f q1 = GMT(p1.pos, p2.pos, p3.pos,p4.pos ,t += 0.01);
@@ -411,11 +449,62 @@ void TrainView::drawStuff(bool doingShadows)
 			if (!doingShadows) {
 				glColor3ub(0, 255, 0);
 			}
-			glVertex3f(q0.x,q0.y,q0.z);
-			glVertex3f(q1.x,q1.y,q1.z);
+			glVertex3f(q0.x,0,q0.z);
+			glVertex3f(q1.x,0,q1.z);
 			glEnd();
+			if (!doingShadows) {
+				glColor3ub(255, 0, 0);
+			}
+			float d = rand()%5+5;
+			//right
+			if(q0.x<q1.x){
+				glBegin(GL_QUADS);
+				glVertex3f(q0.x, 1, q0.z);
+				glVertex3f(q1.x, 1, q1.z);
+				Test(q0, q1, c, 3);
+				glVertex3f(c.x, 1, c.z);
+				Test(q1, q0, c, 3);
+				glVertex3f(c.x, 1, c.z);
+				glEnd();
+			}
+			else{
+				glBegin(GL_QUADS);
+				glVertex3f(q0.x, 1, q0.z);
+				glVertex3f(q1.x, 1, q1.z);
+				Test1(q0, q1, c, 3);
+				glVertex3f(c.x, 1, c.z);
+				Test1(q1, q0, c, 3);
+				glVertex3f(c.x, 1, c.z);
+				glEnd();
+			}
+			//left
+			if (!doingShadows) {
+				glColor3ub(0, 255, 0);
+			}
+			if(q0.x<q1.x){
+				glBegin(GL_QUADS);
+				glVertex3f(q1.x, 1, q1.z);
+				Test1(q0, q1, c, 5);
+				glVertex3f(c.x, 1, c.z);
+				Test1(q1, q0, c,5);
+				glVertex3f(c.x, 1, c.z);
+				glVertex3f(q0.x, 1, q0.z);
+				glEnd();
+			}
+			else{
+				glBegin(GL_QUADS);
+				glVertex3f(q1.x, 1, q1.z);
+				Test(q0, q1, c, 5);
+				glVertex3f(c.x, 1, c.z);
+				Test(q1, q0, c, 5);
+				glVertex3f(c.x, 1, c.z);
+				glVertex3f(q0.x, 1, q0.z);
+				glEnd();
+			}
+			
 		}
 	}
+	
 	// #define PI 3.1415926
 	// float H = 30, W = 30;
 	// float L = sqrt(H * H + W * W);
