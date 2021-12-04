@@ -104,7 +104,7 @@ TrainView(int x, int y, int w, int h, const char* l)
 	resetArcball();
 
 	//Test//
-	//Curves.push_back(Curve());
+	Curves.push_back(Curve());
 	//Curves.push_back(Curve());
 }
 
@@ -338,7 +338,7 @@ void TrainView::draw()
 
 	// this time drawing is for shadows (except for top view)
 	if (!tw->topCam->value()) {
-		setupShadows();
+		//setupShadows();
 		drawStuff(true);
 		unsetupShadows();
 	}
@@ -529,24 +529,66 @@ void TrainView::drawStuff(bool doingShadows)
 				glColor3ub(0, 255, 0);
 			}
 			if (q0.x < q1.x) {
-				glBegin(GL_QUADS);
-				glVertex3f(q1.x, 1, q1.z);
-				Test1(q0, q1, c, 5);
-				glVertex3f(c.x, 1, c.z);
-				Test1(q1, q0, c, 5);
-				glVertex3f(c.x, 1, c.z);
-				glVertex3f(q0.x, 1, q0.z);
-				glEnd();
+				// glBegin(GL_QUADS);
+				// glVertex3f(q1.x, 1, q1.z);
+				// Test1(q0, q1, c, 5);
+				// glVertex3f(c.x, 1, c.z);
+				// Test1(q1, q0, c, 5);
+				// glVertex3f(c.x, 1, c.z);
+				// glVertex3f(q0.x, 1, q0.z);
+				// glEnd();
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q1.x);
+				vertexs.push_back(q1.z);
+				vertexs.push_back(0.0f);
+				Test1(q0, q1, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				//
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				Test1(q1, q0, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(0);
 			}
 			else {
-				glBegin(GL_QUADS);
-				glVertex3f(q1.x, 1, q1.z);
-				Test(q0, q1, c, 5);
-				glVertex3f(c.x, 1, c.z);
-				Test(q1, q0, c, 5);
-				glVertex3f(c.x, 1, c.z);
-				glVertex3f(q0.x, 1, q0.z);
-				glEnd();
+				// glBegin(GL_QUADS);
+				// glVertex3f(q1.x, 1, q1.z);
+				// Test(q0, q1, c, 5);
+				// glVertex3f(c.x, 1, c.z);
+				// Test(q1, q0, c, 5);
+				// glVertex3f(c.x, 1, c.z);
+				// glVertex3f(q0.x, 1, q0.z);
+				// glEnd();
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q1.x);
+				vertexs.push_back(q1.z);
+				vertexs.push_back(0.0f);
+				Test(q0, q1, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				//
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q1.y);
+				Test(q1, q0, c, 3);
+				vertexs.push_back(c.x);
+				vertexs.push_back(c.z);
+				vertexs.push_back(q0.y);
+				vertexs.push_back(q0.x);
+				vertexs.push_back(q0.z);
+				vertexs.push_back(0);
 			}
 
 		}
@@ -610,6 +652,13 @@ void TrainView::drawStuff(bool doingShadows)
 	10.0f,-10.0f, 0.0f, 0.0f,0.0f,1.0f,
 	};
 
+	vector<float> vertices1 = {
+	10.0f, 10.0f, 0.0f, 1.0f,0.0f,0.0f,
+	-10.0f, 10.0f, 0.0f, 0.0f,1.0f,0.0f,
+	10.0f,-10.0f, 0.0f, 0.0f,0.0f,1.0f,
+	};
+
+
 	unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -617,13 +666,13 @@ void TrainView::drawStuff(bool doingShadows)
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexs.size(), &vertexs[0], GL_DYNAMIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	/*glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);*/
 	// uncomment this call to draw in wireframe polygons.
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -644,7 +693,7 @@ void TrainView::drawStuff(bool doingShadows)
 	ourShader.setMat4("model", model);
 
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, vertexs.size());
 
 
 	// optional: de-allocate all resources once they've outlived their purpose:
