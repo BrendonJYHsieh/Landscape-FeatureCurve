@@ -324,7 +324,7 @@ void TrainView::draw()
 
 	setupFloor();
 	glDisable(GL_LIGHTING);
-	drawFloor(200,200);
+	//drawFloor(200,200);
 
 
 	//*********************************************************************
@@ -468,7 +468,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q1.x);
 				vertexs.push_back(q1.z);
-				vertexs.push_back(0.0f);
+				vertexs.push_back(q1.y);
 				Test(q0, q1, c, 3);
 				vertexs.push_back(c.x);
 				vertexs.push_back(c.z);
@@ -483,7 +483,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
-				vertexs.push_back(0);
+				vertexs.push_back(q0.y);
 				/*glBegin(GL_QUADS);
 				glVertex3f(q0.x, 1, q0.z);
 				glVertex3f(q1.x, 1, q1.z);
@@ -507,7 +507,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q1.x);
 				vertexs.push_back(q1.z);
-				vertexs.push_back(0.0f);
+				vertexs.push_back(q1.y);
 				Test1(q0, q1, c, 3);
 				vertexs.push_back(c.x);
 				vertexs.push_back(c.z);
@@ -522,7 +522,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
-				vertexs.push_back(0);
+				vertexs.push_back(q0.y);
 			}
 			//left
 			if (!doingShadows) {
@@ -542,7 +542,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q1.x);
 				vertexs.push_back(q1.z);
-				vertexs.push_back(0.0f);
+				vertexs.push_back(q1.y);
 				Test1(q0, q1, c, 3);
 				vertexs.push_back(c.x);
 				vertexs.push_back(c.z);
@@ -557,7 +557,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
-				vertexs.push_back(0);
+				vertexs.push_back(q0.y);
 			}
 			else {
 				// glBegin(GL_QUADS);
@@ -573,7 +573,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q1.x);
 				vertexs.push_back(q1.z);
-				vertexs.push_back(0.0f);
+				vertexs.push_back(q1.y);
 				Test(q0, q1, c, 3);
 				vertexs.push_back(c.x);
 				vertexs.push_back(c.z);
@@ -588,7 +588,7 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
-				vertexs.push_back(0);
+				vertexs.push_back(q0.y);
 			}
 
 		}
@@ -732,7 +732,6 @@ void TrainView::
 doPick()
 //========================================================================
 {
-	std::cout<<"do pick\n";
 	// since we'll need to do some GL stuff so we make this window as 
 	// active window
 	make_current();		
