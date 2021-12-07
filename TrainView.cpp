@@ -356,7 +356,7 @@ setProjection()
 //========================================================================
 {
 	// Compute the aspect ratio (we'll need it)
-	float aspect = static_cast<float>(w()) / static_cast<float>(h());
+	float aspect = (static_cast<float>(w()) / static_cast<float>(h()));
 
 	// Check whether we use the world camp
 	if (tw->worldCam->value())
@@ -372,11 +372,13 @@ setProjection()
 			he = 100;
 			wi = he * aspect;
 		}*/
-		if (static_cast<float>(w()) / static_cast<float>(h()) >= 1) {
-			he = 100 / static_cast<float>(w()) / static_cast<float>(h());
+		if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
+			wi = 100;
+			he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
 		}
 		else {
-			wi = 100 * static_cast<float>(w()) / static_cast<float>(h());
+			he = 100;
+			wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
 		}
 		// Set up the top camera drop mode to be orthogonal and set
 		// up proper projection matrix
@@ -386,16 +388,6 @@ setProjection()
 		glLoadIdentity();
 		glRotatef(-90,1,0,0);
 	} 
-	// Or do the train view or other view here
-	//####################################################################
-	// TODO: 
-	// put code for train view projection here!	
-	//####################################################################
-	else {
-#ifdef EXAMPLE_SOLUTION
-		trainCamView(this,aspect);
-#endif
-	}
 }
 
 //************************************************************************
@@ -466,7 +458,6 @@ void TrainView::drawStuff(bool doingShadows)
 			if (!doingShadows) {
 				glColor3ub(255, 0, 0);
 			}
-			float d = rand() % 5 + 5;
 			//right
 			if (q0.x < q1.x) {
 				vertexs.push_back(q0.x);
@@ -564,7 +555,6 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.z);
 				vertexs.push_back(q0.y);
 			}
-
 		}
 	}
 
@@ -590,7 +580,8 @@ void TrainView::drawStuff(bool doingShadows)
 				"../src/Shaders/screen.vs",
 				nullptr, nullptr, nullptr,
 				"../src/Shaders/screen.fs");
-		
+	}
+	if (1) {
 		glGenFramebuffers(1, &this->framebuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 		// create a color attachment texture
@@ -609,7 +600,6 @@ void TrainView::drawStuff(bool doingShadows)
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	}
-
 	glm::mat4 view;
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 
@@ -646,30 +636,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-   
-
-
-	/*glViewport(0, 0, w(), h());
-	glClearStencil(0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glEnable(GL_DEPTH);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	float wi=0, he=0;
-	if (static_cast<float>(w()) / static_cast<float>(h()) >= 1) {
-		he = 100 / static_cast<float>(w()) / static_cast<float>(h());
-	}
-	else {
-		wi = 100 * static_cast<float>(w()) / static_cast<float>(h());
-	}
-	glOrtho(-wi, wi, -he, he, 200, -200);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(-90, 1, 0, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);*/
-
 	// render
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
@@ -678,10 +644,32 @@ void TrainView::drawStuff(bool doingShadows)
 	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+
 	//Curve
 	elevation_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
-	// pass transformation matrices to the shader
+
+	
+	float wi, he;
+	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
+		wi = 100;
+		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+	else {
+		he = 100;
+		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-wi, wi, -he, he, 200, -200);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glRotatef(-90, 1, 0, 0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
@@ -712,7 +700,13 @@ void TrainView::drawStuff(bool doingShadows)
 	screen_shader->Use();
 	glm::mat4 trans1 = glm::mat4(1.0f);
 	trans1 = glm::scale(trans1, glm::vec3(100, 0, 100));
-	// pass transformation matrices to the shader
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	setProjection();
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans1[0][0]);
@@ -725,6 +719,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
 	glDeleteFramebuffers(1, &framebuffer);
+	glDeleteTextures(1, &textureColorbuffer);
+	glDeleteRenderbuffers(1, &rbo);
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {
@@ -770,25 +766,8 @@ void TrainView::drawStuff(bool doingShadows)
 			glVertex3f(q0.x, q0.y, q0.z);
 			glVertex3f(q1.x, q1.y, q1.z);
 			glEnd();
-			if (!doingShadows) {
-				glColor3ub(255, 0, 0);
-			}
 		}
 	}
-#ifdef EXAMPLE_SOLUTION
-		drawTrack(this, doingShadows);
-#endif
-
-		// draw the train
-		//####################################################################
-		// TODO: 
-		//	call your own train drawing code
-		//####################################################################
-#ifdef EXAMPLE_SOLUTION
-	// don't draw the train if you're looking out the front window
-		if (!tw->trainCam->value())
-			drawTrain(this, doingShadows);
-#endif
 }
 // 
 //************************************************************************
