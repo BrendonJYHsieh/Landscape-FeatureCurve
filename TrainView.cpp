@@ -608,7 +608,6 @@ void TrainView::drawStuff(bool doingShadows)
 		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
 	glm::mat4 view;
@@ -672,14 +671,12 @@ void TrainView::drawStuff(bool doingShadows)
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);*/
 
 	// render
-		// ------
-		// bind to framebuffer and draw scene as we normally would to color texture 
-	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
-	//// make sure we clear the framebuffer's content
-	//glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// make sure we clear the framebuffer's content
+	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Curve
 	elevation_shader->Use();
@@ -706,40 +703,78 @@ void TrainView::drawStuff(bool doingShadows)
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 	// clear all relevant buffers
-	//glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
-	//glClear(GL_COLOR_BUFFER_BIT);
-
-	//glViewport(0, 0, w(), h());
-	//glClearStencil(0);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	//glEnable(GL_DEPTH);
-	//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//setProjection();
-	//glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	//glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	//screen
-	//screen_shader->Use();
-	//glm::mat4 trans1 = glm::mat4(1.0f);
-	//trans1 = glm::scale(trans1, glm::vec3(100, 0, 100));
-	//// pass transformation matrices to the shader
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans1[0][0]);
-	//glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 0);
-	//
-	//glBindVertexArray(VAO[1]);
-	//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	screen_shader->Use();
+	glm::mat4 trans1 = glm::mat4(1.0f);
+	trans1 = glm::scale(trans1, glm::vec3(100, 0, 100));
+	// pass transformation matrices to the shader
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans1[0][0]);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 0);
+	
+	glBindVertexArray(VAO[1]);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
 	glDeleteFramebuffers(1, &framebuffer);
 	glUseProgram(0);
+
+	if (!tw->trainCam->value()) {
+		int ii = 0;
+		int temp = selectedCube;
+		for (ii = 0; ii < Curves.size(); ii++) {
+			if (temp <= Curves[ii].points.size() - 1) {
+				break;
+			}
+			else {
+				temp -= Curves[ii].points.size();
+			}
+		}
+		SelectedCurve = ii;
+		SelectedNode = temp;
+		for (int i = 0; i < Curves.size(); i++) {
+			for (int j = 0; j < Curves[i].points.size(); j++) {
+				if (SelectedCurve == i && j == SelectedNode)
+					glColor3ub(240, 240, 30);
+				else
+					glColor3ub(240, 60, 60);
+				Curves[i].points[j].draw();
+			}
+		}
+		}
+	// draw the track
+	//####################################################################
+	// TODO: 
+	// call your own track drawing code
+	//####################################################################
+	for (int i = 0; i < Curves.size(); i++) {
+		float t = 0;
+		ControlPoint p1 = Curves[i].points[0];
+		ControlPoint p2 = Curves[i].points[1];
+		ControlPoint p3 = Curves[i].points[2];
+		ControlPoint p4 = Curves[i].points[3];
+		Pnt3f c;
+		for (int j = 0; j < 100; j++) {
+			Pnt3f q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
+			Pnt3f q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 0.01);
+			glBegin(GL_LINES);
+			glColor3ub(0, 255, 0);
+			glVertex3f(q0.x, q0.y, q0.z);
+			glVertex3f(q1.x, q1.y, q1.z);
+			glEnd();
+			if (!doingShadows) {
+				glColor3ub(255, 0, 0);
+			}
+		}
+	}
 #ifdef EXAMPLE_SOLUTION
 		drawTrack(this, doingShadows);
 #endif
