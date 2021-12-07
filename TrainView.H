@@ -46,11 +46,11 @@ class CTrack;
 #pragma warning(disable:4311)
 #include <Fl/Fl_Gl_Window.h>
 #pragma warning(pop)
-
+#include "RenderUtilities/Texture.h"
 // this uses the old ArcBall Code
 #include "Utilities/ArcBallCam.H"
 #include "Curve.h"
-
+#include "RenderUtilities/Shader.h"
 class TrainView : public Fl_Gl_Window
 {
 	public:
@@ -85,4 +85,14 @@ class TrainView : public Fl_Gl_Window
 		vector<Curve>   Curves;
 		int 			SelectedCurve;
 		int 			SelectedNode;
+
+		Shader* elevation_shader = nullptr;
+		Shader* background_shader = nullptr;
+		Shader* screen_shader = nullptr;
+
+		Texture2D* background_texture = nullptr;
+
+		unsigned int framebuffer;
+		unsigned int textureColorbuffer;
+		unsigned int rbo;
 };

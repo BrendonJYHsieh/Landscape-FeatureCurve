@@ -33,15 +33,16 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/ext.hpp>
 #include "GL/glu.h"
 #include <math.h>
 #include "TrainView.H"
 #include "TrainWindow.H"
 #include "Utilities/3DUtils.H"
-
-//
-#include "Shader.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "RenderUtilities/stb_image.h"
+#include "RenderUtilities/Texture.h"
 #ifdef EXAMPLE_SOLUTION
 #	include "TrainExample/TrainExample.H"
 #endif
@@ -363,18 +364,23 @@ setProjection()
 	// Or we use the top cam
 	else if (tw->topCam->value()) {
 		float wi, he;
-		if (aspect >= 1) {
-			wi = 110;
+		/*if (aspect >= 1) {
+			wi = 100;
 			he = wi / aspect;
 		} 
 		else {
-			he = 110;
+			he = 100;
 			wi = he * aspect;
+		}*/
+		if (static_cast<float>(w()) / static_cast<float>(h()) >= 1) {
+			he = 100 / static_cast<float>(w()) / static_cast<float>(h());
 		}
-
+		else {
+			wi = 100 * static_cast<float>(w()) / static_cast<float>(h());
+		}
 		// Set up the top camera drop mode to be orthogonal and set
 		// up proper projection matrix
-		glMatrixMode(GL_PROJECTION);
+		//glMatrixMode(GL_PROJECTION);
 		glOrtho(-wi, wi, -he, he, 200, -200);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -484,24 +490,8 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
 				vertexs.push_back(q0.y);
-				/*glBegin(GL_QUADS);
-				glVertex3f(q0.x, 1, q0.z);
-				glVertex3f(q1.x, 1, q1.z);
-				Test(q0, q1, c, 3);
-				glVertex3f(c.x, 1, c.z);
-				Test(q1, q0, c, 3);
-				glVertex3f(c.x, 1, c.z);
-				glEnd();*/
 			}
 			else {
-				/*glBegin(GL_QUADS);
-				glVertex3f(q0.x, 1, q0.z);
-				glVertex3f(q1.x, 1, q1.z);
-				Test1(q0, q1, c, 3);
-				glVertex3f(c.x, 1, c.z);
-				Test1(q1, q0, c, 3);
-				glVertex3f(c.x, 1, c.z);
-				glEnd();*/
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
 				vertexs.push_back(q0.y);
@@ -529,14 +519,6 @@ void TrainView::drawStuff(bool doingShadows)
 				glColor3ub(0, 255, 0);
 			}
 			if (q0.x < q1.x) {
-				// glBegin(GL_QUADS);
-				// glVertex3f(q1.x, 1, q1.z);
-				// Test1(q0, q1, c, 5);
-				// glVertex3f(c.x, 1, c.z);
-				// Test1(q1, q0, c, 5);
-				// glVertex3f(c.x, 1, c.z);
-				// glVertex3f(q0.x, 1, q0.z);
-				// glEnd();
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
 				vertexs.push_back(q0.y);
@@ -560,14 +542,6 @@ void TrainView::drawStuff(bool doingShadows)
 				vertexs.push_back(q0.y);
 			}
 			else {
-				// glBegin(GL_QUADS);
-				// glVertex3f(q1.x, 1, q1.z);
-				// Test(q0, q1, c, 5);
-				// glVertex3f(c.x, 1, c.z);
-				// Test(q1, q0, c, 5);
-				// glVertex3f(c.x, 1, c.z);
-				// glVertex3f(q0.x, 1, q0.z);
-				// glEnd();
 				vertexs.push_back(q0.x);
 				vertexs.push_back(q0.z);
 				vertexs.push_back(q0.y);
@@ -594,112 +568,177 @@ void TrainView::drawStuff(bool doingShadows)
 		}
 	}
 
-	// #define PI 3.1415926
-	// float H = 30, W = 30;
-	// float L = sqrt(H * H + W * W);
-	// float sita = acos((L * L + W * W - H * H) / (4 * L * W));
-	// float a = acos((L * L + W * W - H * H) / (2 * L * W));
-	// std::cout << "a:" << a << "\n";
-	// std::cout << "sita:" << sita << "\n";
-	// float R = L / sin(a);
-	// std::cout << "R:" << R << "\n";
+	if (!this->elevation_shader) {
+			this->elevation_shader = new
+				Shader(
+					"../src/Shaders/elevation.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/elevation.fs");
+	}
 
-	// float mega = PI / 2 + sita - a;
-	// float max = atan2(H - R * sin(mega), W - R * cos(mega));
-	// float min = atan2(-R * sin(mega), -R * cos(mega));
-	// std::cout << "Max:" << max << "\n";
-	// std::cout << "Min:" << min << "\n";
-	// float divide = 100;
-	// float interval = (max - min) / divide;
-	// if (!doingShadows)
-	// glColor3ub(240, 60, 60);
+	if (!this->background_shader) {
+			this->background_shader = new
+				Shader(
+					"../src/Shaders/background.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/background.fs");
+	}
 
-	// float temp = min;
-	// glBegin(GL_LINES);
-	// for (int i = 0; i < divide; i++) {
-	// 	float x = R * (cos(mega) + cos(temp));
-	// 	float y = R * (sin(mega) + sin(temp));
-	// 	std::cout << "X:" << x << " Y:" << y << "\n";
-	// 	temp += interval;
-	// 	glVertex3f(x, y , 0);
-	// }
-	// glEnd();
-
-	// std::cout << "Temp:" << temp << "\n";
-	// temp = min;
-	// glBegin(GL_LINES);
-	// for (int i = 0; i < divide; i++) {
-	// 	float x = R * (cos(mega) + cos(temp))-2*W;
-	// 	float y = R * (sin(mega) + sin(temp));
-	// 	//std::cout << "X:" << x << " Y:" << y << "\n";
-	// 	temp += interval;
-	// 	glVertex3f(-x, y, 0);
-	// }
-	// glEnd();
-
-	// glBegin(GL_LINES);
-	// 	glVertex3f(0, 0.1, 0);
-	// 	glVertex3f(W, 0.1, 0);
-	// 	glVertex3f(W, 0.1, 0);
-	// 	glVertex3f(W, H, 0);
-	// glEnd();
-
-	Shader ourShader("../src/Shaders/vertex.vs", "../src/Shaders/fragment.fs"); 
-
-	float vertices[] = {
-	10.0f, 10.0f, 0.0f, 1.0f,0.0f,0.0f,
-	-10.0f, 10.0f, 0.0f, 0.0f,1.0f,0.0f,
-	10.0f,-10.0f, 0.0f, 0.0f,0.0f,1.0f,
-	};
-
-	vector<float> vertices1 = {
-	10.0f, 10.0f, 0.0f, 1.0f,0.0f,0.0f,
-	-10.0f, 10.0f, 0.0f, 0.0f,1.0f,0.0f,
-	10.0f,-10.0f, 0.0f, 0.0f,0.0f,1.0f,
-	};
-
-
-	unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexs.size(), &vertexs[0], GL_DYNAMIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	/*glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);*/
-	// uncomment this call to draw in wireframe polygons.
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	// create transformations
-    
-	ourShader.use();
+	if (!this->screen_shader) {
+		this->screen_shader = new
+			Shader(
+				"../src/Shaders/screen.vs",
+				nullptr, nullptr, nullptr,
+				"../src/Shaders/screen.fs");
+		
+		glGenFramebuffers(1, &this->framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
+		// create a color attachment texture
+		glGenTextures(1, &textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->pixel_w(), this->pixel_h(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+		// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+		glGenRenderbuffers(1, &rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->pixel_w(), this->pixel_h()); // use a single renderbuffer object for both a depth AND stencil buffer.
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 
 	glm::mat4 view;
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 
 	glm::mat4 projection;
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
+	float vertices[] = {
+    // positions                          // texture coords
+     1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
+     1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
+	-1.0f,  1.0f, 0.0f,     0.0f, 1.0f,    // top left 
+	 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
+    -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
+    -1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
+	};
+
+
+	unsigned int VBO[2], VAO[2];
+    glGenVertexArrays(2, VAO);
+    glGenBuffers(2, VBO);
+
+    //Curve
+    glBindVertexArray(VAO[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexs.size(), &vertexs[0], GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	//Ground
+	glBindVertexArray(VAO[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+   
+
+
+	/*glViewport(0, 0, w(), h());
+	glClearStencil(0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glEnable(GL_DEPTH);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	float wi=0, he=0;
+	if (static_cast<float>(w()) / static_cast<float>(h()) >= 1) {
+		he = 100 / static_cast<float>(w()) / static_cast<float>(h());
+	}
+	else {
+		wi = 100 * static_cast<float>(w()) / static_cast<float>(h());
+	}
+	glOrtho(-wi, wi, -he, he, 200, -200);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glRotatef(-90, 1, 0, 0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);*/
+
+	// render
+		// ------
+		// bind to framebuffer and draw scene as we normally would to color texture 
+	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	//glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+
+	//// make sure we clear the framebuffer's content
+	//glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Curve
+	elevation_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
-
 	// pass transformation matrices to the shader
-	ourShader.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-	ourShader.setMat4("view", view);
-	ourShader.setMat4("model", model);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
-	glBindVertexArray(VAO);
+	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexs.size());
 
+	//Ground
+	background_shader->Use();
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::scale(trans, glm::vec3(100, 0, 100));
+	// pass transformation matrices to the shader
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
 
-	// optional: de-allocate all resources once they've outlived their purpose:
-	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+	glBindVertexArray(VAO[1]);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+	// clear all relevant buffers
+	//glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	//glClear(GL_COLOR_BUFFER_BIT);
+
+	//glViewport(0, 0, w(), h());
+	//glClearStencil(0);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	//glEnable(GL_DEPTH);
+	//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	//setProjection();
+	//glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	//glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
+	//screen
+	//screen_shader->Use();
+	//glm::mat4 trans1 = glm::mat4(1.0f);
+	//trans1 = glm::scale(trans1, glm::vec3(100, 0, 100));
+	//// pass transformation matrices to the shader
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans1[0][0]);
+	//glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 0);
+	//
+	//glBindVertexArray(VAO[1]);
+	//glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDeleteVertexArrays(2, VAO);
+	glDeleteBuffers(2, VBO);
+	glDeleteFramebuffers(1, &framebuffer);
 	glUseProgram(0);
 #ifdef EXAMPLE_SOLUTION
 		drawTrack(this, doingShadows);
