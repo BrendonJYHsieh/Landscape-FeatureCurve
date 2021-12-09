@@ -62,7 +62,6 @@ void Intersect(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
 	float _m = -1 / m;
 	float bb = (_m * B.x) - B.z;
 	float a = _m , b = -1, c = bb;
-	float d = m, e = -1, f = -length*sqrt(m*m+1) + (m * B.x - B.z);
 	float d = m, e = -1, f = -length * sqrt(m*m+1) + (m * B.x - B.z);
 
 	float det = -_m + m;
