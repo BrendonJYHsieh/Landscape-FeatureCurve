@@ -56,21 +56,20 @@ Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 	q0.z  = pow(1-t,3) * p1.z + 3*t * pow(1-t,2) * p2.z + 3*t*t*(1-t)* p3.z + t*t*t *p4.z;
 	return q0;
 }
-void Test(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
+void Intersect(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
 	bool t = false;
 	float m = (B.z - A.z) / (B.x - A.x);
 	float _m = -1 / m;
 	float bb = (_m * B.x) - B.z;
 	float a = _m , b = -1, c = bb;
 	float d = m, e = -1, f = -length*sqrt(m*m+1) + (m * B.x - B.z);
-
+	float d = m, e = -1, f = -length * sqrt(m*m+1) + (m * B.x - B.z);
 
 	float det = -_m + m;
 	C.x = (c * e - b * f) / det;
 	C.z = (-d * c + a * f) / det;
-
 }
-void Test1(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
+void _Intersect(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
 	bool t = false;
 	float m = (B.z - A.z) / (B.x - A.x);
 	float _m = -1 / m;
@@ -81,15 +80,117 @@ void Test1(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
 	float det = -_m + m;
 	C.x = (c * e - b * f) / det;
 	C.z = (-d * c + a * f) / det;
+}
 
+void TrainView::draw_elevation_map() {
+	float vertices[] = {
+		// positions                          // texture coords
+		 1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
+		 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
+		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f,    // top left 
+		 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
+		-1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
+		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
+	};
+
+	glGenFramebuffers(1, &this->framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
+	// create a color attachment texture
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->pixel_w(), this->pixel_h(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->pixel_w(), this->pixel_h()); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	
-	// double tmpx = (A.x - B.x) / (A.z - B.z) * (C.z - B.z) + B.x;
-	// if (B.x<A.x) {
-	// 	f = + length*sqrt(m*m+1) + (m * B.x - B.z);
-	// 	float det = -_m + m;
-	// 	C.x = (c * e - b * f) / det;
-	// 	C.z = (-d * c + a * f) / det;
-	// }
+	/*VAO*/
+	unsigned int VBO[2], VAO[2];
+    glGenVertexArrays(2, VAO);
+    glGenBuffers(2, VBO);
+
+    //Curve
+    glBindVertexArray(VAO[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	//Ground
+	glBindVertexArray(VAO[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	// render
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+
+	// make sure we clear the framebuffer's content
+	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Curve
+	elevation_shader->Use();
+	glm::mat4 model = glm::mat4(1.0f);
+	
+	float wi, he;
+	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
+		wi = 100;
+		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+	else {
+		he = 100;
+		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-wi, wi, -he, he, 200, -200);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glRotatef(-90, 1, 0, 0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
+
+	glBindVertexArray(VAO[0]);
+	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+
+	//Ground
+	background_shader->Use();
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::scale(trans, glm::vec3(100, 0, 100));
+	// pass transformation matrices to the shader
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
+
+	glBindVertexArray(VAO[1]);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+	// clear all relevant buffers
+	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glDeleteVertexArrays(2, VAO);
+	glDeleteBuffers(2, VBO);
+
 }
 //************************************************************************
 //
@@ -404,157 +505,121 @@ setProjection()
 //========================================================================
 void TrainView::drawStuff(bool doingShadows)
 {
-	// Draw the control points
-	// don't draw the control points if you're driving 
-	// (otherwise you get sea-sick as you drive through them)
-	if (!tw->trainCam->value()) {
-		int ii = 0;
-		int temp = selectedCube;
-		for (ii = 0; ii < Curves.size(); ii++) {
-			if (temp <= Curves[ii].points.size() - 1) {
-				break;
-			}
-			else {
-				temp -= Curves[ii].points.size();
-			}
-		}
-		SelectedCurve = ii;
-		SelectedNode = temp;
-		for (int i = 0; i < Curves.size(); i++) {
-			for (int j = 0; j < Curves[i].points.size(); j++) {
-				if (!doingShadows) {
-					if (SelectedCurve == i && j == SelectedNode)
-						glColor3ub(240, 240, 30);
-					else
-						glColor3ub(240, 60, 60);
-				}
-				Curves[i].points[j].draw();
-			}
-		}
-	}
-	// draw the track
-	//####################################################################
-	// TODO: 
-	// call your own track drawing code
-	//####################################################################
-	vector<float> vertexs;
+	elevation_intersections.clear();
 	for (int i = 0; i < Curves.size(); i++) {
 		float t = 0;
+		float divide = 500;
+		float interval = 0.001;
+		float count = 0;
 		ControlPoint p1 = Curves[i].points[0];
 		ControlPoint p2 = Curves[i].points[1];
 		ControlPoint p3 = Curves[i].points[2];
 		ControlPoint p4 = Curves[i].points[3];
 		Pnt3f c;
-		for (int j = 0; j < 100; j++) {
-			Pnt3f q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
-			Pnt3f q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 0.01);
-			glBegin(GL_LINES);
-			if (!doingShadows) {
-				glColor3ub(0, 255, 0);
-			}
-			glVertex3f(q0.x, q0.y, q0.z);
-			glVertex3f(q1.x, q1.y, q1.z);
-			glEnd();
-			if (!doingShadows) {
-				glColor3ub(255, 0, 0);
-			}
-			//right
-			if (q0.x < q1.x) {
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q1.x);
-				vertexs.push_back(q1.z);
-				vertexs.push_back(q1.y);
-				Test(q0, q1, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				//
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				Test(q1, q0, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-			}
-			else {
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q1.x);
-				vertexs.push_back(q1.z);
-				vertexs.push_back(q1.y);
-				Test1(q0, q1, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				//
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				Test1(q1, q0, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-			}
-			//left
-			if (!doingShadows) {
-				glColor3ub(0, 255, 0);
-			}
-			if (q0.x < q1.x) {
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q1.x);
-				vertexs.push_back(q1.z);
-				vertexs.push_back(q1.y);
-				Test1(q0, q1, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				//
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				Test1(q1, q0, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-			}
-			else {
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q1.x);
-				vertexs.push_back(q1.z);
-				vertexs.push_back(q1.y);
-				Test(q0, q1, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				//
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q1.y);
-				Test(q1, q0, c, 3);
-				vertexs.push_back(c.x);
-				vertexs.push_back(c.z);
-				vertexs.push_back(q0.y);
-				vertexs.push_back(q0.x);
-				vertexs.push_back(q0.z);
-				vertexs.push_back(q0.y);
-			}
+		for (int j = 0; j < divide; j++) {
+			Pnt3f Q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
+			Pnt3f Q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 1/divide);
+			
+			count += (Q1 - Q0).length2D();
+
+			if (count > interval) {
+				Pnt3f q0=Q0, q1=Q1;
+				count = 0;
+				//right
+				if (q0.x < q1.x) {
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q1.x);
+					elevation_intersections.push_back(q1.z);
+					elevation_intersections.push_back(q1.y);
+					Intersect(q0, q1, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					//
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					Intersect(q1, q0, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+				}
+				else {
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q1.x);
+					elevation_intersections.push_back(q1.z);
+					elevation_intersections.push_back(q1.y);
+					_Intersect(q0, q1, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					//
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					_Intersect(q1, q0, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+				}
+				//left
+				if (q0.x < q1.x) {
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q1.x);
+					elevation_intersections.push_back(q1.z);
+					elevation_intersections.push_back(q1.y);
+					_Intersect(q0, q1, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					//
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					_Intersect(q1, q0, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+				}
+				else {
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q1.x);
+					elevation_intersections.push_back(q1.z);
+					elevation_intersections.push_back(q1.y);
+					Intersect(q0, q1, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					//
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q1.y);
+					Intersect(q1, q0, c, 3);
+					elevation_intersections.push_back(c.x);
+					elevation_intersections.push_back(c.z);
+					elevation_intersections.push_back(q0.y);
+					elevation_intersections.push_back(q0.x);
+					elevation_intersections.push_back(q0.z);
+					elevation_intersections.push_back(q0.y);
+				}
+			}	
 		}
 	}
 
@@ -581,30 +646,6 @@ void TrainView::drawStuff(bool doingShadows)
 				nullptr, nullptr, nullptr,
 				"../src/Shaders/screen.fs");
 	}
-	if (1) {
-		glGenFramebuffers(1, &this->framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
-		// create a color attachment texture
-		glGenTextures(1, &textureColorbuffer);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->pixel_w(), this->pixel_h(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-		// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->pixel_w(), this->pixel_h()); // use a single renderbuffer object for both a depth AND stencil buffer.
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-	}
-	glm::mat4 view;
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-
-	glm::mat4 projection;
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
 	float vertices[] = {
     // positions                          // texture coords
@@ -616,7 +657,6 @@ void TrainView::drawStuff(bool doingShadows)
     -1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
 	};
 
-
 	unsigned int VBO[2], VAO[2];
     glGenVertexArrays(2, VAO);
     glGenBuffers(2, VBO);
@@ -624,7 +664,7 @@ void TrainView::drawStuff(bool doingShadows)
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexs.size(), &vertexs[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	//Ground
@@ -636,65 +676,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	// render
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-
-	// make sure we clear the framebuffer's content
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-	//Curve
-	elevation_shader->Use();
-	glm::mat4 model = glm::mat4(1.0f);
-
-	
-	float wi, he;
-	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
-		wi = 100;
-		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
-	}
-	else {
-		he = 100;
-		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
-	}
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-wi, wi, -he, he, 200, -200);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(-90, 1, 0, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
-
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
-
-	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexs.size());
-
-	//Ground
-	background_shader->Use();
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::scale(trans, glm::vec3(100, 0, 100));
-	// pass transformation matrices to the shader
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-	// clear all relevant buffers
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
-	glClear(GL_COLOR_BUFFER_BIT);
+	draw_elevation_map();
 
 	//screen
 	screen_shader->Use();

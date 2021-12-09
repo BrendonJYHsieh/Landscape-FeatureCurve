@@ -81,3 +81,6 @@ normalize()
 		z /= l;
 	}
 }
+float Pnt3f::length2D() {
+	return sqrtf(x * x  + z * z);
+}

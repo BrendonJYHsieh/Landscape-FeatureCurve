@@ -76,6 +76,7 @@ class TrainView : public Fl_Gl_Window
 		// pick a point (for when the mouse goes down)
 		void doPick();
 
+		void draw_elevation_map();
 	public:
 		ArcBallCam		arcball;			// keep an ArcBall for the UI
 		int				selectedCube = -1;  // simple - just remember which cube is selected
@@ -95,4 +96,8 @@ class TrainView : public Fl_Gl_Window
 		unsigned int framebuffer;
 		unsigned int textureColorbuffer;
 		unsigned int rbo;
+		vector<float> elevation_intersections;
+
+		glm::mat4 view;
+		glm::mat4 projection;
 };
