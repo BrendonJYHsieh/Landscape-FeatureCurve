@@ -97,6 +97,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer;
 		unsigned int rbo;
 		vector<float> elevation_intersections;
+		
 
 		glm::mat4 view;
 		glm::mat4 projection;

@@ -115,19 +115,27 @@ TrainWindow(const int x, const int y)
 		pty += 110;
 
 		// add and delete points
-		Fl_Button* ap = new Fl_Button(605,pty,80,20,"Add Point");
-		ap->callback((Fl_Callback*)addPointCB,this);
-		Fl_Button* dp = new Fl_Button(690,pty,80,20,"Delete Point");
-		dp->callback((Fl_Callback*)deletePointCB,this);
-
-		pty += 65;
-
-		// add and delete points
-		Fl_Button* ac = new Fl_Button(605,pty,80,20,"Add Curve");
+		Fl_Button* ac = new Fl_Button(600,pty,80,30,"Add Curve");
 		ac->callback((Fl_Callback*)addCurve,this);
-		Fl_Button* dc = new Fl_Button(690,pty,80,20,"Delete Curve");
+		Fl_Button* dc = new Fl_Button(690,pty,100,30,"Delete Curve");
 		dc->callback((Fl_Callback*)deleteCurve,this);
-		// pty += 25;
+
+		pty+=50;
+		segment = new Fl_Value_Slider(655,pty,140,20,"Segment");
+		segment->range(0,100000);
+		segment->value(100000);
+		segment->align(FL_ALIGN_LEFT);
+		segment->type(FL_HORIZONTAL);
+		segment->callback((Fl_Callback*)damageCB, this);
+
+		pty += 50;
+		interval = new Fl_Value_Slider(655, pty, 140, 20, "Interval");
+		interval->range(0.1, 1);
+		interval->value(0.1);
+		interval->align(FL_ALIGN_LEFT);
+		interval->type(FL_HORIZONTAL);
+		interval->callback((Fl_Callback*)damageCB, this);
+
 		// // reset the points
 		// resetButton = new Fl_Button(735,pty,60,20,"Reset");
 		// resetButton->callback((Fl_Callback*)resetCB,this);

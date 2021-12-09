@@ -15,7 +15,7 @@ class Curve
 		// to have 4 default positions (since we should never have fewer
 		// than 4 points)
 		void resetPoints();
-
+		vector<Pnt3f> arclength_points;
 
 		// read and write to files
 		// void readPoints(const char* filename);

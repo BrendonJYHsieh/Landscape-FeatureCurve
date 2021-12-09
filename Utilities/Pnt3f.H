@@ -67,6 +67,7 @@ class Pnt3f {
 		float x;			/* isn't this obvious */
 		float y;
 		float z;
+		float r;
 };
 //*****************************************************************************
 //
