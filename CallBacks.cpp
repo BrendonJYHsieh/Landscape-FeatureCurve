@@ -57,6 +57,13 @@ void damageCB(Fl_Widget*, TrainWindow* tw)
 	tw->damageMe();
 }
 
+void radiusCB(Fl_Widget*, TrainWindow* tw)
+{
+	if(tw->trainView->selectedCube!=-1)
+	tw->trainView->Curves[tw->trainView->SelectedCurve].points[tw->trainView->SelectedNode].pos.r = tw->radius->value();
+	tw->damageMe();
+}
+
 //***************************************************************************
 //
 // * Callback that adds a new point to the spline

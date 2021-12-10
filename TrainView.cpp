@@ -98,6 +98,7 @@ void TrainView::draw_elevation_map() {
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->pixel_w(), this->pixel_h(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
@@ -464,21 +465,13 @@ setProjection()
 	// Or we use the top cam
 	else if (tw->topCam->value()) {
 		float wi, he;
-		/*if (aspect >= 1) {
+		if (aspect >= 1) {
 			wi = 100;
 			he = wi / aspect;
 		} 
 		else {
 			he = 100;
 			wi = he * aspect;
-		}*/
-		if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
-			wi = 100;
-			he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
-		}
-		else {
-			he = 100;
-			wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
 		}
 		// Set up the top camera drop mode to be orthogonal and set
 		// up proper projection matrix
@@ -527,11 +520,10 @@ void TrainView::drawStuff(bool doingShadows)
 			}	
 		}
 		Curves[i].arclength_points.push_back(p4.pos);
-		cout << Curves[i].arclength_points.size() << endl;
 	}
 	for (int i = 0; i < Curves.size(); i++) {
-		Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].r = 30.0f;
-		Curves[i].arclength_points[0].r = 10.0f;
+		Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].r = Curves[i].points[3].pos.r;
+		Curves[i].arclength_points[0].r = Curves[i].points[0].pos.r;
 
 		float r_init = Curves[i].arclength_points[0].r;
 		float r_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].r - Curves[i].arclength_points[0].r)/ (Curves[i].arclength_points.size()-1);
@@ -717,18 +709,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {
-		int ii = 0;
-		int temp = selectedCube;
-		for (ii = 0; ii < Curves.size(); ii++) {
-			if (temp <= Curves[ii].points.size() - 1) {
-				break;
-			}
-			else {
-				temp -= Curves[ii].points.size();
-			}
-		}
-		SelectedCurve = ii;
-		SelectedNode = temp;
 		for (int i = 0; i < Curves.size(); i++) {
 			for (int j = 0; j < Curves[i].points.size(); j++) {
 				if (SelectedCurve == i && j == SelectedNode)
@@ -738,7 +718,7 @@ void TrainView::drawStuff(bool doingShadows)
 				Curves[i].points[j].draw();
 			}
 		}
-		}
+	}
 
 	for (int i = 0; i < Curves.size(); i++) {
 		float t = 0;
@@ -809,6 +789,21 @@ doPick()
 		// one - see the OpenGL manual 
 		// remember: we load names that are one more than the index
 		selectedCube = buf[3]-1;
+		int ii = 0;
+		int temp = selectedCube;
+		for (ii = 0; ii < Curves.size(); ii++) {
+			if (temp <= Curves[ii].points.size() - 1) {
+				break;
+			}
+			else {
+				temp -= Curves[ii].points.size();
+			}
+		}
+		SelectedCurve = ii;
+		SelectedNode = temp;
+
+		tw->radius->value(Curves[ii].points[temp].pos.r);
+
 	} else // nothing hit, nothing selected
 		selectedCube = -1;
 
