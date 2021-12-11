@@ -63,6 +63,30 @@ void radiusCB(Fl_Widget*, TrainWindow* tw)
 	tw->trainView->Curves[tw->trainView->SelectedCurve].points[tw->trainView->SelectedNode].pos.r = tw->radius->value();
 	tw->damageMe();
 }
+void aCB(Fl_Widget*, TrainWindow* tw)
+{
+	if (tw->trainView->selectedCube != -1)
+		tw->trainView->Curves[tw->trainView->SelectedCurve].points[tw->trainView->SelectedNode].pos.a = tw->a->value();
+	tw->damageMe();
+}
+void bCB(Fl_Widget*, TrainWindow* tw)
+{
+	if (tw->trainView->selectedCube != -1)
+		tw->trainView->Curves[tw->trainView->SelectedCurve].points[tw->trainView->SelectedNode].pos.b = tw->b->value();
+	tw->damageMe();
+}
+void thetaCB(Fl_Widget*, TrainWindow* tw)
+{
+	if (tw->trainView->selectedCube != -1)
+		tw->trainView->Curves[tw->trainView->SelectedCurve].points[tw->trainView->SelectedNode].pos.theta = tw->theta->value();
+	tw->damageMe();
+}
+void phiCB(Fl_Widget*, TrainWindow* tw)
+{
+	if (tw->trainView->selectedCube != -1)
+		tw->trainView->Curves[tw->trainView->SelectedCurve].points[tw->trainView->SelectedNode].pos.phi = tw->phi->value();
+	tw->damageMe();
+}
 
 //***************************************************************************
 //

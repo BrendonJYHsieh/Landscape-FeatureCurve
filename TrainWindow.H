@@ -87,7 +87,7 @@ class TrainWindow : public Fl_Double_Window {
 		Fl_Value_Slider* radius;
 		Fl_Value_Slider* a;
 		Fl_Value_Slider* b;
-		Fl_Value_Slider* alpha;
+		Fl_Value_Slider* theta;
 		Fl_Value_Slider* phi;
 
 

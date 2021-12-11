@@ -530,8 +530,14 @@ void TrainView::drawStuff(bool doingShadows)
 		float r_init = Curves[i].arclength_points[0].r;
 		float r_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].r - Curves[i].arclength_points[0].r)/ (Curves[i].arclength_points.size()-1);
 
+		float a_init = Curves[i].arclength_points[0].a;
+		float a_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].a - Curves[i].arclength_points[0].a) / (Curves[i].arclength_points.size() - 1);
+
+		float b_init = Curves[i].arclength_points[0].b;
+		float b_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].b - Curves[i].arclength_points[0].b)/ (Curves[i].arclength_points.size()-1);
+
 		for (int j = 0; j < Curves[i].arclength_points.size()-1; j++) {
-			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],c;
+			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],q2,q3,q4,q5;
 			if (q0.x < q1.x) {
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
@@ -539,18 +545,18 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q1.x);
 				elevation_intersections.push_back(q1.y);
 				elevation_intersections.push_back(q1.z);
-				Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				Intersect(q0, q1, q2, r_init + r_interporate * (j + 1));
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
 				//
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
-				Intersect(q1, q0, c, r_init + r_interporate * j);
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
+				Intersect(q1, q0, q3, r_init + r_interporate * j);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
@@ -562,18 +568,18 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q1.x);
 				elevation_intersections.push_back(q1.y);
 				elevation_intersections.push_back(q1.z);
-				_Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				_Intersect(q0, q1, q2, r_init + r_interporate * (j + 1));
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
 				//
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
-				_Intersect(q1, q0, c, r_init + r_interporate * j);
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
+				_Intersect(q1, q0, q3, r_init + r_interporate * j);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
@@ -586,18 +592,18 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q1.x);
 				elevation_intersections.push_back(q1.y);
 				elevation_intersections.push_back(q1.z);
-				_Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				_Intersect(q0, q1, q2, r_init + r_interporate * (j + 1));
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
 				//
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
-				_Intersect(q1, q0, c, r_init + r_interporate * j);
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
+				_Intersect(q1, q0, q3, r_init + r_interporate * j);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
@@ -609,18 +615,18 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q1.x);
 				elevation_intersections.push_back(q1.y);
 				elevation_intersections.push_back(q1.z);
-				Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				Intersect(q0, q1, q2, r_init + r_interporate * (j + 1));
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
 				//
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
-				Intersect(q1, q0, c, r_init + r_interporate * j);
-				elevation_intersections.push_back(c.x);
-				elevation_intersections.push_back(c.y);
-				elevation_intersections.push_back(c.z);
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
+				Intersect(q1, q0, q3, r_init + r_interporate * j);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
@@ -822,6 +828,10 @@ doPick()
 		SelectedNode = temp;
 
 		tw->radius->value(Curves[ii].points[temp].pos.r);
+		tw->a->value(Curves[ii].points[temp].pos.a);
+		tw->b->value(Curves[ii].points[temp].pos.b);
+		tw->theta->value(Curves[ii].points[temp].pos.theta);
+		tw->phi->value(Curves[ii].points[temp].pos.phi);
 
 	} else // nothing hit, nothing selected
 		selectedCube = -1;

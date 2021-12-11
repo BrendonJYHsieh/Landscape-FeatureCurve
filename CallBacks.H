@@ -55,3 +55,7 @@ void deleteCurve(Fl_Widget*, TrainWindow* tw);
 
 
 void radiusCB(Fl_Widget*, TrainWindow* tw);
+void aCB(Fl_Widget*, TrainWindow* tw);
+void bCB(Fl_Widget*, TrainWindow* tw);
+void thetaCB(Fl_Widget*, TrainWindow* tw);
+void phiCB(Fl_Widget*, TrainWindow* tw);

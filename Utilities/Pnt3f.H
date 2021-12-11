@@ -68,6 +68,10 @@ class Pnt3f {
 		float y;
 		float z;
 		float r=10;
+		float a=5;
+		float b=3;
+		float theta=45;
+		float phi=60;
 };
 //*****************************************************************************
 //
