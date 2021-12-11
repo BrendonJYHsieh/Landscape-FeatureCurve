@@ -87,6 +87,19 @@ Pnt3f _Intersect(Pnt3f A, Pnt3f B,float length) {
 	return C;
 }
 
+Pnt3f Rotate(Pnt3f nn, Pnt3f v, float degree) {
+	float theta = glm::radians(degree);
+	glm::vec3 n(nn.x, nn.y, nn.z);
+	n = glm::normalize(n);
+	glm::mat3x3 T = {
+		n.x * n.x * (1-cos(theta)) + cos(theta),n.x * n.y * (1 - cos(theta)) - n.z*sin(theta), n.x * n.z * (1 - cos(theta)) + n.y * sin(theta),
+		n.x * n.y * (1 - cos(theta)) + n.z * sin(theta), n.y * n.y * (1 - cos(theta)) + cos(theta), n.y * n.z* (1 - cos(theta)) - n.x *sin(theta),
+		n.x * n.z* (1 - cos(theta)) - n.y * sin(theta) , n.y * n.z * (1 - cos(theta)) +n.z * sin(theta), n.z*n.z * (1 - cos(theta)) + cos(theta)
+	};
+	glm::vec3 vv = T * glm::vec3(v.x, v.y, v.z);
+	return Pnt3f(vv.x, vv.y, vv.z);
+}
+
 void TrainView::draw_elevation_map() {
 	float vertices[] = {
 		// positions                          // texture coords
@@ -540,6 +553,12 @@ void TrainView::drawStuff(bool doingShadows)
 		float b_init = Curves[i].arclength_points[0].b;
 		float b_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].b - Curves[i].arclength_points[0].b)/ (Curves[i].arclength_points.size()-1);
 
+		float phi_init = Curves[i].arclength_points[0].phi;
+		float phi_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].phi - Curves[i].arclength_points[0].phi) / (Curves[i].arclength_points.size() - 1);
+
+		float theta_init = Curves[i].arclength_points[0].theta;
+		float theta_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].theta - Curves[i].arclength_points[0].theta) / (Curves[i].arclength_points.size() - 1);
+
 		for (int j = 0; j < Curves[i].arclength_points.size()-1; j++) {
 			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],q2,q3,q4,q5;
 			if (q0.x < q1.x) {
@@ -547,12 +566,10 @@ void TrainView::drawStuff(bool doingShadows)
 				q3 = Intersect(q1, q0, r_init + r_interporate * j);
 				q4 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate*(j+1));
 				q5 = Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
-
-				float r = sqrt(q4.x * q4.x + q4.y * q4.y);
-				float theta = atan(q4.y / q4.x);
-				q4.x = r * cos(theta + glm::radians(45.0));
-				q4.z = r * sin(theta + glm::radians(45.0));
 		
+				q4 = Rotate(q2 - q3, q4,  - phi_init - phi_interporate * (j + 1));
+				q5 = Rotate(q2 - q3, q5,  - phi_init - phi_interporate * j);
+
 				//q0,q1,q2
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
@@ -599,6 +616,10 @@ void TrainView::drawStuff(bool doingShadows)
 				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
 				q4 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1));
 				q5 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
+
+				q4 = Rotate(q2 - q3, q4,  - phi_init - phi_interporate * (j + 1));
+				q5 = Rotate(q2 - q3, q5,  - phi_init - phi_interporate * j);
+
 				//q0,q1,q2
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
@@ -640,10 +661,16 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q3.y);
 				elevation_intersections.push_back(q3.z);
 			}
-			//left
 			if (q0.x < q1.x) {
 				q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
 				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
+				q4 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
+				q5 = _Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
+
+				q4 = Rotate(q2 - q3, q4,   + theta_init + theta_interporate * (j + 1));
+				q5 = Rotate(q2 - q3, q5,   + theta_init + theta_interporate * j);
+
+				//q0,q1,q2
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
@@ -653,7 +680,7 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q2.x);
 				elevation_intersections.push_back(q2.y);
 				elevation_intersections.push_back(q2.z);
-				//
+				//q2,q3,q0
 				elevation_intersections.push_back(q2.x);
 				elevation_intersections.push_back(q2.y);
 				elevation_intersections.push_back(q2.z);
@@ -663,10 +690,37 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
+				//q2,q4,q3
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
+				elevation_intersections.push_back(q4.x);
+				elevation_intersections.push_back(q4.y);
+				elevation_intersections.push_back(q4.z);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
+				//q4,q5,q3
+				elevation_intersections.push_back(q4.x);
+				elevation_intersections.push_back(q4.y);
+				elevation_intersections.push_back(q4.z);
+				elevation_intersections.push_back(q5.x);
+				elevation_intersections.push_back(q5.y);
+				elevation_intersections.push_back(q5.z);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
 			}
 			else {
 				q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
 				q3 = Intersect(q1, q0, r_init + r_interporate * j);
+				q4 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
+				q5 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
+
+				q4 = Rotate(q2 - q3, q4,  + theta_init + theta_interporate * (j + 1));
+				q5 = Rotate(q2 - q3, q5,  + theta_init + theta_interporate * j);
+
+				//q0,q1,q2
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
@@ -676,7 +730,7 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q2.x);
 				elevation_intersections.push_back(q2.y);
 				elevation_intersections.push_back(q2.z);
-				//
+				//q2,q3,q0
 				elevation_intersections.push_back(q2.x);
 				elevation_intersections.push_back(q2.y);
 				elevation_intersections.push_back(q2.z);
@@ -686,6 +740,26 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(q0.x);
 				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.z);
+				//q2,q4,q3
+				elevation_intersections.push_back(q2.x);
+				elevation_intersections.push_back(q2.y);
+				elevation_intersections.push_back(q2.z);
+				elevation_intersections.push_back(q4.x);
+				elevation_intersections.push_back(q4.y);
+				elevation_intersections.push_back(q4.z);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
+				//q4,q5,q3
+				elevation_intersections.push_back(q4.x);
+				elevation_intersections.push_back(q4.y);
+				elevation_intersections.push_back(q4.z);
+				elevation_intersections.push_back(q5.x);
+				elevation_intersections.push_back(q5.y);
+				elevation_intersections.push_back(q5.z);
+				elevation_intersections.push_back(q3.x);
+				elevation_intersections.push_back(q3.y);
+				elevation_intersections.push_back(q3.z);
 			}
 		}
 	}

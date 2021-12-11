@@ -154,8 +154,8 @@ TrainWindow(const int x, const int y)
 
 		pty += 50;
 		theta = new Fl_Value_Slider(655, pty, 140, 20, "Theta");
-		theta->range(0, 100);
-		theta->value(10);
+		theta->range(0, 90);
+		theta->value(45);
 		theta->align(FL_ALIGN_LEFT);
 		theta->type(FL_HORIZONTAL);
 		theta->callback((Fl_Callback*)thetaCB, this);
@@ -170,8 +170,8 @@ TrainWindow(const int x, const int y)
 
 		pty += 50;
 		phi = new Fl_Value_Slider(655, pty, 140, 20, "Phi");
-		phi->range(0, 100);
-		phi->value(10);
+		phi->range(0, 90);
+		phi->value(60);
 		phi->align(FL_ALIGN_LEFT);
 		phi->type(FL_HORIZONTAL);
 		phi->callback((Fl_Callback*)phiCB, this);
