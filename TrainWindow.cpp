@@ -144,7 +144,37 @@ TrainWindow(const int x, const int y)
 		radius->type(FL_HORIZONTAL);
 		radius->callback((Fl_Callback*)radiusCB, this);
 
+		pty += 50;
+		a = new Fl_Value_Slider(655, pty, 140, 20, "a");
+		a->range(0, 100);
+		a->value(10);
+		a->align(FL_ALIGN_LEFT);
+		a->type(FL_HORIZONTAL);
+		a->callback((Fl_Callback*)radiusCB, this);
 
+		pty += 50;
+		alpha = new Fl_Value_Slider(655, pty, 140, 20, "Theta");
+		alpha->range(0, 100);
+		alpha->value(10);
+		alpha->align(FL_ALIGN_LEFT);
+		alpha->type(FL_HORIZONTAL);
+		alpha->callback((Fl_Callback*)radiusCB, this);
+
+		pty += 50;
+		b = new Fl_Value_Slider(655, pty, 140, 20, "b");
+		b->range(0, 100);
+		b->value(10);
+		b->align(FL_ALIGN_LEFT);
+		b->type(FL_HORIZONTAL);
+		b->callback((Fl_Callback*)radiusCB, this);
+
+		pty += 50;
+		phi = new Fl_Value_Slider(655, pty, 140, 20, "Phi");
+		phi->range(0, 100);
+		phi->value(10);
+		phi->align(FL_ALIGN_LEFT);
+		phi->type(FL_HORIZONTAL);
+		phi->callback((Fl_Callback*)radiusCB, this);
 
 		// // reset the points
 		// resetButton = new Fl_Button(735,pty,60,20,"Reset");

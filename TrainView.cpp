@@ -66,6 +66,7 @@ void Intersect(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
 
 	float det = -_m + m;
 	C.x = (c * e - b * f) / det;
+	C.y = B.y;
 	C.z = (-d * c + a * f) / det;
 }
 void _Intersect(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
@@ -78,6 +79,7 @@ void _Intersect(Pnt3f A, Pnt3f B, Pnt3f &C,float length) {
 
 	float det = -_m + m;
 	C.x = (c * e - b * f) / det;
+	C.y = B.y;
 	C.z = (-d * c + a * f) / det;
 }
 
@@ -152,7 +154,7 @@ void TrainView::draw_elevation_map() {
 		he = 100;
 		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
 	}
-
+	glViewport(0, 0, w(), h());
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-wi, wi, -he, he, 200, -200);
@@ -532,96 +534,96 @@ void TrainView::drawStuff(bool doingShadows)
 			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],c;
 			if (q0.x < q1.x) {
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q1.x);
+				elevation_intersections.push_back(q1.y);
 				elevation_intersections.push_back(q1.z);
-				elevation_intersections.push_back(q1.y);
-				Intersect(q0, q1, c, r_init + r_interporate*(j+1));
+				Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				//
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				Intersect(q1, q0, c, r_init + r_interporate * j);
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 			}
 			else {
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q1.x);
-				elevation_intersections.push_back(q1.z);
 				elevation_intersections.push_back(q1.y);
+				elevation_intersections.push_back(q1.z);
 				_Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				//
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				_Intersect(q1, q0, c, r_init + r_interporate * j);
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 			}
 			//left
 			if (q0.x < q1.x) {
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q1.x);
-				elevation_intersections.push_back(q1.z);
 				elevation_intersections.push_back(q1.y);
+				elevation_intersections.push_back(q1.z);
 				_Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				//
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				_Intersect(q1, q0, c, r_init + r_interporate * j);
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 			}
 			else {
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q1.x);
-				elevation_intersections.push_back(q1.z);
 				elevation_intersections.push_back(q1.y);
+				elevation_intersections.push_back(q1.z);
 				Intersect(q0, q1, c, r_init + r_interporate * (j + 1));
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				//
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q1.y);
 				Intersect(q1, q0, c, r_init + r_interporate * j);
 				elevation_intersections.push_back(c.x);
+				elevation_intersections.push_back(c.y);
 				elevation_intersections.push_back(c.z);
-				elevation_intersections.push_back(q0.y);
 				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.z);
 				elevation_intersections.push_back(q0.y);
+				elevation_intersections.push_back(q0.z);
 			}
 		}
 	}
@@ -679,26 +681,43 @@ void TrainView::drawStuff(bool doingShadows)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	draw_elevation_map();
+	//draw_elevation_map();
 
-	//screen
-	screen_shader->Use();
-	glm::mat4 trans1 = glm::mat4(1.0f);
-	trans1 = glm::scale(trans1, glm::vec3(100, 0, 100));
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	setProjection();
+	//Curve
+	elevation_shader->Use();
+	glm::mat4 model = glm::mat4(1.0f);
+
+	float wi, he;
+	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
+		wi = 100;
+		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+	else {
+		he = 100;
+		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans1[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 0);
-	
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
+
+	glBindVertexArray(VAO[0]);
+	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+
+	//Ground
+	background_shader->Use();
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::scale(trans, glm::vec3(100, 0, 100));
+	// pass transformation matrices to the shader
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
+
 	glBindVertexArray(VAO[1]);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDeleteVertexArrays(2, VAO);
