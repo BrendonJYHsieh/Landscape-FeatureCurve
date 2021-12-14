@@ -571,7 +571,8 @@ void TrainView::drawStuff(bool doingShadows)
 				normal = glm::normalize(normal);
 				Pnt3f normal_q2 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), -90 + phi_init + phi_interporate * (j + 1));
 				Pnt3f normal_q3 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), -90 + phi_init + phi_interporate * j);
-				cout << -90 + phi_init + phi_interporate * (j + 1) << endl;
+
+				glm::vec3 Axis = glm::normalize(glm::vec3(q2.x-q3.x,q2.y-q3.y,q2.z-q3.z));
 
 				q4 = Rotate(q2 - q3, q4,-90  + phi_init + phi_interporate * (j + 1));
 				q5 = Rotate(q2 - q3, q5,-90  + phi_init + phi_interporate * j);
@@ -686,7 +687,6 @@ void TrainView::drawStuff(bool doingShadows)
 				normal = glm::normalize(normal);
 				Pnt3f normal_q2 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), -90 + phi_init + phi_interporate * (j + 1));
 				Pnt3f normal_q3 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), -90 + phi_init + phi_interporate * j);
-				cout << -90 + phi_init + phi_interporate * (j + 1) << endl;
 
 				q4 = Rotate(q2 - q3, q4,-90  + phi_init + phi_interporate * (j + 1));
 				q5 = Rotate(q2 - q3, q5,-90  + phi_init + phi_interporate * j);
@@ -788,228 +788,228 @@ void TrainView::drawStuff(bool doingShadows)
 				elevation_intersections.push_back(normal_q3.y);
 				elevation_intersections.push_back(normal_q3.z);
 			}
-			if (q0.x < q1.x) {
-				q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
-				q4 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
-				q5 = _Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
+			//if (q0.x < q1.x) {
+			//	q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
+			//	q3 = _Intersect(q1, q0, r_init + r_interporate * j);
+			//	q4 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
+			//	q5 = _Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 
-				glm::vec3 normal = glm::cross(glm::vec3(q0.x - q1.x, q0.y - q1.y, q0.z - q1.z), glm::vec3(q0.x - q3.x, q0.y - q3.y, q0.z - q3.z));
-				normal = glm::normalize(normal);
-				Pnt3f normal_q2 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * (j + 1));
-				Pnt3f normal_q3 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * j);
+			//	glm::vec3 normal = glm::cross(glm::vec3(q0.x - q1.x, q0.y - q1.y, q0.z - q1.z), glm::vec3(q0.x - q3.x, q0.y - q3.y, q0.z - q3.z));
+			//	normal = glm::normalize(normal);
+			//	Pnt3f normal_q2 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * (j + 1));
+			//	Pnt3f normal_q3 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * j);
 
-				q4 = Rotate(q2 - q3, q4,90   - theta_init - theta_interporate * (j + 1));
-				q5 = Rotate(q2 - q3, q5,90   - theta_init - theta_interporate * j);
+			//	q4 = Rotate(q2 - q3, q4,90   - theta_init - theta_interporate * (j + 1));
+			//	q5 = Rotate(q2 - q3, q5,90   - theta_init - theta_interporate * j);
 
-				//q0,q1,q2
-				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.y);
-				elevation_intersections.push_back(q0.z);
+			//	//q0,q1,q2
+			//	elevation_intersections.push_back(q0.x);
+			//	elevation_intersections.push_back(q0.y);
+			//	elevation_intersections.push_back(q0.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q1.x);
-				elevation_intersections.push_back(q1.y);
-				elevation_intersections.push_back(q1.z);
+			//	elevation_intersections.push_back(q1.x);
+			//	elevation_intersections.push_back(q1.y);
+			//	elevation_intersections.push_back(q1.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q2.x);
-				elevation_intersections.push_back(q2.y);
-				elevation_intersections.push_back(q2.z);
+			//	elevation_intersections.push_back(q2.x);
+			//	elevation_intersections.push_back(q2.y);
+			//	elevation_intersections.push_back(q2.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
-				//q2,q3,q0
-				elevation_intersections.push_back(q2.x);
-				elevation_intersections.push_back(q2.y);
-				elevation_intersections.push_back(q2.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
+			//	//q2,q3,q0
+			//	elevation_intersections.push_back(q2.x);
+			//	elevation_intersections.push_back(q2.y);
+			//	elevation_intersections.push_back(q2.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q3.x);
-				elevation_intersections.push_back(q3.y);
-				elevation_intersections.push_back(q3.z);
+			//	elevation_intersections.push_back(q3.x);
+			//	elevation_intersections.push_back(q3.y);
+			//	elevation_intersections.push_back(q3.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.y);
-				elevation_intersections.push_back(q0.z);
+			//	elevation_intersections.push_back(q0.x);
+			//	elevation_intersections.push_back(q0.y);
+			//	elevation_intersections.push_back(q0.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
-				//q2,q4,q3
-				elevation_intersections.push_back(q2.x);
-				elevation_intersections.push_back(q2.y);
-				elevation_intersections.push_back(q2.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
+			//	//q2,q4,q3
+			//	elevation_intersections.push_back(q2.x);
+			//	elevation_intersections.push_back(q2.y);
+			//	elevation_intersections.push_back(q2.z);
 
-				elevation_intersections.push_back(normal_q2.x);
-				elevation_intersections.push_back(normal_q2.y);
-				elevation_intersections.push_back(normal_q2.z);
+			//	elevation_intersections.push_back(normal_q2.x);
+			//	elevation_intersections.push_back(normal_q2.y);
+			//	elevation_intersections.push_back(normal_q2.z);
 
-				elevation_intersections.push_back(q4.x);
-				elevation_intersections.push_back(q4.y);
-				elevation_intersections.push_back(q4.z);
+			//	elevation_intersections.push_back(q4.x);
+			//	elevation_intersections.push_back(q4.y);
+			//	elevation_intersections.push_back(q4.z);
 
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
 
-				elevation_intersections.push_back(q3.x);
-				elevation_intersections.push_back(q3.y);
-				elevation_intersections.push_back(q3.z);
+			//	elevation_intersections.push_back(q3.x);
+			//	elevation_intersections.push_back(q3.y);
+			//	elevation_intersections.push_back(q3.z);
 
-				elevation_intersections.push_back(normal_q3.x);
-				elevation_intersections.push_back(normal_q3.y);
-				elevation_intersections.push_back(normal_q3.z);
-				//q4,q5,q3
-				elevation_intersections.push_back(q4.x);
-				elevation_intersections.push_back(q4.y);
-				elevation_intersections.push_back(q4.z);
+			//	elevation_intersections.push_back(normal_q3.x);
+			//	elevation_intersections.push_back(normal_q3.y);
+			//	elevation_intersections.push_back(normal_q3.z);
+			//	//q4,q5,q3
+			//	elevation_intersections.push_back(q4.x);
+			//	elevation_intersections.push_back(q4.y);
+			//	elevation_intersections.push_back(q4.z);
 
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
 
-				elevation_intersections.push_back(q5.x);
-				elevation_intersections.push_back(q5.y);
-				elevation_intersections.push_back(q5.z);
+			//	elevation_intersections.push_back(q5.x);
+			//	elevation_intersections.push_back(q5.y);
+			//	elevation_intersections.push_back(q5.z);
 
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
 
-				elevation_intersections.push_back(q3.x);
-				elevation_intersections.push_back(q3.y);
-				elevation_intersections.push_back(q3.z);
+			//	elevation_intersections.push_back(q3.x);
+			//	elevation_intersections.push_back(q3.y);
+			//	elevation_intersections.push_back(q3.z);
 
-				elevation_intersections.push_back(normal_q3.x);
-				elevation_intersections.push_back(normal_q3.y);
-				elevation_intersections.push_back(normal_q3.z);
-			}
-			else {
-				q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				q3 = Intersect(q1, q0, r_init + r_interporate * j);
-				q4 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
-				q5 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
+			//	elevation_intersections.push_back(normal_q3.x);
+			//	elevation_intersections.push_back(normal_q3.y);
+			//	elevation_intersections.push_back(normal_q3.z);
+			//}
+			//else {
+			//	q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
+			//	q3 = Intersect(q1, q0, r_init + r_interporate * j);
+			//	q4 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
+			//	q5 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 
-				glm::vec3 normal = glm::cross(glm::vec3(q0.x - q1.x, q0.y - q1.y, q0.z - q1.z), glm::vec3(q0.x - q3.x, q0.y - q3.y, q0.z - q3.z));
-				normal = glm::normalize(normal);
-				Pnt3f normal_q2 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * (j + 1));
-				Pnt3f normal_q3 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * j);
+			//	glm::vec3 normal = glm::cross(glm::vec3(q0.x - q1.x, q0.y - q1.y, q0.z - q1.z), glm::vec3(q0.x - q3.x, q0.y - q3.y, q0.z - q3.z));
+			//	normal = glm::normalize(normal);
+			//	Pnt3f normal_q2 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * (j + 1));
+			//	Pnt3f normal_q3 = Rotate(q2 - q3, Pnt3f(normal.x, normal.y, normal.z), 90 - phi_init - phi_interporate * j);
 
-				q4 = Rotate(q2 - q3, q4,90  - theta_init - theta_interporate * (j + 1));
-				q5 = Rotate(q2 - q3, q5,90  - theta_init - theta_interporate * j);
+			//	q4 = Rotate(q2 - q3, q4,90  - theta_init - theta_interporate * (j + 1));
+			//	q5 = Rotate(q2 - q3, q5,90  - theta_init - theta_interporate * j);
 
-				//q0,q1,q2
-				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.y);
-				elevation_intersections.push_back(q0.z);
+			//	//q0,q1,q2
+			//	elevation_intersections.push_back(q0.x);
+			//	elevation_intersections.push_back(q0.y);
+			//	elevation_intersections.push_back(q0.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q1.x);
-				elevation_intersections.push_back(q1.y);
-				elevation_intersections.push_back(q1.z);
+			//	elevation_intersections.push_back(q1.x);
+			//	elevation_intersections.push_back(q1.y);
+			//	elevation_intersections.push_back(q1.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q2.x);
-				elevation_intersections.push_back(q2.y);
-				elevation_intersections.push_back(q2.z);
+			//	elevation_intersections.push_back(q2.x);
+			//	elevation_intersections.push_back(q2.y);
+			//	elevation_intersections.push_back(q2.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
-				//q2,q3,q0
-				elevation_intersections.push_back(q2.x);
-				elevation_intersections.push_back(q2.y);
-				elevation_intersections.push_back(q2.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
+			//	//q2,q3,q0
+			//	elevation_intersections.push_back(q2.x);
+			//	elevation_intersections.push_back(q2.y);
+			//	elevation_intersections.push_back(q2.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q3.x);
-				elevation_intersections.push_back(q3.y);
-				elevation_intersections.push_back(q3.z);
+			//	elevation_intersections.push_back(q3.x);
+			//	elevation_intersections.push_back(q3.y);
+			//	elevation_intersections.push_back(q3.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
 
-				elevation_intersections.push_back(q0.x);
-				elevation_intersections.push_back(q0.y);
-				elevation_intersections.push_back(q0.z);
+			//	elevation_intersections.push_back(q0.x);
+			//	elevation_intersections.push_back(q0.y);
+			//	elevation_intersections.push_back(q0.z);
 
-				elevation_intersections.push_back(normal.x);
-				elevation_intersections.push_back(normal.y);
-				elevation_intersections.push_back(normal.z);
-				//q2,q4,q3
-				elevation_intersections.push_back(q2.x);
-				elevation_intersections.push_back(q2.y);
-				elevation_intersections.push_back(q2.z);
+			//	elevation_intersections.push_back(normal.x);
+			//	elevation_intersections.push_back(normal.y);
+			//	elevation_intersections.push_back(normal.z);
+			//	//q2,q4,q3
+			//	elevation_intersections.push_back(q2.x);
+			//	elevation_intersections.push_back(q2.y);
+			//	elevation_intersections.push_back(q2.z);
 
-				elevation_intersections.push_back(normal_q2.x);
-				elevation_intersections.push_back(normal_q2.y);
-				elevation_intersections.push_back(normal_q2.z);
+			//	elevation_intersections.push_back(normal_q2.x);
+			//	elevation_intersections.push_back(normal_q2.y);
+			//	elevation_intersections.push_back(normal_q2.z);
 
-				elevation_intersections.push_back(q4.x);
-				elevation_intersections.push_back(q4.y);
-				elevation_intersections.push_back(q4.z);
+			//	elevation_intersections.push_back(q4.x);
+			//	elevation_intersections.push_back(q4.y);
+			//	elevation_intersections.push_back(q4.z);
 
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
 
-				elevation_intersections.push_back(q3.x);
-				elevation_intersections.push_back(q3.y);
-				elevation_intersections.push_back(q3.z);
+			//	elevation_intersections.push_back(q3.x);
+			//	elevation_intersections.push_back(q3.y);
+			//	elevation_intersections.push_back(q3.z);
 
-				elevation_intersections.push_back(normal_q3.x);
-				elevation_intersections.push_back(normal_q3.y);
-				elevation_intersections.push_back(normal_q3.z);
-				//q4,q5,q3
-				elevation_intersections.push_back(q4.x);
-				elevation_intersections.push_back(q4.y);
-				elevation_intersections.push_back(q4.z);
+			//	elevation_intersections.push_back(normal_q3.x);
+			//	elevation_intersections.push_back(normal_q3.y);
+			//	elevation_intersections.push_back(normal_q3.z);
+			//	//q4,q5,q3
+			//	elevation_intersections.push_back(q4.x);
+			//	elevation_intersections.push_back(q4.y);
+			//	elevation_intersections.push_back(q4.z);
 
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
 
-				elevation_intersections.push_back(q5.x);
-				elevation_intersections.push_back(q5.y);
-				elevation_intersections.push_back(q5.z);
+			//	elevation_intersections.push_back(q5.x);
+			//	elevation_intersections.push_back(q5.y);
+			//	elevation_intersections.push_back(q5.z);
 
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
-				elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
+			//	elevation_intersections.push_back(0.0);
 
-				elevation_intersections.push_back(q3.x);
-				elevation_intersections.push_back(q3.y);
-				elevation_intersections.push_back(q3.z);
+			//	elevation_intersections.push_back(q3.x);
+			//	elevation_intersections.push_back(q3.y);
+			//	elevation_intersections.push_back(q3.z);
 
-				elevation_intersections.push_back(normal_q3.x);
-				elevation_intersections.push_back(normal_q3.y);
-				elevation_intersections.push_back(normal_q3.z);
-			}
+			//	elevation_intersections.push_back(normal_q3.x);
+			//	elevation_intersections.push_back(normal_q3.y);
+			//	elevation_intersections.push_back(normal_q3.z);
+			//}
 		}
 	}
 
@@ -1080,7 +1080,7 @@ void TrainView::drawStuff(bool doingShadows)
 
 
 	//Curve
-	elevation_shader->Use();
+	gradient_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
 
 	float wi, he;
@@ -1113,7 +1113,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
 
 	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);

@@ -90,6 +90,7 @@ class TrainView : public Fl_Gl_Window
 		Shader* elevation_shader = nullptr;
 		Shader* background_shader = nullptr;
 		Shader* screen_shader = nullptr;
+		Shader* gradient_shader = nullptr;
 
 		Texture2D* background_texture = nullptr;
 
