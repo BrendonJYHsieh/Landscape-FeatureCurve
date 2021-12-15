@@ -95,7 +95,7 @@ glm::vec3 Rotate(glm::vec3 n, glm::vec3 v, float degree) {
 		n.x * n.y * (1 - cos(theta)) + n.z * sin(theta), n.y * n.y * (1 - cos(theta)) + cos(theta)      , n.y * n.z* (1 - cos(theta)) - n.x *sin(theta),
 		n.x * n.z * (1 - cos(theta)) - n.y * sin(theta), n.y * n.z * (1 - cos(theta)) + n.z * sin(theta), n.z*n.z * (1 - cos(theta)) + cos(theta)
 	};
-	return T * glm::vec3(v.x, v.y, v.z);
+	return  T * glm::vec3(v.x, v.y, v.z);
 }
 
 glm::vec3 Pnt3_to_Vec3(Pnt3f a) {
@@ -574,17 +574,30 @@ void TrainView::drawStuff(bool doingShadows)
 				q4 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate*(j+1));
 				q5 = Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 				Axis = glm::vec3(q2.x - q3.x, q2.y - q3.y, q2.z - q3.z);
-				q4 = Vec3_to_Pnt3((Rotate(Axis, Pnt3_to_Vec3(q2) - Pnt3_to_Vec3(q4), -90 + phi_init + phi_interporate * (j + 1)) - Pnt3_to_Vec3(q2)) * -1);
-				q5 = Vec3_to_Pnt3((Rotate(Axis, Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q5), -90 + phi_init + phi_interporate * j) - Pnt3_to_Vec3(q3)) * -1);
+				q4 = Vec3_to_Pnt3(Pnt3_to_Vec3(q2) - Rotate(Axis, Pnt3_to_Vec3(q2) - Pnt3_to_Vec3(q4), -90 + phi_init + phi_interporate * (j + 1)));
+				q5 = Vec3_to_Pnt3(Pnt3_to_Vec3(q3) - Rotate(Axis, Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q5), -90 + phi_init + phi_interporate * j));
 			}
 			else {
 				q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
 				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
 				q4 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1));
 				q5 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
+				glPointSize(3);
+				glBegin(GL_POINTS);
+				glColor3ub(0, 255, 0);
+				glVertex3f(q2.x, q2.y, q2.z);
+				glVertex3f(q3.x, q3.y, q3.z);
+				glEnd();
+				cout<<"before:" << (q2 - q4).length() << endl;
 				Axis = glm::vec3(q2.x - q3.x, q2.y - q3.y, q2.z - q3.z);
-				q4 = Vec3_to_Pnt3((Rotate(Axis, Pnt3_to_Vec3(q2) - Pnt3_to_Vec3(q4), -90 + phi_init + phi_interporate * (j + 1)) - Pnt3_to_Vec3(q2)) * -1);
-				q5 = Vec3_to_Pnt3((Rotate(Axis, Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q5), -90 + phi_init + phi_interporate * j) - Pnt3_to_Vec3(q3)) * -1);
+				q4 = Vec3_to_Pnt3(Pnt3_to_Vec3(q2) - glm::normalize(Rotate(Axis, Pnt3_to_Vec3(q2) - Pnt3_to_Vec3(q4), -90 + phi_init + phi_interporate * (j + 1)))*3);
+				q5 = Vec3_to_Pnt3(Pnt3_to_Vec3(q3) - glm::normalize(Rotate(Axis, Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q5), -90 + phi_init + phi_interporate * j)) * 3);
+				cout << "after:" << (q2-q4).length() << endl;
+				glBegin(GL_POINTS);
+				glColor3ub(0, 0, 0);
+				glVertex3f(q4.x, q4.y, q4.z);
+				glVertex3f(q5.x, q5.y, q5.z);
+				glEnd();
 			}
 			glm::vec3 normal = glm::cross(Pnt3_to_Vec3(q0)-Pnt3_to_Vec3(q1), Pnt3_to_Vec3(q0) - Pnt3_to_Vec3(q3));
 			normal = glm::normalize(normal);
@@ -592,6 +605,7 @@ void TrainView::drawStuff(bool doingShadows)
 			glm::vec3 normal_q2 = Rotate(Axis, normal, -90 + phi_init + phi_interporate * (j + 1));
 			glm::vec3 normal_q3 = Rotate(Axis, normal, -90 + phi_init + phi_interporate * j);
 			
+
 			//elevation_intersections.push_back(q0.x);
 			//elevation_intersections.push_back(q0.y);
 			//elevation_intersections.push_back(q0.z);

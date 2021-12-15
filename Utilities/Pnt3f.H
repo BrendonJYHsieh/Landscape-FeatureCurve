@@ -58,6 +58,7 @@ class Pnt3f {
 		// make sure that we're unit length - vertical in the error case (0 length)
 		void normalize();
 		float length2D();
+		float length();
 		// note - the operators above are for Pnt3f*scalar, here we have scalar*Pnt3f
 		friend Pnt3f operator * (const float s, const Pnt3f& p );
 
