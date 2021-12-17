@@ -578,7 +578,7 @@ void TrainView::drawStuff(bool doingShadows)
 
 		float theta_init = Curves[i].arclength_points[0].theta;
 		float theta_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].theta - Curves[i].arclength_points[0].theta) / (Curves[i].arclength_points.size() - 1);
-
+		Pnt3f p2,_p2,p4,_p4, p6, _p6;
 		for (int j = 0; j < Curves[i].arclength_points.size()-2; j++) {
 			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],q2,q3,q4,q5,q6,q7;
 			
@@ -612,7 +612,7 @@ void TrainView::drawStuff(bool doingShadows)
 			q5.normal = Rotate(Axis, normal, -90 + phi_init + phi_interporate * j);
 			q6.normal = glm::vec3(0, 0, 0);
 			q7.normal = glm::vec3(0, 0, 0);
-			
+
 			//q0,q1,q2
 			addbufferdata(q0);
 			addbufferdata(q1);
@@ -629,54 +629,87 @@ void TrainView::drawStuff(bool doingShadows)
 			addbufferdata(q6);
 			addbufferdata(q7);
 			addbufferdata(q5);
+			if (j > 0) {
+				//q0,q3,p2
+				addbufferdata(q0);
+				addbufferdata(q3);
+				addbufferdata(p2);
+				//q0,q3,p2
+				addbufferdata(p4);
+				addbufferdata(q5);
+				addbufferdata(q7);
+				//q0,q3,p2
+				addbufferdata(q7);
+				addbufferdata(p6);
+				addbufferdata(p4);
+			}
+			p2 = q2;
+			p4 = q4;
+			p6 = q6;
 
-			 if (q0.x < q1.x) {
-				 q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				 q3 = _Intersect(q1, q0, r_init + r_interporate * j);
-				 q4 = q2;
-				 q5 = q3;
-				 q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
-				 q7 = _Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
-			 }
-			 else {
-				 q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				 q3 = Intersect(q1, q0, r_init + r_interporate * j);
-				 q4 = q2;
-				 q5 = q3;
-				 q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
-				 q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
-			 }
-			 Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
-			 q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			 q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * (j)))) + Pnt3_to_Vec3(q3));
+			if (q0.x < q1.x) {
+				q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
+				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
+				q4 = q2;
+				q5 = q3;
+				q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
+				q7 = _Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
+			}
+			else {
+				q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
+				q3 = Intersect(q1, q0, r_init + r_interporate * j);
+				q4 = q2;
+				q5 = q3;
+				q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
+				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
+			}
+			Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			 normal = glm::normalize(glm::cross(Pnt3_to_Vec3(q0) - Pnt3_to_Vec3(q1), Pnt3_to_Vec3(q0) - Pnt3_to_Vec3(q3)));
+			q0.normal = normal;
+			q1.normal = normal;
+			q2.normal = normal;
+			q3.normal = normal;
+			q4.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * j);
+			q6.normal = glm::vec3(0, 0, 0);
+			q7.normal = glm::vec3(0, 0, 0);
 
-			 q0.normal = normal;
-			 q1.normal = normal;
-			 q2.normal = normal;
-			 q3.normal = normal;
-			 q4.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * (j + 1));
-			 q5.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * j);
-			 q6.normal = glm::vec3(0, 0, 0);
-			 q7.normal = glm::vec3(0, 0, 0);
+			//q0,q1,q2
+			addbufferdata(q0);
+			addbufferdata(q1);
+			addbufferdata(q2);
+			//q2,q3,q0
+			addbufferdata(q2);
+			addbufferdata(q3);
+			addbufferdata(q0);
+			//q4,q6,q5
+			addbufferdata(q4);
+			addbufferdata(q6);
+			addbufferdata(q5);
+			//q6,q7,q5
+			addbufferdata(q6);
+			addbufferdata(q7);
+			addbufferdata(q5);
 
-			 //q0,q1,q2
-			 addbufferdata(q0);
-			 addbufferdata(q1);
-			 addbufferdata(q2);
-			 //q2,q3,q0
-			 addbufferdata(q2);
-			 addbufferdata(q3);
-			 addbufferdata(q0);
-			 //q4,q6,q5
-			 addbufferdata(q4);
-			 addbufferdata(q6);
-			 addbufferdata(q5);
-			 //q6,q7,q5
-			 addbufferdata(q6);
-			 addbufferdata(q7);
-			 addbufferdata(q5);
+			if (j > 0) {
+				//q0,q3,p2
+				addbufferdata(q0);
+				addbufferdata(q3);
+				addbufferdata(_p2);
+				//q0,q3,p2
+				addbufferdata(_p4);
+				addbufferdata(q5);
+				addbufferdata(q7);
+				//q0,q3,p2
+				addbufferdata(q7);
+				addbufferdata(_p6);
+				addbufferdata(_p4);
+			}
+			_p2 = q2;
+			_p4 = q4;
+			_p6 = q6;
 		}
 	}
 
