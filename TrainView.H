@@ -100,6 +100,8 @@ class TrainView : public Fl_Gl_Window
 		unsigned int framebuffer;
 		unsigned int textureColorbuffer;
 		unsigned int rbo;
+		unsigned int textureColorbuffer1;
+		unsigned int rbo1;
 		vector<float> elevation_intersections;
 		
 
