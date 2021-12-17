@@ -77,6 +77,7 @@ class TrainView : public Fl_Gl_Window
 		void doPick();
 
 		void draw_elevation_map();
+		void draw_gradient_map();
 
 		void addbufferdata(Pnt3f);
 	public:

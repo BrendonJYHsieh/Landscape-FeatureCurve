@@ -122,8 +122,8 @@ TrainWindow(const int x, const int y)
 
 		pty+=50;
 		segment = new Fl_Value_Slider(655,pty,140,20,"Segment");
-		segment->range(0,100000);
-		segment->value(100000);
+		segment->range(0,10000);
+		segment->value(5000);
 		segment->align(FL_ALIGN_LEFT);
 		segment->type(FL_HORIZONTAL);
 		segment->callback((Fl_Callback*)damageCB, this);
