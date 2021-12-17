@@ -77,6 +77,8 @@ class TrainView : public Fl_Gl_Window
 		void doPick();
 
 		void draw_elevation_map();
+
+		void addbufferdata(Pnt3f);
 	public:
 		ArcBallCam		arcball;			// keep an ArcBall for the UI
 		int				selectedCube = -1;  // simple - just remember which cube is selected

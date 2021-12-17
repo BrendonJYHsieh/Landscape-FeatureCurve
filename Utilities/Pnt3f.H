@@ -30,7 +30,7 @@
 
 *************************************************************************/
 #pragma once
-
+#include <glm/glm.hpp>
 
 class Pnt3f {
 	public:
@@ -72,7 +72,8 @@ class Pnt3f {
 		float a=5;
 		float b=3;
 		float theta=45;
-		float phi=0;
+		float phi=60;
+		glm::vec3 normal;
 };
 //*****************************************************************************
 //
