@@ -106,13 +106,22 @@ Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
 
-void TrainView::addbufferdata(Pnt3f q0) {
+void TrainView::_addbufferdata(Pnt3f q0) {
 	elevation_intersections.push_back(q0.x);
 	elevation_intersections.push_back(q0.y);
 	elevation_intersections.push_back(q0.z);
 	elevation_intersections.push_back(q0.normal.x);
 	elevation_intersections.push_back(q0.normal.y);
 	elevation_intersections.push_back(q0.normal.z);
+}
+
+void TrainView::addbufferdata(Pnt3f q0) {
+	gradient_intersections.push_back(q0.x);
+	gradient_intersections.push_back(q0.y);
+	gradient_intersections.push_back(q0.z);
+	gradient_intersections.push_back(q0.normal.x);
+	gradient_intersections.push_back(q0.normal.y);
+	gradient_intersections.push_back(q0.normal.z);
 }
 
 void TrainView::draw_elevation_map() {
@@ -269,7 +278,7 @@ void TrainView::draw_gradient_map() {
 	//Curve
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_intersections.size(), &gradient_intersections[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -319,7 +328,7 @@ void TrainView::draw_gradient_map() {
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, gradient_intersections.size());
 
 	//Ground
 	background_shader->Use();
@@ -654,6 +663,7 @@ setProjection()
 void TrainView::drawStuff(bool doingShadows)
 {
 	elevation_intersections.clear();
+	gradient_intersections.clear();
 	for (int i = 0; i < Curves.size(); i++) {
 		float t = 0;
 		float divide = tw->segment->value();
@@ -734,10 +744,18 @@ void TrainView::drawStuff(bool doingShadows)
 			addbufferdata(q0);
 			addbufferdata(q1);
 			addbufferdata(q2);
+
+			_addbufferdata(q0);
+			_addbufferdata(q1);
+			_addbufferdata(q2);
 			//q2,q3,q0
 			addbufferdata(q2);
 			addbufferdata(q3);
 			addbufferdata(q0);
+
+			_addbufferdata(q2);
+			_addbufferdata(q3);
+			_addbufferdata(q0);
 			//q2,q4,q3
 			addbufferdata(q4);
 			addbufferdata(q6);
@@ -751,11 +769,16 @@ void TrainView::drawStuff(bool doingShadows)
 				addbufferdata(q0);
 				addbufferdata(q3);
 				addbufferdata(p2);
-				//q0,q3,p2
+
+				_addbufferdata(q0);
+				_addbufferdata(q3);
+				_addbufferdata(p2);
+				//q4,q5,p7
 				addbufferdata(p4);
 				addbufferdata(q5);
 				addbufferdata(q7);
-				//q0,q3,p2
+
+				//q7,q6,p4
 				addbufferdata(q7);
 				addbufferdata(p6);
 				addbufferdata(p4);
@@ -797,15 +820,23 @@ void TrainView::drawStuff(bool doingShadows)
 			addbufferdata(q0);
 			addbufferdata(q1);
 			addbufferdata(q2);
+
+			_addbufferdata(q0);
+			_addbufferdata(q1);
+			_addbufferdata(q2);
 			//q2,q3,q0
 			addbufferdata(q2);
 			addbufferdata(q3);
 			addbufferdata(q0);
-			//q4,q6,q5
+
+			_addbufferdata(q2);
+			_addbufferdata(q3);
+			_addbufferdata(q0);
+			//q2,q4,q3
 			addbufferdata(q4);
 			addbufferdata(q6);
 			addbufferdata(q5);
-			//q6,q7,q5
+			//q4,q5,q3
 			addbufferdata(q6);
 			addbufferdata(q7);
 			addbufferdata(q5);
@@ -815,10 +846,15 @@ void TrainView::drawStuff(bool doingShadows)
 				addbufferdata(q0);
 				addbufferdata(q3);
 				addbufferdata(_p2);
+
+				_addbufferdata(q0);
+				_addbufferdata(q3);
+				_addbufferdata(_p2);
 				//q0,q3,p2
 				addbufferdata(_p4);
 				addbufferdata(q5);
 				addbufferdata(q7);
+
 				//q0,q3,p2
 				addbufferdata(q7);
 				addbufferdata(_p6);
@@ -879,7 +915,7 @@ void TrainView::drawStuff(bool doingShadows)
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_intersections.size(), &gradient_intersections[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -944,7 +980,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, gradient_intersections.size());
 
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
@@ -1031,6 +1067,7 @@ doPick()
 	// go back to drawing mode, and see how picking did
 	int hits = glRenderMode(GL_RENDER);
 	if (hits) {
+		cout << "hit" << endl;
 		// warning; this just grabs the first object hit - if there
 		// are multiple objects, you really want to pick the closest
 		// one - see the OpenGL manual 
