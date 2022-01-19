@@ -208,6 +208,7 @@ void TrainView::draw_elevation_map() {
 	//Ground
 	background_shader->Use();
 	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(0, -200, 0));
 	trans = glm::scale(trans, glm::vec3(100, 0, 100));
 	// pass transformation matrices to the shader
 	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
@@ -324,6 +325,7 @@ void TrainView::draw_gradient_map() {
 	//Ground
 	background_shader->Use();
 	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(0, -200, 0));
 	trans = glm::scale(trans, glm::vec3(100, 0, 100));
 	// pass transformation matrices to the shader
 	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
