@@ -139,7 +139,7 @@ TrainWindow(const int x, const int y)
 		pty += 50;
 		radius = new Fl_Value_Slider(655, pty, 140, 20, "Radius");
 		radius->range(0, 100);
-		radius->value(5);
+		radius->value(10);
 		radius->align(FL_ALIGN_LEFT);
 		radius->type(FL_HORIZONTAL);
 		radius->callback((Fl_Callback*)radiusCB, this);

@@ -80,7 +80,6 @@ class TrainView : public Fl_Gl_Window
 		void draw_gradient_map();
 
 		void addbufferdata(Pnt3f);
-		void _addbufferdata(Pnt3f);
 	public:
 		ArcBallCam		arcball;			// keep an ArcBall for the UI
 		int				selectedCube = -1;  // simple - just remember which cube is selected
@@ -104,7 +103,6 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer1;
 		unsigned int rbo1;
 		vector<float> elevation_intersections;
-		vector<float> gradient_intersections;
 		
 
 		glm::mat4 view;
