@@ -224,7 +224,7 @@ void TrainView::draw_elevation_map() {
 
 	//
 	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
-	cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
+	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
 	height_map.clear();
 	for (int i = 0; i < 512; i++) {
 		for (int j = 0; j < 512; j++) {
@@ -962,8 +962,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 	//Ground of Gradient
 	glm::mat4 trans1 = glm::mat4(1.0f);
-	trans1 = glm::translate(trans1, glm::vec3(-200, 0, 0));
-	trans1 = glm::scale(trans1, glm::vec3(100, 0, 100));
+	trans1 = glm::translate(trans1, glm::vec3(-200, 1, 0));
+	trans1 = glm::scale(trans1, glm::vec3(100, 1, 100));
 
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
@@ -973,19 +973,19 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	background_shader->Use();
+	heightmap_shader->Use();
 	//Ground of Height Map
 	glm::mat4 trans2 = glm::mat4(1.0f);
 	trans2 = glm::translate(trans2, glm::vec3(0, 0,200));
-	trans2 = glm::scale(trans2, glm::vec3(100, 0, 100));
+	trans2 = glm::scale(trans2, glm::vec3(100, 1.0f, 100));
 
 
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans2[0][0]);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans2[0][0]);
+	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "texture_d"), textureColorbuffer);
+	wave_model->meshes[0].textures[0].id = textureColorbuffer;
+	wave_model->Draw(*heightmap_shader);
 
 	//Curve
 	gradient_shader->Use();
@@ -998,20 +998,20 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
 
-	heightmap_shader->Use();
-	//Height Map
-	glm::mat4 trans3 = glm::mat4(1.0f);
-	//trans3 = glm::rotate(trans3, glm::radians(90.0f), glm::vec3(0.0, -1.0, 0.0));
-	trans3 = glm::translate(trans3, glm::vec3(-100, 0, 100));
-	trans3 = glm::scale(trans3, glm::vec3(0.3, 1,0.3));
+	//heightmap_shader->Use();
+	////Height Map
+	//glm::mat4 trans3 = glm::mat4(1.0f);
+	////trans3 = glm::rotate(trans3, glm::radians(90.0f), glm::vec3(0.0, -1.0, 0.0));
+	//trans3 = glm::translate(trans3, glm::vec3(-100, 0, 100));
+	//trans3 = glm::scale(trans3, glm::vec3(0.3, 1,0.3));
 
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans3[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans3[0][0]);
 
-	glBindVertexArray(VAO[2]);
-	glDrawArrays(GL_TRIANGLES, 0, height_map.size());
-	//
+	//glBindVertexArray(VAO[2]);
+	//glDrawArrays(GL_TRIANGLES, 0, height_map.size());
+	////
 
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
