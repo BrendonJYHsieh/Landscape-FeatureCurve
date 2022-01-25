@@ -29,6 +29,7 @@
 // Preclarify for preventing the compiler error
 class TrainWindow;
 class CTrack;
+class Model;
 
 //#######################################################################
 // TODO
@@ -46,11 +47,14 @@ class CTrack;
 #pragma warning(disable:4311)
 #include <Fl/Fl_Gl_Window.h>
 #pragma warning(pop)
-#include "RenderUtilities/Texture.h"
 // this uses the old ArcBall Code
 #include "Utilities/ArcBallCam.H"
 #include "Curve.h"
+
+#include "RenderUtilities/BufferObject.h"
 #include "RenderUtilities/Shader.h"
+#include "RenderUtilities/Texture.h"
+
 class TrainView : public Fl_Gl_Window
 {
 	public:
@@ -94,6 +98,9 @@ class TrainView : public Fl_Gl_Window
 		Shader* background_shader = nullptr;
 		Shader* screen_shader = nullptr;
 		Shader* gradient_shader = nullptr;
+		Shader* heightmap_shader = nullptr;
+
+		Model* wave_model = nullptr;
 
 		Texture2D* background_texture = nullptr;
 
@@ -103,7 +110,10 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer1;
 		unsigned int rbo1;
 		vector<float> elevation_intersections;
-		
+		vector<float> height_map;
+
+
+		uint8_t* ImageBuffer = new uint8_t[1024 * 1024 * 4];
 
 		glm::mat4 view;
 		glm::mat4 projection;
