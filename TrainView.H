@@ -99,6 +99,7 @@ class TrainView : public Fl_Gl_Window
 		Shader* screen_shader = nullptr;
 		Shader* gradient_shader = nullptr;
 		Shader* heightmap_shader = nullptr;
+		Shader* heightmap_shader1 = nullptr;
 
 		Model* wave_model = nullptr;
 

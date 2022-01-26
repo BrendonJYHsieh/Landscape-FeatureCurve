@@ -226,15 +226,30 @@ void TrainView::draw_elevation_map() {
 	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
 	height_map.clear();
-	for (int i = 0; i < 512; i++) {
-		for (int j = 0; j < 512; j++) {
-			height_map.push_back(ImageBuffer[2048 * j + 4 * i]);
-			height_map.push_back(ImageBuffer[2048 * j + 4 * i+1]);
-			height_map.push_back(ImageBuffer[2048 * j + 4 * i+2]);
-			height_map.push_back(i);
-			height_map.push_back(j);
+	for (int k = 0; k < 50; k++) {
+		for (int i = 1; i < 512 - 1; i++) {
+			for (int j = 1; j < 512 - 1; j++) {
+				float L;
+
+				if (ImageBuffer[2048 * j + 4 * i + 3] == 255) {
+					ImageBuffer[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i];
+				}
+				else
+				{
+					L = (ImageBuffer[2048 * (j - 1) + 4 * (i - 1)] + ImageBuffer[2048 * (j - 1) + 4 * (i + 1)] + ImageBuffer[2048 * (j + 1) + 4 * (i - 1)] + ImageBuffer[2048 * (j + 1) + 4 * (i + 1)]) / 4;
+					ImageBuffer[2048 * j + 4 * i] = L;
+				}
+				if (k == 49) {
+					height_map.push_back(ImageBuffer[2048 * j + 4 * i]);
+					height_map.push_back(0.5);
+					height_map.push_back(ImageBuffer[2048 * j + 4 * i + 3]);
+					height_map.push_back((float)i / 512);
+					height_map.push_back((float)j / 512);
+				}
+			}
 		}
 	}
+	
 	//
 
 
@@ -889,6 +904,15 @@ void TrainView::drawStuff(bool doingShadows)
 				nullptr, nullptr, nullptr,
 				"../src/Shaders/heightmap.fs");
 	}
+
+	if (!this->heightmap_shader1) {
+		this->heightmap_shader1 = new
+			Shader(
+				"../src/Shaders/heightmap1.vs",
+				nullptr, nullptr, nullptr,
+				"../src/Shaders/heightmap1.fs");
+	}
+
 	if (!wave_model) {
 		wave_model = new Model("../wave/wave.obj");
 	}
@@ -998,20 +1022,20 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
 
-	//heightmap_shader->Use();
-	////Height Map
-	//glm::mat4 trans3 = glm::mat4(1.0f);
-	////trans3 = glm::rotate(trans3, glm::radians(90.0f), glm::vec3(0.0, -1.0, 0.0));
-	//trans3 = glm::translate(trans3, glm::vec3(-100, 0, 100));
-	//trans3 = glm::scale(trans3, glm::vec3(0.3, 1,0.3));
+	heightmap_shader1->Use();
+	//Height Map
+	glm::mat4 trans3 = glm::mat4(1.0f);
+	//trans3 = glm::rotate(trans3, glm::radians(90.0f), glm::vec3(0.0, -1.0, 0.0));
+	trans3 = glm::translate(trans3, glm::vec3(-300, 0, 100));
+	trans3 = glm::scale(trans3, glm::vec3(200, 1.0f, 200));
 
-	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans3[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "model"), 1, GL_FALSE, &trans3[0][0]);
 
-	//glBindVertexArray(VAO[2]);
-	//glDrawArrays(GL_TRIANGLES, 0, height_map.size());
-	////
+	glBindVertexArray(VAO[2]);
+	glDrawArrays(GL_TRIANGLES, 0, height_map.size());
+	//
 
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
