@@ -226,7 +226,7 @@ void TrainView::draw_elevation_map() {
 	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
 	height_map.clear();
-	for (int k = 0; k < 50; k++) {
+	/*for (int k = 0; k < 50; k++) {
 		for (int i = 1; i < 512 - 1; i++) {
 			for (int j = 1; j < 512 - 1; j++) {
 				float L;
@@ -248,7 +248,7 @@ void TrainView::draw_elevation_map() {
 				}
 			}
 		}
-	}
+	}*/
 	
 	//
 
@@ -757,14 +757,20 @@ void TrainView::drawStuff(bool doingShadows)
 
 			glm::vec3 normal = glm::normalize(glm::cross(Pnt3_to_Vec3(q0)-Pnt3_to_Vec3(q1), Pnt3_to_Vec3(q0) - Pnt3_to_Vec3(q3)));
 
-			q0.normal = normal;
-			q1.normal = normal;
-			q2.normal = normal;
-			q3.normal = normal;
+			q0.normal = glm::vec3(0.0f, 0.0f,0.0f);
+			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			
+			//q4.normal = glm::vec3(fabs(sin(glm::radians(-90 + phi_init + phi_interporate * (j + 1)))), fabs((q0.y-q1.y)/sqrtf(pow(q0.x-q1.x,2)+ pow(q0.z - q1.z, 2))), 0.0f);
+			//q5.normal = glm::vec3(fabs(sin(glm::radians(-90 + phi_init + phi_interporate * j))), fabs((q0.y - q1.y) / sqrtf(pow(q0.x - q1.x, 2) + pow(q0.z - q1.z, 2))), 0.0f);
 			q4.normal = Rotate(Axis, normal, -90 + phi_init + phi_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, -90 + phi_init + phi_interporate * j);
-			q6.normal = glm::vec3(0, 0, 0);
-			q7.normal = glm::vec3(0, 0, 0);
+			q4.normal = glm::vec3(q4.normal.x, q4.normal.z, 0.0f);
+			q5.normal = glm::vec3(q5.normal.x, q5.normal.z, 0.0f);
+
+			q6.normal = glm::vec3(0.0f,0.0f,0.0f);
+			q7.normal = glm::vec3(0.0f,0.0f,0.0f);
 
 			//q0,q1,q2
 			addbufferdata(q0);
@@ -826,6 +832,8 @@ void TrainView::drawStuff(bool doingShadows)
 			q3.normal = normal;
 			q4.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * j);
+			q4.normal = glm::vec3(q4.normal.z, q4.normal.x, 0.0f);
+			q5.normal = glm::vec3(q5.normal.z, q5.normal.x, 0.0f);
 			q6.normal = glm::vec3(0, 0, 0);
 			q7.normal = glm::vec3(0, 0, 0);
 
