@@ -752,11 +752,6 @@ void TrainView::drawStuff(bool doingShadows)
 				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 			}
 			glm::vec3 Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
-
-			//±ÛÂà
-			//q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			//q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
-
 			glm::vec3 normal = glm::normalize(Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q0));
 
 			q0.normal = glm::vec3(0.0f, 0.0f,0.0f);
@@ -823,8 +818,6 @@ void TrainView::drawStuff(bool doingShadows)
 				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 			}
 			Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
-			//q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			//q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
 			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
 			q1.normal = glm::vec3(0.0f, 0.0f, 0.0f);
