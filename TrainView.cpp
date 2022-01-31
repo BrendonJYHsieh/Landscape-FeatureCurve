@@ -752,22 +752,22 @@ void TrainView::drawStuff(bool doingShadows)
 				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 			}
 			glm::vec3 Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			glm::vec3 normal = glm::normalize(glm::cross(Pnt3_to_Vec3(q0)-Pnt3_to_Vec3(q1), Pnt3_to_Vec3(q0) - Pnt3_to_Vec3(q3)));
+			//±ÛÂà
+			//q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			//q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
+
+			glm::vec3 normal = glm::normalize(Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q0));
 
 			q0.normal = glm::vec3(0.0f, 0.0f,0.0f);
-			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q1.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q2.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q3.normal = glm::vec3(0.0f, 0.0f, 0.0f);
 			
-			//q4.normal = glm::vec3(fabs(sin(glm::radians(-90 + phi_init + phi_interporate * (j + 1)))), fabs((q0.y-q1.y)/sqrtf(pow(q0.x-q1.x,2)+ pow(q0.z - q1.z, 2))), 0.0f);
-			//q5.normal = glm::vec3(fabs(sin(glm::radians(-90 + phi_init + phi_interporate * j))), fabs((q0.y - q1.y) / sqrtf(pow(q0.x - q1.x, 2) + pow(q0.z - q1.z, 2))), 0.0f);
-			q4.normal = Rotate(Axis, normal, -90 + phi_init + phi_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, -90 + phi_init + phi_interporate * j);
-			q4.normal = glm::vec3(q4.normal.x, q4.normal.z, 0.0f);
-			q5.normal = glm::vec3(q5.normal.x, q5.normal.z, 0.0f);
+			q4.normal = Rotate(Axis, normal, phi_init + phi_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
+			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
+			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
 
 			q6.normal = glm::vec3(0.0f,0.0f,0.0f);
 			q7.normal = glm::vec3(0.0f,0.0f,0.0f);
@@ -823,17 +823,17 @@ void TrainView::drawStuff(bool doingShadows)
 				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 			}
 			Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * (j)))) + Pnt3_to_Vec3(q3));
+			//q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			//q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			q0.normal = normal;
-			q1.normal = normal;
-			q2.normal = normal;
-			q3.normal = normal;
-			q4.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * j);
-			q4.normal = glm::vec3(q4.normal.z, q4.normal.x, 0.0f);
-			q5.normal = glm::vec3(q5.normal.z, q5.normal.x, 0.0f);
+			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q1.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q2.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q3.normal = glm::vec3(0.0f, 0.0f, 0.0f);
+			q4.normal = Rotate(Axis, normal, -theta_init - theta_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal, -theta_init - theta_interporate * j);
+			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
+			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
 			q6.normal = glm::vec3(0, 0, 0);
 			q7.normal = glm::vec3(0, 0, 0);
 
