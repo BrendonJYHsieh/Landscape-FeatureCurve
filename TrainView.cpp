@@ -112,13 +112,19 @@ Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
 
-void TrainView::addbufferdata(Pnt3f q0) {
-	elevation_intersections.push_back(q0.x);
-	elevation_intersections.push_back(q0.y);
-	elevation_intersections.push_back(q0.z);
-	elevation_intersections.push_back(q0.normal.x);
-	elevation_intersections.push_back(q0.normal.y);
-	elevation_intersections.push_back(q0.normal.z);
+void TrainView::push_gradient_data(Pnt3f q0) {
+	gradient_data.push_back(q0.x);
+	gradient_data.push_back(q0.y);
+	gradient_data.push_back(q0.z);
+	gradient_data.push_back(q0.normal.x);
+	gradient_data.push_back(q0.normal.y);
+	gradient_data.push_back(q0.normal.z);
+}
+
+void TrainView::push_elevation_data(Pnt3f q0) {
+	elevation_data.push_back(q0.x);
+	elevation_data.push_back(q0.y);
+	elevation_data.push_back(q0.z);
 }
 
 void TrainView::draw_elevation_map() {
@@ -161,8 +167,8 @@ void TrainView::draw_elevation_map() {
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	//Ground
 	glBindVertexArray(VAO[1]);
@@ -209,7 +215,7 @@ void TrainView::draw_elevation_map() {
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
 
 	//Ground
 	background_shader->Use();
@@ -305,7 +311,7 @@ void TrainView::draw_gradient_map() {
 	//Curve
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -355,7 +361,7 @@ void TrainView::draw_gradient_map() {
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
 	//Ground
 	background_shader->Use();
@@ -689,7 +695,8 @@ setProjection()
 //========================================================================
 void TrainView::drawStuff(bool doingShadows)
 {
-	elevation_intersections.clear();
+	gradient_data.clear();
+	elevation_data.clear();
 	for (int i = 0; i < Curves.size(); i++) {
 		float t = 0;
 		float divide = tw->segment->value();
@@ -754,49 +761,60 @@ void TrainView::drawStuff(bool doingShadows)
 			glm::vec3 Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
 			glm::vec3 normal = glm::normalize(Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q0));
 
-			q0.normal = glm::vec3(0.0f, 0.0f,0.0f);
-			q1.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			q2.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			q3.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			
 			q4.normal = Rotate(Axis, normal, phi_init + phi_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
 			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
 			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
 
-			q6.normal = glm::vec3(0.0f,0.0f,0.0f);
-			q7.normal = glm::vec3(0.0f,0.0f,0.0f);
-
+			/*Elevation Vertex*/
 			//q0,q1,q2
-			addbufferdata(q0);
-			addbufferdata(q1);
-			addbufferdata(q2);
+			push_elevation_data(q0);
+			push_elevation_data(q1);
+			push_elevation_data(q2);
 			//q2,q3,q0
-			addbufferdata(q2);
-			addbufferdata(q3);
-			addbufferdata(q0);
-			//q2,q4,q3
-			addbufferdata(q4);
-			addbufferdata(q6);
-			addbufferdata(q5);
-			//q4,q5,q3
-			addbufferdata(q6);
-			addbufferdata(q7);
-			addbufferdata(q5);
+			push_elevation_data(q2);
+			push_elevation_data(q3);
+			push_elevation_data(q0);
+			//Fill holes
 			if (j > 0) {
 				//q0,q3,p2
-				addbufferdata(q0);
-				addbufferdata(q3);
-				addbufferdata(p2);
-				//q0,q3,p2
-				addbufferdata(p4);
-				addbufferdata(q5);
-				addbufferdata(q7);
-				//q0,q3,p2
-				addbufferdata(q7);
-				addbufferdata(p6);
-				addbufferdata(p4);
+				push_elevation_data(q0);
+				push_elevation_data(q3);
+				push_elevation_data(p2);
 			}
+			/*Gradient Vertex*/
+			//q0,q1,q2
+			push_gradient_data(q0);
+			push_gradient_data(q1);
+			push_gradient_data(q2);
+			//q2,q3,q0
+			push_gradient_data(q2);
+			push_gradient_data(q3);
+			push_gradient_data(q0);
+			//q2,q4,q3
+			push_gradient_data(q4);
+			push_gradient_data(q6);
+			push_gradient_data(q5);
+			//q4,q5,q3
+			push_gradient_data(q6);
+			push_gradient_data(q7);
+			push_gradient_data(q5);
+			//Fill holes
+			if (j > 0) {
+				//q0,q3,p2
+				push_gradient_data(q0);
+				push_gradient_data(q3);
+				push_gradient_data(p2);
+				//q0,q3,p2
+				push_gradient_data(p4);
+				push_gradient_data(q5);
+				push_gradient_data(q7);
+				//q0,q3,p2
+				push_gradient_data(q7);
+				push_gradient_data(p6);
+				push_gradient_data(p4);
+			}
+			/*Previous Points*/
 			p2 = q2;
 			p4 = q4;
 			p6 = q6;
@@ -817,49 +835,60 @@ void TrainView::drawStuff(bool doingShadows)
 				q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
 				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 			}
-			Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
 
-			q0.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			q1.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			q2.normal = glm::vec3(0.0f, 0.0f, 0.0f);
-			q3.normal = glm::vec3(0.0f, 0.0f, 0.0f);
 			q4.normal = Rotate(Axis, normal, -theta_init - theta_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, -theta_init - theta_interporate * j);
 			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
 			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
-			q6.normal = glm::vec3(0, 0, 0);
-			q7.normal = glm::vec3(0, 0, 0);
 
+			/*Elevation Vertex*/
 			//q0,q1,q2
-			addbufferdata(q0);
-			addbufferdata(q1);
-			addbufferdata(q2);
+			push_elevation_data(q0);
+			push_elevation_data(q1);
+			push_elevation_data(q2);
 			//q2,q3,q0
-			addbufferdata(q2);
-			addbufferdata(q3);
-			addbufferdata(q0);
-			//q4,q6,q5
-			addbufferdata(q4);
-			addbufferdata(q6);
-			addbufferdata(q5);
-			//q6,q7,q5
-			addbufferdata(q6);
-			addbufferdata(q7);
-			addbufferdata(q5);
-
+			push_elevation_data(q2);
+			push_elevation_data(q3);
+			push_elevation_data(q0);
 			if (j > 0) {
 				//q0,q3,p2
-				addbufferdata(q0);
-				addbufferdata(q3);
-				addbufferdata(_p2);
+				push_elevation_data(q0);
+				push_elevation_data(q3);
+				push_elevation_data(_p2);
+			}
+
+			/*Gradient Vertex*/
+			//q0,q1,q2
+			push_gradient_data(q0);
+			push_gradient_data(q1);
+			push_gradient_data(q2);
+			//q2,q3,q0
+			push_gradient_data(q2);
+			push_gradient_data(q3);
+			push_gradient_data(q0);
+			//q2,q4,q3
+			push_gradient_data(q4);
+			push_gradient_data(q6);
+			push_gradient_data(q5);
+			//q4,q5,q3
+			push_gradient_data(q6);
+			push_gradient_data(q7);
+			push_gradient_data(q5);
+
+			//Fill holes
+			if (j > 0) {
 				//q0,q3,p2
-				addbufferdata(_p4);
-				addbufferdata(q5);
-				addbufferdata(q7);
+				push_gradient_data(q0);
+				push_gradient_data(q3);
+				push_gradient_data(_p2);
 				//q0,q3,p2
-				addbufferdata(q7);
-				addbufferdata(_p6);
-				addbufferdata(_p4);
+				push_gradient_data(_p4);
+				push_gradient_data(q5);
+				push_gradient_data(q7);
+				//q0,q3,p2
+				push_gradient_data(q7);
+				push_gradient_data(_p6);
+				push_gradient_data(_p4);
 			}
 			_p2 = q2;
 			_p4 = q4;
@@ -935,7 +964,7 @@ void TrainView::drawStuff(bool doingShadows)
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -1021,7 +1050,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
 	heightmap_shader1->Use();
 	//Height Map

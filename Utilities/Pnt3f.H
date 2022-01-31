@@ -73,7 +73,7 @@ class Pnt3f {
 		float b=5;
 		float theta=60;
 		float phi=60;
-		glm::vec3 normal;
+		glm::vec3 normal = glm::vec3(0.0f,0.0f,0.0f);
 };
 //*****************************************************************************
 //
