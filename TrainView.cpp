@@ -708,7 +708,7 @@ void TrainView::drawStuff(bool doingShadows)
 		ControlPoint p3 = Curves[i].points[2];
 		ControlPoint p4 = Curves[i].points[3];
 		Curves[i].arclength_points.push_back(p1.pos);
-		Pnt3f c;
+
 		for (int j = 0; j < divide; j++) {
 			Pnt3f Q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
 			Pnt3f Q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 1/divide);
@@ -758,8 +758,10 @@ void TrainView::drawStuff(bool doingShadows)
 				q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1));
 				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 			}
-			glm::vec3 Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
+			glm::vec3 Axis = glm::vec3(q3.x - q2.x,0.0f, q3.z - q2.z);
+
 			glm::vec3 normal = glm::normalize(Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q0));
+
 
 			q4.normal = Rotate(Axis, normal, phi_init + phi_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
