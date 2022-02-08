@@ -111,9 +111,13 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rbo;
 		unsigned int textureColorbuffer1;
 		unsigned int rbo1;
+
 		vector<float> gradient_data;
 		vector<float> elevation_data;
 		vector<float> height_map;
+
+		unsigned int textureColorbuffer2;
+		float* data;
 
 
 		uint8_t* ImageBuffer = new uint8_t[1024 * 1024 * 4];

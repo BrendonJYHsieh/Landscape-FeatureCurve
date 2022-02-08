@@ -64,7 +64,6 @@ Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 }
 Pnt3f Intersect(Pnt3f A, Pnt3f B,float length) {
 	Pnt3f C;
-	bool t = false;
 	float m = (B.z - A.z) / (B.x - A.x);
 	float _m = -1 / m;
 	float bb = (_m * B.x) - B.z;
@@ -79,7 +78,6 @@ Pnt3f Intersect(Pnt3f A, Pnt3f B,float length) {
 }
 Pnt3f _Intersect(Pnt3f A, Pnt3f B,float length) {
 	Pnt3f C;
-	bool t = false;
 	float m = (B.z - A.z) / (B.x - A.x);
 	float _m = -1 / m;
 	float bb = (_m * B.x) - B.z;
@@ -232,7 +230,15 @@ void TrainView::draw_elevation_map() {
 	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
 	height_map.clear();
-	/*for (int k = 0; k < 50; k++) {
+	/*if (textureColorbuffer2) {
+		glGenTextures(1, &textureColorbuffer2);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		data = new float[512 * 512 * 4];
+	}*/
+	int iteration = 5;
+	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < 512 - 1; i++) {
 			for (int j = 1; j < 512 - 1; j++) {
 				float L;
@@ -245,7 +251,7 @@ void TrainView::draw_elevation_map() {
 					L = (ImageBuffer[2048 * (j - 1) + 4 * (i - 1)] + ImageBuffer[2048 * (j - 1) + 4 * (i + 1)] + ImageBuffer[2048 * (j + 1) + 4 * (i - 1)] + ImageBuffer[2048 * (j + 1) + 4 * (i + 1)]) / 4;
 					ImageBuffer[2048 * j + 4 * i] = L;
 				}
-				if (k == 49) {
+				if (k == iteration-1) {
 					height_map.push_back(ImageBuffer[2048 * j + 4 * i]);
 					height_map.push_back(0.5);
 					height_map.push_back(ImageBuffer[2048 * j + 4 * i + 3]);
@@ -254,7 +260,8 @@ void TrainView::draw_elevation_map() {
 				}
 			}
 		}
-	}*/
+	}
+	
 	
 	//
 
@@ -1069,13 +1076,14 @@ void TrainView::drawStuff(bool doingShadows)
 	glDrawArrays(GL_TRIANGLES, 0, height_map.size());
 	//
 
-	glDeleteVertexArrays(2, VAO);
-	glDeleteBuffers(2, VBO);
+	glDeleteVertexArrays(3, VAO);
+	glDeleteBuffers(3, VBO);
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteTextures(1, &textureColorbuffer);
 	glDeleteRenderbuffers(1, &rbo);
 	glDeleteTextures(1, &textureColorbuffer1);
 	glDeleteRenderbuffers(1, &rbo1);
+	glDeleteTextures(1, &textureColorbuffer2);
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {
