@@ -120,7 +120,7 @@ class TrainView : public Fl_Gl_Window
 		float* data;
 
 
-		uint8_t* ImageBuffer = new uint8_t[1024 * 1024 * 4];
+		uint8_t* ImageBuffer = new uint8_t[512 * 512 * 4];
 
 		glm::mat4 view;
 		glm::mat4 projection;

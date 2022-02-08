@@ -230,13 +230,13 @@ void TrainView::draw_elevation_map() {
 	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
 	height_map.clear();
-	/*if (textureColorbuffer2) {
-		glGenTextures(1, &textureColorbuffer2);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		data = new float[512 * 512 * 4];
-	}*/
+	
+	data = new float[512 * 512 * 4];
+
+	for (int i = 0; i < 512 * 512 * 4; i++) {
+		data[i] = 0.0f;
+	}
+
 	int iteration = 5;
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < 512 - 1; i++) {
@@ -248,7 +248,7 @@ void TrainView::draw_elevation_map() {
 				}
 				else
 				{
-					L = (ImageBuffer[2048 * (j - 1) + 4 * (i - 1)] + ImageBuffer[2048 * (j - 1) + 4 * (i + 1)] + ImageBuffer[2048 * (j + 1) + 4 * (i - 1)] + ImageBuffer[2048 * (j + 1) + 4 * (i + 1)]) / 4;
+					L = (ImageBuffer[2048 * (j - 1) + 4 * (i)] + ImageBuffer[2048 * (j + 1) + 4 * (i)] + ImageBuffer[2048 * (j) + 4 * (i - 1)] + ImageBuffer[2048 * (j) + 4 * (i + 1)]) / 4.0f;
 					ImageBuffer[2048 * j + 4 * i] = L;
 				}
 				if (k == iteration-1) {
@@ -257,11 +257,20 @@ void TrainView::draw_elevation_map() {
 					height_map.push_back(ImageBuffer[2048 * j + 4 * i + 3]);
 					height_map.push_back((float)i / 512);
 					height_map.push_back((float)j / 512);
+					data[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i]/255.0f;
+					data[2048 * j + 4 * i + 1] = ImageBuffer[2048 * j + 4 * i + 1]/255.0f;
+					data[2048 * j + 4 * i + 2] = ImageBuffer[2048 * j + 4 * i + 2]/255.0f;
+					data[2048 * j + 4 * i + 3] = ImageBuffer[2048 * j + 4 * i + 3] / 255.0f;
 				}
 			}
 		}
 	}
-	
+	glGenTextures(1, &textureColorbuffer2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_FLOAT, data);
 	
 	//
 
@@ -1047,7 +1056,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans2[0][0]);
 	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "texture_d"), textureColorbuffer);
-	wave_model->meshes[0].textures[0].id = textureColorbuffer;
+	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
 	wave_model->Draw(*heightmap_shader);
 
 	//Curve
@@ -1084,6 +1093,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(1, &textureColorbuffer1);
 	glDeleteRenderbuffers(1, &rbo1);
 	glDeleteTextures(1, &textureColorbuffer2);
+	delete data;
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {
