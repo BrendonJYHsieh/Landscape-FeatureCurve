@@ -82,6 +82,7 @@ class TrainView : public Fl_Gl_Window
 
 		void draw_elevation_map();
 		void draw_gradient_map();
+		void draw_height_map();
 
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f);
@@ -121,6 +122,7 @@ class TrainView : public Fl_Gl_Window
 
 
 		uint8_t* ImageBuffer = new uint8_t[512 * 512 * 4];
+		uint8_t* ImageBuffer1 = new uint8_t[512 * 512 * 4];
 
 		glm::mat4 view;
 		glm::mat4 projection;

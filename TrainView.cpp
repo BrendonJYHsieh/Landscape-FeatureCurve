@@ -116,7 +116,7 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.z);
 	gradient_data.push_back(q0.normal.x);
 	gradient_data.push_back(q0.normal.y);
-	gradient_data.push_back(q0.normal.z);
+	gradient_data.push_back(0.5f);
 }
 
 void TrainView::push_elevation_data(Pnt3f q0) {
@@ -229,48 +229,7 @@ void TrainView::draw_elevation_map() {
 	//
 	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	height_map.clear();
-	
-	data = new float[512 * 512 * 4];
-
-	for (int i = 0; i < 512 * 512 * 4; i++) {
-		data[i] = 0.0f;
-	}
-
-	int iteration = 5;
-	for (int k = 0; k < iteration; k++) {
-		for (int i = 1; i < 512 - 1; i++) {
-			for (int j = 1; j < 512 - 1; j++) {
-				float L;
-
-				if (ImageBuffer[2048 * j + 4 * i + 3] == 255) {
-					ImageBuffer[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i];
-				}
-				else
-				{
-					L = (ImageBuffer[2048 * (j - 1) + 4 * (i)] + ImageBuffer[2048 * (j + 1) + 4 * (i)] + ImageBuffer[2048 * (j) + 4 * (i - 1)] + ImageBuffer[2048 * (j) + 4 * (i + 1)]) / 4.0f;
-					ImageBuffer[2048 * j + 4 * i] = L;
-				}
-				if (k == iteration-1) {
-					height_map.push_back(ImageBuffer[2048 * j + 4 * i]);
-					height_map.push_back(0.5);
-					height_map.push_back(ImageBuffer[2048 * j + 4 * i + 3]);
-					height_map.push_back((float)i / 512);
-					height_map.push_back((float)j / 512);
-					data[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i]/255.0f;
-					data[2048 * j + 4 * i + 1] = ImageBuffer[2048 * j + 4 * i + 1]/255.0f;
-					data[2048 * j + 4 * i + 2] = ImageBuffer[2048 * j + 4 * i + 2]/255.0f;
-					data[2048 * j + 4 * i + 3] = ImageBuffer[2048 * j + 4 * i + 3] / 255.0f;
-				}
-			}
-		}
-	}
-	glGenTextures(1, &textureColorbuffer2);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_FLOAT, data);
+	//cout<< " A:" << (int)ImageBuffer[3] << endl;
 	
 	//
 
@@ -279,7 +238,7 @@ void TrainView::draw_elevation_map() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 	// clear all relevant buffers
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	glClearColor(0.0f, 0.0f, 0.3f, 0.5f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glDeleteVertexArrays(2, VAO);
@@ -305,7 +264,7 @@ void TrainView::draw_gradient_map() {
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer1);
 
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->pixel_w(), this->pixel_h(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->pixel_w(), this->pixel_h(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -346,7 +305,7 @@ void TrainView::draw_gradient_map() {
 	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
 	// make sure we clear the framebuffer's content
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Curve
@@ -379,6 +338,10 @@ void TrainView::draw_gradient_map() {
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
+
+	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
+	cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
+
 	//Ground
 	background_shader->Use();
 	glm::mat4 trans = glm::mat4(1.0f);
@@ -391,6 +354,7 @@ void TrainView::draw_gradient_map() {
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
@@ -400,6 +364,48 @@ void TrainView::draw_gradient_map() {
 
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
+}
+void TrainView::draw_height_map() {
+	height_map.clear();
+
+	data = new float[512 * 512 * 4];
+
+	for (int i = 0; i < 512 * 512 * 4; i++) {
+		data[i] = 0.0f;
+	}
+	int iteration = 5;
+	for (int k = 0; k < iteration; k++) {
+		for (int i = 1; i < 512 - 1; i++) {
+			for (int j = 1; j < 512 - 1; j++) {
+				float L;
+				if (ImageBuffer[2048 * j + 4 * i + 3] == 255) {
+					ImageBuffer[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i];
+				}
+				else
+				{
+					L = (ImageBuffer[2048 * (j - 1) + 4 * (i)] + ImageBuffer[2048 * (j + 1) + 4 * (i)] + ImageBuffer[2048 * (j)+4 * (i - 1)] + ImageBuffer[2048 * (j)+4 * (i + 1)]) / 4.0f;
+					ImageBuffer[2048 * j + 4 * i] = L;
+				}
+				if (k == iteration - 1) {
+					height_map.push_back(ImageBuffer[2048 * j + 4 * i]);
+					height_map.push_back(0.5);
+					height_map.push_back(ImageBuffer[2048 * j + 4 * i + 3]);
+					height_map.push_back((float)i / 512);
+					height_map.push_back((float)j / 512);
+					data[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i] / 255.0f;
+					data[2048 * j + 4 * i + 1] = ImageBuffer[2048 * j + 4 * i + 1] / 255.0f;
+					data[2048 * j + 4 * i + 2] = ImageBuffer[2048 * j + 4 * i + 2] / 255.0f;
+					data[2048 * j + 4 * i + 3] = ImageBuffer[2048 * j + 4 * i + 3] / 255.0f;
+				}
+			}
+		}
+	}
+	glGenTextures(1, &textureColorbuffer2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_FLOAT, data);
 }
 //************************************************************************
 //
@@ -998,6 +1004,7 @@ void TrainView::drawStuff(bool doingShadows)
 
 	draw_elevation_map();
 	draw_gradient_map();
+	draw_height_map();
 
 	//Height Map
 	glBindVertexArray(VAO[2]);
