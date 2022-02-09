@@ -40,9 +40,15 @@
 #include "TrainView.H"
 #include "TrainWindow.H"
 #include "Utilities/3DUtils.H"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #define STB_IMAGE_IMPLEMENTATION
-#include "RenderUtilities/stb_image.h"
-#include "RenderUtilities/Texture.h"
+
+
+#include"RenderUtilities/model.h"
 #ifdef EXAMPLE_SOLUTION
 #	include "TrainExample/TrainExample.H"
 #endif
@@ -58,7 +64,6 @@ Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 }
 Pnt3f Intersect(Pnt3f A, Pnt3f B,float length) {
 	Pnt3f C;
-	bool t = false;
 	float m = (B.z - A.z) / (B.x - A.x);
 	float _m = -1 / m;
 	float bb = (_m * B.x) - B.z;
@@ -73,7 +78,6 @@ Pnt3f Intersect(Pnt3f A, Pnt3f B,float length) {
 }
 Pnt3f _Intersect(Pnt3f A, Pnt3f B,float length) {
 	Pnt3f C;
-	bool t = false;
 	float m = (B.z - A.z) / (B.x - A.x);
 	float _m = -1 / m;
 	float bb = (_m * B.x) - B.z;
@@ -106,13 +110,19 @@ Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
 
-void TrainView::addbufferdata(Pnt3f q0) {
-	elevation_intersections.push_back(q0.x);
-	elevation_intersections.push_back(q0.y);
-	elevation_intersections.push_back(q0.z);
-	elevation_intersections.push_back(q0.normal.x);
-	elevation_intersections.push_back(q0.normal.y);
-	elevation_intersections.push_back(q0.normal.z);
+void TrainView::push_gradient_data(Pnt3f q0) {
+	gradient_data.push_back(q0.x);
+	gradient_data.push_back(q0.y);
+	gradient_data.push_back(q0.z);
+	gradient_data.push_back(q0.normal.x);
+	gradient_data.push_back(q0.normal.y);
+	gradient_data.push_back(0.5f);
+}
+
+void TrainView::push_elevation_data(Pnt3f q0) {
+	elevation_data.push_back(q0.x);
+	elevation_data.push_back(q0.y);
+	elevation_data.push_back(q0.z);
 }
 
 void TrainView::draw_elevation_map() {
@@ -133,7 +143,7 @@ void TrainView::draw_elevation_map() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->pixel_w(), this->pixel_h(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -141,7 +151,7 @@ void TrainView::draw_elevation_map() {
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->pixel_w(), this->pixel_h()); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 512, 512); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -155,8 +165,8 @@ void TrainView::draw_elevation_map() {
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	//Ground
 	glBindVertexArray(VAO[1]);
@@ -188,7 +198,7 @@ void TrainView::draw_elevation_map() {
 		he = 100;
 		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
 	}
-	glViewport(0, 0, w(), h());
+	glViewport(0, 0, 512, 512);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-wi, wi, -he, he, 200, -200);
@@ -203,7 +213,7 @@ void TrainView::draw_elevation_map() {
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
 
 	//Ground
 	background_shader->Use();
@@ -214,15 +224,22 @@ void TrainView::draw_elevation_map() {
 	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
-
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	//
+	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
+	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
+	//cout<< " A:" << (int)ImageBuffer[3] << endl;
+	
+	//
+
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 	// clear all relevant buffers
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	glClearColor(0.0f, 0.0f, 0.3f, 0.5f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glDeleteVertexArrays(2, VAO);
@@ -248,7 +265,7 @@ void TrainView::draw_gradient_map() {
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer1);
 
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->pixel_w(), this->pixel_h(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->pixel_w(), this->pixel_h(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -270,7 +287,7 @@ void TrainView::draw_gradient_map() {
 	//Curve
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -289,7 +306,7 @@ void TrainView::draw_gradient_map() {
 	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
 	// make sure we clear the framebuffer's content
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Curve
@@ -320,7 +337,11 @@ void TrainView::draw_gradient_map() {
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
+
+
+	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
+	cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
 
 	//Ground
 	background_shader->Use();
@@ -335,6 +356,7 @@ void TrainView::draw_gradient_map() {
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
@@ -344,6 +366,50 @@ void TrainView::draw_gradient_map() {
 
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
+}
+
+void TrainView::draw_height_map() {
+	height_map.clear();
+
+
+	data = new float[512 * 512 * 4];
+
+	for (int i = 0; i < 512 * 512 * 4; i++) {
+		data[i] = 0.0f;
+	}
+	int iteration = 5;
+	for (int k = 0; k < iteration; k++) {
+		for (int i = 1; i < 512 - 1; i++) {
+			for (int j = 1; j < 512 - 1; j++) {
+				float L;
+				if (ImageBuffer[2048 * j + 4 * i + 3] == 255) {
+					ImageBuffer[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i];
+				}
+				else
+				{
+					L = (ImageBuffer[2048 * (j - 1) + 4 * (i)] + ImageBuffer[2048 * (j + 1) + 4 * (i)] + ImageBuffer[2048 * (j)+4 * (i - 1)] + ImageBuffer[2048 * (j)+4 * (i + 1)]) / 4.0f;
+					ImageBuffer[2048 * j + 4 * i] = L;
+				}
+				if (k == iteration - 1) {
+					height_map.push_back(ImageBuffer[2048 * j + 4 * i]);
+					height_map.push_back(0.5);
+					height_map.push_back(ImageBuffer[2048 * j + 4 * i + 3]);
+					height_map.push_back((float)i / 512);
+					height_map.push_back((float)j / 512);
+					data[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i] / 255.0f;
+					data[2048 * j + 4 * i + 1] = ImageBuffer[2048 * j + 4 * i + 1] / 255.0f;
+					data[2048 * j + 4 * i + 2] = ImageBuffer[2048 * j + 4 * i + 2] / 255.0f;
+					data[2048 * j + 4 * i + 3] = ImageBuffer[2048 * j + 4 * i + 3] / 255.0f;
+				}
+			}
+		}
+	}
+	glGenTextures(1, &textureColorbuffer2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_FLOAT, data);
 }
 //************************************************************************
 //
@@ -655,7 +721,8 @@ setProjection()
 //========================================================================
 void TrainView::drawStuff(bool doingShadows)
 {
-	elevation_intersections.clear();
+	gradient_data.clear();
+	elevation_data.clear();
 	for (int i = 0; i < Curves.size(); i++) {
 		float t = 0;
 		float divide = tw->segment->value();
@@ -667,7 +734,7 @@ void TrainView::drawStuff(bool doingShadows)
 		ControlPoint p3 = Curves[i].points[2];
 		ControlPoint p4 = Curves[i].points[3];
 		Curves[i].arclength_points.push_back(p1.pos);
-		Pnt3f c;
+
 		for (int j = 0; j < divide; j++) {
 			Pnt3f Q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
 			Pnt3f Q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 1/divide);
@@ -717,51 +784,65 @@ void TrainView::drawStuff(bool doingShadows)
 				q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1));
 				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 			}
-			glm::vec3 Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
+			glm::vec3 Axis = glm::vec3(q3.x - q2.x,0.0f, q3.z - q2.z);
 
-			glm::vec3 normal = glm::normalize(glm::cross(Pnt3_to_Vec3(q0)-Pnt3_to_Vec3(q1), Pnt3_to_Vec3(q0) - Pnt3_to_Vec3(q3)));
+			glm::vec3 normal = glm::normalize(Pnt3_to_Vec3(q3) - Pnt3_to_Vec3(q0));
 
-			q0.normal = normal;
-			q1.normal = normal;
-			q2.normal = normal;
-			q3.normal = normal;
-			q4.normal = Rotate(Axis, normal, -90 + phi_init + phi_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, -90 + phi_init + phi_interporate * j);
-			q6.normal = glm::vec3(0, 0, 0);
-			q7.normal = glm::vec3(0, 0, 0);
 
+			q4.normal = Rotate(Axis, normal, phi_init + phi_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
+			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
+			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
+
+			/*Elevation Vertex*/
 			//q0,q1,q2
-			addbufferdata(q0);
-			addbufferdata(q1);
-			addbufferdata(q2);
+			push_elevation_data(q0);
+			push_elevation_data(q1);
+			push_elevation_data(q2);
 			//q2,q3,q0
-			addbufferdata(q2);
-			addbufferdata(q3);
-			addbufferdata(q0);
-			//q2,q4,q3
-			addbufferdata(q4);
-			addbufferdata(q6);
-			addbufferdata(q5);
-			//q4,q5,q3
-			addbufferdata(q6);
-			addbufferdata(q7);
-			addbufferdata(q5);
+			push_elevation_data(q2);
+			push_elevation_data(q3);
+			push_elevation_data(q0);
+			//Fill holes
 			if (j > 0) {
 				//q0,q3,p2
-				addbufferdata(q0);
-				addbufferdata(q3);
-				addbufferdata(p2);
-				//q0,q3,p2
-				addbufferdata(p4);
-				addbufferdata(q5);
-				addbufferdata(q7);
-				//q0,q3,p2
-				addbufferdata(q7);
-				addbufferdata(p6);
-				addbufferdata(p4);
+				push_elevation_data(q0);
+				push_elevation_data(q3);
+				push_elevation_data(p2);
 			}
+			/*Gradient Vertex*/
+			//q0,q1,q2
+			push_gradient_data(q0);
+			push_gradient_data(q1);
+			push_gradient_data(q2);
+			//q2,q3,q0
+			push_gradient_data(q2);
+			push_gradient_data(q3);
+			push_gradient_data(q0);
+			//q2,q4,q3
+			push_gradient_data(q4);
+			push_gradient_data(q6);
+			push_gradient_data(q5);
+			//q4,q5,q3
+			push_gradient_data(q6);
+			push_gradient_data(q7);
+			push_gradient_data(q5);
+			//Fill holes
+			if (j > 0) {
+				//q0,q3,p2
+				push_gradient_data(q0);
+				push_gradient_data(q3);
+				push_gradient_data(p2);
+				//q0,q3,p2
+				push_gradient_data(p4);
+				push_gradient_data(q5);
+				push_gradient_data(q7);
+				//q0,q3,p2
+				push_gradient_data(q7);
+				push_gradient_data(p6);
+				push_gradient_data(p4);
+			}
+			/*Previous Points*/
 			p2 = q2;
 			p4 = q4;
 			p6 = q6;
@@ -782,49 +863,60 @@ void TrainView::drawStuff(bool doingShadows)
 				q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
 				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 			}
-			Axis = glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z);
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			q0.normal = normal;
-			q1.normal = normal;
-			q2.normal = normal;
-			q3.normal = normal;
-			q4.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, 90 - theta_init - theta_interporate * j);
-			q6.normal = glm::vec3(0, 0, 0);
-			q7.normal = glm::vec3(0, 0, 0);
+			q4.normal = Rotate(Axis, normal, -theta_init - theta_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal, -theta_init - theta_interporate * j);
+			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
+			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
 
+			/*Elevation Vertex*/
 			//q0,q1,q2
-			addbufferdata(q0);
-			addbufferdata(q1);
-			addbufferdata(q2);
+			push_elevation_data(q0);
+			push_elevation_data(q1);
+			push_elevation_data(q2);
 			//q2,q3,q0
-			addbufferdata(q2);
-			addbufferdata(q3);
-			addbufferdata(q0);
-			//q4,q6,q5
-			addbufferdata(q4);
-			addbufferdata(q6);
-			addbufferdata(q5);
-			//q6,q7,q5
-			addbufferdata(q6);
-			addbufferdata(q7);
-			addbufferdata(q5);
-
+			push_elevation_data(q2);
+			push_elevation_data(q3);
+			push_elevation_data(q0);
 			if (j > 0) {
 				//q0,q3,p2
-				addbufferdata(q0);
-				addbufferdata(q3);
-				addbufferdata(_p2);
+				push_elevation_data(q0);
+				push_elevation_data(q3);
+				push_elevation_data(_p2);
+			}
+
+			/*Gradient Vertex*/
+			//q0,q1,q2
+			push_gradient_data(q0);
+			push_gradient_data(q1);
+			push_gradient_data(q2);
+			//q2,q3,q0
+			push_gradient_data(q2);
+			push_gradient_data(q3);
+			push_gradient_data(q0);
+			//q2,q4,q3
+			push_gradient_data(q4);
+			push_gradient_data(q6);
+			push_gradient_data(q5);
+			//q4,q5,q3
+			push_gradient_data(q6);
+			push_gradient_data(q7);
+			push_gradient_data(q5);
+
+			//Fill holes
+			if (j > 0) {
 				//q0,q3,p2
-				addbufferdata(_p4);
-				addbufferdata(q5);
-				addbufferdata(q7);
+				push_gradient_data(q0);
+				push_gradient_data(q3);
+				push_gradient_data(_p2);
 				//q0,q3,p2
-				addbufferdata(q7);
-				addbufferdata(_p6);
-				addbufferdata(_p4);
+				push_gradient_data(_p4);
+				push_gradient_data(q5);
+				push_gradient_data(q7);
+				//q0,q3,p2
+				push_gradient_data(q7);
+				push_gradient_data(_p6);
+				push_gradient_data(_p4);
 			}
 			_p2 = q2;
 			_p4 = q4;
@@ -863,6 +955,25 @@ void TrainView::drawStuff(bool doingShadows)
 				nullptr, nullptr, nullptr,
 				"../src/Shaders/screen.fs");
 	}
+	if (!this->heightmap_shader) {
+		this->heightmap_shader = new
+			Shader(
+				"../src/Shaders/heightmap.vs",
+				nullptr, nullptr, nullptr,
+				"../src/Shaders/heightmap.fs");
+	}
+
+	if (!this->heightmap_shader1) {
+		this->heightmap_shader1 = new
+			Shader(
+				"../src/Shaders/heightmap1.vs",
+				nullptr, nullptr, nullptr,
+				"../src/Shaders/heightmap1.fs");
+	}
+
+	if (!wave_model) {
+		wave_model = new Model("../wave/wave.obj");
+	}
 
 	float vertices[] = {
     // positions                          // texture coords
@@ -874,14 +985,14 @@ void TrainView::drawStuff(bool doingShadows)
     -1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
 	};
 
-	unsigned int VBO[2], VAO[2];
-    glGenVertexArrays(2, VAO);
-    glGenBuffers(2, VBO);
+	unsigned int VBO[3], VAO[3];
+    glGenVertexArrays(3, VAO);
+    glGenBuffers(3, VBO);
 
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_intersections.size(), &elevation_intersections[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -897,7 +1008,16 @@ void TrainView::drawStuff(bool doingShadows)
 
 	draw_elevation_map();
 	draw_gradient_map();
+	draw_height_map();
 
+	//Height Map
+	glBindVertexArray(VAO[2]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * height_map.size(), &height_map[0], GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -909,13 +1029,12 @@ void TrainView::drawStuff(bool doingShadows)
 
 	
 
-	//Ground
 	screen_shader->Use();
+	//Ground of Elevation
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, glm::vec3(200, 0, 0));
 	trans = glm::scale(trans, glm::vec3(100, 0, 100));
 	
-	// pass transformation matrices to the shader
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
@@ -924,11 +1043,11 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+	//Ground of Gradient
 	glm::mat4 trans1 = glm::mat4(1.0f);
-	trans1 = glm::translate(trans1, glm::vec3(-200, 0, 0));
-	trans1 = glm::scale(trans1, glm::vec3(100, 0, 100));
+	trans1 = glm::translate(trans1, glm::vec3(-200, 1, 0));
+	trans1 = glm::scale(trans1, glm::vec3(100, 1, 100));
 
-	// pass transformation matrices to the shader
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans1[0][0]);
@@ -936,6 +1055,20 @@ void TrainView::drawStuff(bool doingShadows)
 
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	heightmap_shader->Use();
+	//Ground of Height Map
+	glm::mat4 trans2 = glm::mat4(1.0f);
+	trans2 = glm::translate(trans2, glm::vec3(0, 0,200));
+	trans2 = glm::scale(trans2, glm::vec3(100, 1.0f, 100));
+
+
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans2[0][0]);
+	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "texture_d"), textureColorbuffer);
+	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
+	wave_model->Draw(*heightmap_shader);
 
 	//Curve
 	gradient_shader->Use();
@@ -946,15 +1079,33 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_intersections.size());
+	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
-	glDeleteVertexArrays(2, VAO);
-	glDeleteBuffers(2, VBO);
+	heightmap_shader1->Use();
+	//Height Map
+	glm::mat4 trans3 = glm::mat4(1.0f);
+	//trans3 = glm::rotate(trans3, glm::radians(90.0f), glm::vec3(0.0, -1.0, 0.0));
+	trans3 = glm::translate(trans3, glm::vec3(-300, 0, 100));
+	trans3 = glm::scale(trans3, glm::vec3(200, 1.0f, 200));
+
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "model"), 1, GL_FALSE, &trans3[0][0]);
+
+	glBindVertexArray(VAO[2]);
+	glDrawArrays(GL_TRIANGLES, 0, height_map.size());
+	//
+
+	glDeleteVertexArrays(3, VAO);
+	glDeleteBuffers(3, VBO);
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteTextures(1, &textureColorbuffer);
 	glDeleteRenderbuffers(1, &rbo);
 	glDeleteTextures(1, &textureColorbuffer1);
 	glDeleteRenderbuffers(1, &rbo1);
+	glDeleteTextures(1, &textureColorbuffer2);
+	delete data;
+
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {

@@ -57,6 +57,13 @@ void damageCB(Fl_Widget*, TrainWindow* tw)
 	tw->damageMe();
 }
 
+void heightCB(Fl_Widget*, TrainWindow* tw)
+{
+	if (tw->trainView->selectedCube != -1)
+		tw->trainView->Curves[tw->trainView->SelectedCurve].points[tw->trainView->SelectedNode].pos.y = tw->height->value();
+	tw->damageMe();
+}
+
 void radiusCB(Fl_Widget*, TrainWindow* tw)
 {
 	if(tw->trainView->selectedCube!=-1)

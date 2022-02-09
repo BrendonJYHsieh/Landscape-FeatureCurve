@@ -53,7 +53,7 @@ void saveCB(Fl_Widget*, TrainWindow* tw);
 void addCurve(Fl_Widget*, TrainWindow* tw);
 void deleteCurve(Fl_Widget*, TrainWindow* tw);
 
-
+void heightCB(Fl_Widget*, TrainWindow* tw);
 void radiusCB(Fl_Widget*, TrainWindow* tw);
 void aCB(Fl_Widget*, TrainWindow* tw);
 void bCB(Fl_Widget*, TrainWindow* tw);
