@@ -368,7 +368,7 @@ void TrainView::draw_gradient_map() {
 	glDeleteBuffers(2, VBO);
 }
 
-void TrainView::draw_height_map() {
+void TrainView::jacobi() {
 	height_map.clear();
 
 
@@ -1008,7 +1008,7 @@ void TrainView::drawStuff(bool doingShadows)
 
 	draw_elevation_map();
 	draw_gradient_map();
-	draw_height_map();
+	jacobi();
 
 	//Height Map
 	glBindVertexArray(VAO[2]);

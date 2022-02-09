@@ -82,7 +82,7 @@ class TrainView : public Fl_Gl_Window
 
 		void draw_elevation_map();
 		void draw_gradient_map();
-		void draw_height_map();
+		void jacobi();
 
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f);
