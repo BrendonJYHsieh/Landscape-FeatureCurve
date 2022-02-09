@@ -143,7 +143,7 @@ void TrainView::draw_elevation_map() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -151,7 +151,7 @@ void TrainView::draw_elevation_map() {
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 512, 512); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, gridsize, gridsize); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -198,7 +198,7 @@ void TrainView::draw_elevation_map() {
 		he = 100;
 		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
 	}
-	glViewport(0, 0, 512, 512);
+	glViewport(0, 0, gridsize, gridsize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-wi, wi, -he, he, 200, -200);
@@ -228,7 +228,7 @@ void TrainView::draw_elevation_map() {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	//
-	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
+	glReadPixels(0, 0, gridsize, gridsize, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
 	//cout<< " A:" << (int)ImageBuffer[3] << endl;
 	
@@ -340,8 +340,7 @@ void TrainView::draw_gradient_map() {
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
 
-	glReadPixels(0, 0, 512, 512, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
-	cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
+	glReadPixels(0, 0, gridsize, gridsize, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
 
 	//Ground
 	background_shader->Use();
@@ -371,35 +370,34 @@ void TrainView::draw_gradient_map() {
 void TrainView::jacobi() {
 	height_map.clear();
 
+	data = new float[gridsize * gridsize * 4];
 
-	data = new float[512 * 512 * 4];
-
-	for (int i = 0; i < 512 * 512 * 4; i++) {
+	for (int i = 0; i < gridsize * gridsize * 4; i++) {
 		data[i] = 0.0f;
 	}
-	int iteration = 5;
+	int iteration = 50;
 	for (int k = 0; k < iteration; k++) {
-		for (int i = 1; i < 512 - 1; i++) {
-			for (int j = 1; j < 512 - 1; j++) {
+		for (int i = 1; i < gridsize - 1; i++) {
+			for (int j = 1; j < gridsize - 1; j++) {
 				float L;
-				if (ImageBuffer[2048 * j + 4 * i + 3] == 255) {
-					ImageBuffer[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i];
+				if (ImageBuffer[(gridsize*4) * j + 4 * i + 3] == 255) {
+					ImageBuffer[(gridsize*4) * j + 4 * i] = ImageBuffer[(gridsize*4) * j + 4 * i];
 				}
 				else
 				{
-					L = (ImageBuffer[2048 * (j - 1) + 4 * (i)] + ImageBuffer[2048 * (j + 1) + 4 * (i)] + ImageBuffer[2048 * (j)+4 * (i - 1)] + ImageBuffer[2048 * (j)+4 * (i + 1)]) / 4.0f;
-					ImageBuffer[2048 * j + 4 * i] = L;
+					L = (ImageBuffer[(gridsize*4) * (j - 1) + 4 * (i)] + ImageBuffer[(gridsize*4) * (j + 1) + 4 * (i)] + ImageBuffer[(gridsize*4) * (j)+4 * (i - 1)] + ImageBuffer[(gridsize*4) * (j)+4 * (i + 1)]) / 4.0f;
+					ImageBuffer[(gridsize*4) * j + 4 * i] = L;
 				}
 				if (k == iteration - 1) {
-					height_map.push_back(ImageBuffer[2048 * j + 4 * i]);
+					height_map.push_back(ImageBuffer[(gridsize*4) * j + 4 * i]);
 					height_map.push_back(0.5);
-					height_map.push_back(ImageBuffer[2048 * j + 4 * i + 3]);
-					height_map.push_back((float)i / 512);
-					height_map.push_back((float)j / 512);
-					data[2048 * j + 4 * i] = ImageBuffer[2048 * j + 4 * i] / 255.0f;
-					data[2048 * j + 4 * i + 1] = ImageBuffer[2048 * j + 4 * i + 1] / 255.0f;
-					data[2048 * j + 4 * i + 2] = ImageBuffer[2048 * j + 4 * i + 2] / 255.0f;
-					data[2048 * j + 4 * i + 3] = ImageBuffer[2048 * j + 4 * i + 3] / 255.0f;
+					height_map.push_back(ImageBuffer[(gridsize*4) * j + 4 * i + 3]);
+					height_map.push_back((float)i / gridsize);
+					height_map.push_back((float)j / gridsize);
+					data[(gridsize*4) * j + 4 * i] = ImageBuffer[(gridsize*4) * j + 4 * i] / 255.0f;
+					data[(gridsize*4) * j + 4 * i + 1] = ImageBuffer[(gridsize*4) * j + 4 * i + 1] / 255.0f;
+					data[(gridsize*4) * j + 4 * i + 2] = ImageBuffer[(gridsize*4) * j + 4 * i + 2] / 255.0f;
+					data[(gridsize*4) * j + 4 * i + 3] = ImageBuffer[(gridsize*4) * j + 4 * i + 3] / 255.0f;
 				}
 			}
 		}
@@ -409,7 +407,7 @@ void TrainView::jacobi() {
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 512, 512, 0, GL_RGBA, GL_FLOAT, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, data);
 }
 //************************************************************************
 //

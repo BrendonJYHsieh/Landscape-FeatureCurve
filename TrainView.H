@@ -112,7 +112,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rbo;
 		unsigned int textureColorbuffer1;
 		unsigned int rbo1;
-
+		int gridsize = 32;
 
 
 		vector<float> gradient_data;
@@ -123,8 +123,8 @@ class TrainView : public Fl_Gl_Window
 		float* data;
 
 
-		uint8_t* ImageBuffer = new uint8_t[512 * 512 * 4];
-		uint8_t* ImageBuffer1 = new uint8_t[512 * 512 * 4];
+		uint8_t* ImageBuffer = new uint8_t[gridsize * gridsize * 4];
+		uint8_t* ImageBuffer1 = new uint8_t[gridsize * gridsize * 4];
 
 		glm::mat4 view;
 		glm::mat4 projection;
