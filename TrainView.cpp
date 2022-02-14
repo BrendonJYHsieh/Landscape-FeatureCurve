@@ -368,7 +368,6 @@ void TrainView::draw_gradient_map() {
 }
 
 void TrainView::jacobi() {
-	height_map.clear();
 
 	data = new float[gridsize * gridsize * 4];
 
@@ -389,11 +388,6 @@ void TrainView::jacobi() {
 					ImageBuffer[(gridsize*4) * j + 4 * i] = L;
 				}
 				if (k == iteration - 1) {
-					height_map.push_back(ImageBuffer[(gridsize*4) * j + 4 * i]);
-					height_map.push_back(0.5);
-					height_map.push_back(ImageBuffer[(gridsize*4) * j + 4 * i + 3]);
-					height_map.push_back((float)i / gridsize);
-					height_map.push_back((float)j / gridsize);
 					data[(gridsize*4) * j + 4 * i] = ImageBuffer[(gridsize*4) * j + 4 * i] / 255.0f;
 					data[(gridsize*4) * j + 4 * i + 1] = ImageBuffer[(gridsize*4) * j + 4 * i + 1] / 255.0f;
 					data[(gridsize*4) * j + 4 * i + 2] = ImageBuffer[(gridsize*4) * j + 4 * i + 2] / 255.0f;
@@ -1008,14 +1002,6 @@ void TrainView::drawStuff(bool doingShadows)
 	draw_gradient_map();
 	jacobi();
 
-	//Height Map
-	glBindVertexArray(VAO[2]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * height_map.size(), &height_map[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -1078,21 +1064,6 @@ void TrainView::drawStuff(bool doingShadows)
 
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
-
-	heightmap_shader1->Use();
-	//Height Map
-	glm::mat4 trans3 = glm::mat4(1.0f);
-	//trans3 = glm::rotate(trans3, glm::radians(90.0f), glm::vec3(0.0, -1.0, 0.0));
-	trans3 = glm::translate(trans3, glm::vec3(-300, 0, 100));
-	trans3 = glm::scale(trans3, glm::vec3(200, 1.0f, 200));
-
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader1->Program, "model"), 1, GL_FALSE, &trans3[0][0]);
-
-	glBindVertexArray(VAO[2]);
-	glDrawArrays(GL_TRIANGLES, 0, height_map.size());
-	//
 
 	glDeleteVertexArrays(3, VAO);
 	glDeleteBuffers(3, VBO);

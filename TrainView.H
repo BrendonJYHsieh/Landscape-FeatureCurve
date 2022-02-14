@@ -117,7 +117,6 @@ class TrainView : public Fl_Gl_Window
 
 		vector<float> gradient_data;
 		vector<float> elevation_data;
-		vector<float> height_map;
 
 		unsigned int textureColorbuffer2;
 		float* data;
