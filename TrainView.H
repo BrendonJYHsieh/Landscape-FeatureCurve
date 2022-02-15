@@ -112,13 +112,18 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rbo;
 		unsigned int textureColorbuffer1;
 		unsigned int rbo1;
-		int gridsize = 32;
+
+		int gridsize = 512;
+		int grid0_size = gridsize / 4;
+		
 
 
 		vector<float> gradient_data;
 		vector<float> elevation_data;
 
 		unsigned int textureColorbuffer2;
+		float* grid0;
+		float* grid1;
 		float* data;
 
 
