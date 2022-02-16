@@ -368,13 +368,11 @@ void TrainView::draw_gradient_map() {
 }
 
 void TrainView::jacobi() {
-
-
 	grid0 = new float[grid0_size * grid0_size * 4];
-
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
 		grid0[i] = 0.0f;
 	}
+	// Jacobi
 	int grid0_iteration = 15;
 	for (int k = 0; k < grid0_iteration; k++) {
 		for (int i = 1; i < grid0_size - 1; i++) {
@@ -389,20 +387,113 @@ void TrainView::jacobi() {
 					ImageBuffer[(grid0_size*4) * j + 4 * i] = L;
 				}
 				if (k == grid0_iteration - 1) {
-					grid0[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i] / 255.0f;
-					grid0[(grid0_size*4) * j + 4 * i + 1] = ImageBuffer[(grid0_size*4) * j + 4 * i + 1] / 255.0f;
-					grid0[(grid0_size*4) * j + 4 * i + 2] = ImageBuffer[(grid0_size*4) * j + 4 * i + 2] / 255.0f;
-					grid0[(grid0_size*4) * j + 4 * i + 3] = ImageBuffer[(grid0_size*4) * j + 4 * i + 3] / 255.0f;
+					grid0[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i];
+					grid0[(grid0_size*4) * j + 4 * i + 1] = ImageBuffer[(grid0_size*4) * j + 4 * i + 1];
+					grid0[(grid0_size*4) * j + 4 * i + 2] = ImageBuffer[(grid0_size*4) * j + 4 * i + 2];
+					grid0[(grid0_size*4) * j + 4 * i + 3] = ImageBuffer[(grid0_size*4) * j + 4 * i + 3];
 				}
 			}
 		}
 	}
+	grid1 = new float[grid1_size * grid1_size * 4];
+	// 2x Scale
+	for (int i = 0; i < grid1_size; i++) {
+		for (int j = 0; j < grid1_size; j++) {
+			grid1[(grid1_size * 4) * j + 4 * i] =
+				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2)]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2)]
+				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2)]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2)]) / 4.0f;
+
+			grid1[(grid1_size * 4) * j + 4 * i + 1] =
+				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 1]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 1]
+				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 1]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 1]) / 4.0f;
+
+			grid1[(grid1_size * 4) * j + 4 * i + 2] =
+				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 2]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 2]
+				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 2]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 2]) / 4.0f;
+
+			grid1[(grid1_size * 4) * j + 4 * i + 3] =
+				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 3]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 3]
+				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 3]
+				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 3]) / 4.0f;
+		}
+	}
+	// jacobi
+	int grid1_iteration = 10;
+	for (int k = 0; k < grid1_iteration; k++) {
+		for (int i = 1; i < grid1_size - 1; i++) {
+			for (int j = 1; j < grid1_size - 1; j++) {
+				float L;
+				if (grid1[(grid1_size * 4) * j + 4 * i + 3] == 255) {
+					grid1[(grid1_size * 4) * j + 4 * i] = grid1[(grid1_size * 4) * j + 4 * i];
+				}
+				else
+				{
+					L = (grid1[(grid1_size * 4) * (j - 1) + 4 * (i)] + grid1[(grid1_size * 4) * (j + 1) + 4 * (i)] + grid1[(grid1_size * 4) * (j)+4 * (i - 1)] + grid1[(grid1_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+					grid1[(grid1_size * 4) * j + 4 * i] = L;
+				}
+			}
+		}
+	}
+	grid = new float[gridsize * gridsize * 4];
+	// 2x Scale
+	for (int i = 0; i < gridsize; i++) {
+		for (int j = 0; j < gridsize; j++) {
+			grid[(gridsize * 4) * j + 4 * i] =
+				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2)] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2)] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2)] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2)] / 255.0f) / 4.0f;
+
+			grid[(gridsize * 4) * j + 4 * i + 1] =
+				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 1] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 1] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 1] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 1] / 255.0f) / 4.0f;
+
+			grid[(gridsize * 4) * j + 4 * i + 2] =
+				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 2] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 2] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 2] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 2] / 255.0f) / 4.0f;
+
+			grid[(gridsize * 4) * j + 4 * i + 3] =
+				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 3] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 3] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 3] / 255.0f
+					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 3] / 255.0f) / 4.0f;
+		}
+	}
+	// jacobi
+	int grid_iteration = 5;
+	for (int k = 0; k < grid_iteration; k++) {
+		for (int i = 1; i < gridsize - 1; i++) {
+			for (int j = 1; j < gridsize - 1; j++) {
+				float L;
+				if (grid[(gridsize * 4) * j + 4 * i + 3] == 255) {
+					grid[(gridsize * 4) * j + 4 * i] = grid[(gridsize * 4) * j + 4 * i];
+				}
+				else
+				{
+					L = (grid[(gridsize * 4) * (j - 1) + 4 * (i)] + grid[(gridsize * 4) * (j + 1) + 4 * (i)] + grid[(gridsize * 4) * (j)+4 * (i - 1)] + grid[(gridsize * 4) * (j)+4 * (i + 1)]) / 4.0f;
+					grid[(gridsize * 4) * j + 4 * i] = L;
+				}
+			}
+		}
+	}
+	//cout << "R:" << (int)grid1[0] << " G:" << (int)grid1[1] << " B:" << (int)grid1[2] << " A:" << (int)grid1[3] << endl;
 	glGenTextures(1, &textureColorbuffer2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, grid0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, grid);
 }
 //************************************************************************
 //
@@ -1067,6 +1158,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteRenderbuffers(1, &rbo1);
 	glDeleteTextures(1, &textureColorbuffer2);
 	delete grid0;
+	delete grid1;
+	delete grid;
 
 	glUseProgram(0);
 
