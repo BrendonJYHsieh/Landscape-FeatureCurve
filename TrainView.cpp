@@ -110,21 +110,60 @@ Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
 
+void TrainView::scale(float* image,int image_size,float* result) {
+	int tmep_size = image_size * 2;
+	//float* temp = new float[tmep_size * tmep_size];
+	for (int i = 0; i < tmep_size; i++) {
+		for (int j = 0; j < tmep_size; j++) {
+			result[(tmep_size * 4) * j + 4 * i] =
+				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2)]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2)]
+					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2)]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2)]) / 4.0f;
+
+			result[(tmep_size * 4) * j + 4 * i + 1] =
+				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 1]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 1]
+					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 1]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 1]) / 4.0f;
+
+			result[(tmep_size * 4) * j + 4 * i + 2] =
+				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 2]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 2]
+					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 2]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 2]) / 4.0f;
+
+			result[(tmep_size * 4) * j + 4 * i + 3] =
+				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 3]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 3]
+					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 3]
+					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 3]) / 4.0f;
+		}
+	}
+}
+
 void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
 	gradient_data.push_back(q0.z);
-	gradient_data.push_back(q0.normal.x);
-	gradient_data.push_back(q0.normal.y);
+	gradient_data.push_back((q0.normal.x+1.0)/2.0);
+	gradient_data.push_back((q0.normal.y+1.0)/2.0);
 	gradient_data.push_back(0.5f);
 }
-
-void TrainView::push_elevation_data(Pnt3f q0) {
-	elevation_data.push_back(q0.x);
-	elevation_data.push_back(q0.y);
-	elevation_data.push_back(q0.z);
+void TrainView::push_elevation_data(Pnt3f q0,int Area) {
+	if (Area == 0) {
+		elevation_data.push_back(q0.x);
+		elevation_data.push_back(q0.y);
+		elevation_data.push_back(q0.z);
+		elevation_data.push_back(0.0);
+	}
+	else {
+		elevation_data.push_back(q0.x);
+		elevation_data.push_back(0);
+		elevation_data.push_back(q0.z);
+		elevation_data.push_back(0.5);
+	}
 }
-
 void TrainView::draw_elevation_map() {
 	float vertices[] = {
 		// positions                          // texture coords
@@ -166,7 +205,7 @@ void TrainView::draw_elevation_map() {
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	//Ground
 	glBindVertexArray(VAO[1]);
@@ -230,7 +269,7 @@ void TrainView::draw_elevation_map() {
 	//
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	//cout<< " A:" << (int)ImageBuffer[3] << endl;
+	cout<< " A:" << (int)ImageBuffer[3] << endl;
 	
 	//
 
@@ -366,7 +405,6 @@ void TrainView::draw_gradient_map() {
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
 }
-
 void TrainView::jacobi() {
 	grid0 = new float[grid0_size * grid0_size * 4];
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
@@ -396,34 +434,9 @@ void TrainView::jacobi() {
 		}
 	}
 	grid1 = new float[grid1_size * grid1_size * 4];
+
 	// 2x Scale
-	for (int i = 0; i < grid1_size; i++) {
-		for (int j = 0; j < grid1_size; j++) {
-			grid1[(grid1_size * 4) * j + 4 * i] =
-				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2)]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2)]
-				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2)]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2)]) / 4.0f;
-
-			grid1[(grid1_size * 4) * j + 4 * i + 1] =
-				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 1]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 1]
-				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 1]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 1]) / 4.0f;
-
-			grid1[(grid1_size * 4) * j + 4 * i + 2] =
-				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 2]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 2]
-				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 2]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 2]) / 4.0f;
-
-			grid1[(grid1_size * 4) * j + 4 * i + 3] =
-				(grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 3]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 3]
-				+ grid0[(grid0_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 3]
-				+ grid0[(grid0_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 3]) / 4.0f;
-		}
-	}
+	scale(grid0,grid0_size, grid1);
 	// jacobi
 	int grid1_iteration = 10;
 	for (int k = 0; k < grid1_iteration; k++) {
@@ -443,31 +456,13 @@ void TrainView::jacobi() {
 	}
 	grid = new float[gridsize * gridsize * 4];
 	// 2x Scale
+	scale(grid1, grid1_size, grid);
 	for (int i = 0; i < gridsize; i++) {
 		for (int j = 0; j < gridsize; j++) {
-			grid[(gridsize * 4) * j + 4 * i] =
-				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2)] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2)] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2)] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2)] / 255.0f) / 4.0f;
-
-			grid[(gridsize * 4) * j + 4 * i + 1] =
-				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 1] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 1] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 1] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 1] / 255.0f) / 4.0f;
-
-			grid[(gridsize * 4) * j + 4 * i + 2] =
-				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 2] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 2] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 2] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 2] / 255.0f) / 4.0f;
-
-			grid[(gridsize * 4) * j + 4 * i + 3] =
-				(grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 3] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 3] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 3] / 255.0f
-					+ grid1[(grid1_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 3] / 255.0f) / 4.0f;
+			grid[(gridsize * 4) * j + 4 * i] /=255.0f;
+			grid[(gridsize * 4) * j + 4 * i + 1] /= 255.0f;
+			grid[(gridsize * 4) * j + 4 * i + 2] /= 255.0f;
+			grid[(gridsize * 4) * j + 4 * i + 3] /= 255.0f;
 		}
 	}
 	// jacobi
@@ -878,27 +873,45 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = Rotate(Axis, _normal, phi_init + phi_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
-			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
-			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
+			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), 0.0f);
+			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), 0.0f);
 
 			//cout << "X:" << q4.normal.x << " Z:" << q4.normal.y << endl;
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
-			push_elevation_data(q0);
-			push_elevation_data(q1);
-			push_elevation_data(q2);
+			push_elevation_data(q0,0);
+			push_elevation_data(q1,0);
+			push_elevation_data(q2,0);
 			//q2,q3,q0
-			push_elevation_data(q2);
-			push_elevation_data(q3);
-			push_elevation_data(q0);
+			push_elevation_data(q2,0);
+			push_elevation_data(q3,0);
+			push_elevation_data(q0,0);
+			//q2,q4,q3
+			push_elevation_data(q4,1);
+			push_elevation_data(q6,1);
+			push_elevation_data(q5,1);
+			//q4,q5,q3
+			push_elevation_data(q6,1);
+			push_elevation_data(q7,1);
+			push_elevation_data(q5,1);
+
 			//Fill holes
 			if (j > 0) {
 				//q0,q3,p2
-				push_elevation_data(q0);
-				push_elevation_data(q3);
-				push_elevation_data(p2);
+				push_elevation_data(q0,0);
+				push_elevation_data(q3,0);
+				push_elevation_data(p2,0);
+				//q0,q3,p2
+				push_elevation_data(p4,1);
+				push_elevation_data(q5,1);
+				push_elevation_data(q7,1);
+				//q0,q3,p2
+				push_elevation_data(q7,1);
+				push_elevation_data(p6,1);
+				push_elevation_data(p4,1);
 			}
+
 			/*Gradient Vertex*/
 			//q0,q1,q2
 			push_gradient_data(q0);
@@ -959,23 +972,41 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = Rotate(Axis, _normal, -theta_init - theta_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, -theta_init - theta_interporate * j);
-			q4.normal = glm::vec3(fabs(q4.normal.x), fabs(q4.normal.z), 0.0f);
-			q5.normal = glm::vec3(fabs(q5.normal.x), fabs(q5.normal.z), 0.0f);
+			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), 0.0f);
+			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), 0.0f);
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
-			push_elevation_data(q0);
-			push_elevation_data(q1);
-			push_elevation_data(q2);
+			push_elevation_data(q0, 0);
+			push_elevation_data(q1, 0);
+			push_elevation_data(q2, 0);
 			//q2,q3,q0
-			push_elevation_data(q2);
-			push_elevation_data(q3);
-			push_elevation_data(q0);
+			push_elevation_data(q2, 0);
+			push_elevation_data(q3, 0);
+			push_elevation_data(q0, 0);
+			//q2,q4,q3
+			push_elevation_data(q4, 1);
+			push_elevation_data(q6, 1);
+			push_elevation_data(q5, 1);
+			//q4,q5,q3
+			push_elevation_data(q6, 1);
+			push_elevation_data(q7, 1);
+			push_elevation_data(q5, 1);
+
+			//Fill holes
 			if (j > 0) {
 				//q0,q3,p2
-				push_elevation_data(q0);
-				push_elevation_data(q3);
-				push_elevation_data(_p2);
+				push_elevation_data(q0, 0);
+				push_elevation_data(q3, 0);
+				push_elevation_data(p2, 0);
+				//q0,q3,p2
+				push_elevation_data(p4, 1);
+				push_elevation_data(q5, 1);
+				push_elevation_data(q7, 1);
+				//q0,q3,p2
+				push_elevation_data(q7, 1);
+				push_elevation_data(p6, 1);
+				push_elevation_data(p4, 1);
 			}
 
 			/*Gradient Vertex*/
