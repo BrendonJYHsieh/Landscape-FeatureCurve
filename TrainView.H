@@ -85,6 +85,7 @@ class TrainView : public Fl_Gl_Window
 		void jacobi();
 		void scale(float* image, int size, float*);
 
+
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f, int Area);
 	public:
@@ -128,6 +129,9 @@ class TrainView : public Fl_Gl_Window
 		float* grid1;
 		float* grid;
 
+		float* gradient_grid0;
+		float* gradient_grid1;
+		float* gradient_grid;
 
 		uint8_t* ImageBuffer = new uint8_t[gridsize * gridsize * 4];
 		uint8_t* ImageBuffer1 = new uint8_t[gridsize * gridsize * 4];

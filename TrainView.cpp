@@ -110,6 +110,18 @@ Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
 
+int TrainView::sign(float n) {
+	if (n > 0) {
+		return 1;
+	}
+	else if (n < 0) {
+		return -1;
+	}
+	else {
+		return 0;
+	}
+}
+
 void TrainView::scale(float* image,int image_size,float* result) {
 	int tmep_size = image_size * 2;
 	//float* temp = new float[tmep_size * tmep_size];
@@ -141,14 +153,13 @@ void TrainView::scale(float* image,int image_size,float* result) {
 		}
 	}
 }
-
 void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
 	gradient_data.push_back(q0.z);
 	gradient_data.push_back((q0.normal.x+1.0)/2.0);
 	gradient_data.push_back((q0.normal.y+1.0)/2.0);
-	gradient_data.push_back(0.5f);
+	gradient_data.push_back(q0.normal.z);
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	if (Area == 0) {
@@ -269,9 +280,7 @@ void TrainView::draw_elevation_map() {
 	//
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	cout<< " A:" << (int)ImageBuffer[3] << endl;
-	
-	//
+	//cout<< " A:" << (int)ImageBuffer[3] << endl;
 
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
@@ -865,18 +874,25 @@ void TrainView::drawStuff(bool doingShadows)
 			}
 			glm::vec3 Axis = glm::vec3(q3.x - q2.x,0.0f, q3.z - q2.z);
 
-			glm::vec3 normal = glm::normalize(Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5));
-			glm::vec3 _normal = glm::normalize(Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4));
+			glm::vec3 normal =  (Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5));
+			glm::vec3 _normal = (Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4));
 
-			//cout << normal.x<<" " << normal.z << endl;
+			float G = sqrtf(normal.x * normal.x + normal.z * normal.z);
+			float _G = sqrtf(_normal.x * _normal.x + _normal.z * _normal.z);
 
+			normal = glm::normalize(normal);
+			_normal = glm::normalize(_normal);
+
+			//cout << G << " " << _G << endl;
 
 			q4.normal = Rotate(Axis, _normal, phi_init + phi_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
-			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), 0.0f);
-			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), 0.0f);
+			
+			
+			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), _G/255.0);
+			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), G/255.0);
 
-			//cout << "X:" << q4.normal.x << " Z:" << q4.normal.y << endl;
+			//cout << "X:" << q4.normal.x << " Z:" << q4.normal.y << " Z:" << q4.normal.z<<endl;
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
@@ -966,14 +982,23 @@ void TrainView::drawStuff(bool doingShadows)
 				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 			}
 
-			normal = glm::normalize(Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5));
-			_normal = glm::normalize(Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4));
+			normal = (Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5));
+			_normal = (Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4));
+
+			G = sqrtf(normal.x * normal.x + normal.z * normal.z);
+			_G = sqrtf(_normal.x * _normal.x + _normal.z * _normal.z);
+
+			normal = glm::normalize(normal);
+			_normal = glm::normalize(_normal);
+
+			//cout << G << " " << _G << endl;
+
+			q4.normal = Rotate(Axis, _normal, phi_init + phi_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
 
 
-			q4.normal = Rotate(Axis, _normal, -theta_init - theta_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, -theta_init - theta_interporate * j);
-			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), 0.0f);
-			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), 0.0f);
+			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), _G / 255.0);
+			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), G / 255.0);
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
