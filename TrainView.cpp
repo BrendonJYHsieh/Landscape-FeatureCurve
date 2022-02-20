@@ -151,7 +151,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	}
 	else {
 		elevation_data.push_back(q0.x);
-		elevation_data.push_back(0);
+		elevation_data.push_back(0.0);
 		elevation_data.push_back(q0.z);
 		elevation_data.push_back(0.5);
 	}
@@ -261,7 +261,7 @@ void TrainView::draw_elevation_map() {
 	// Read color from texture
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	cout<< " A:" << (int)ImageBuffer[3] << endl;
+	//cout<< " A:" << (int)ImageBuffer[3] << endl;
 
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
@@ -406,19 +406,40 @@ void TrainView::jacobi() {
 		gradient_grid0[i] = 0.0f;
 	}
 
+	//cout<<"R:" << (int)ImageBuffer1[0] << endl;
+
 	// Jacobi
 	int grid0_iteration = 15;
 	for (int k = 0; k < grid0_iteration; k++) {
 		for (int i = 1; i < grid0_size - 1; i++) {
 			for (int j = 1; j < grid0_size - 1; j++) {
-				float L;
-				if (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] == 255) {
-					L = (ImageBuffer[(grid0_size * 4) * (j - 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j + 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i - 1)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-					ImageBuffer[(grid0_size * 4) * j + 4 * i] = L;
+				float a, b;
+				float FL,FN,FG,FI;
+				if (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] == 0) {
+					a = 0;
+					b = 0;
 				}
-				else if (ImageBuffer[(grid0_size*4) * j + 4 * i + 3] == 0) {
-					ImageBuffer[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i];
+				else {
+					a = (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0;
+					b = 1 - a;
 				}
+				//cout << a << " " << b << endl;
+				FI = ImageBuffer[(grid0_size * 4) * j + 4 * i];
+				float nx = (ImageBuffer1[(grid0_size * 4) * j + 4 * i]+1.0)/256.0*2.0-1.0;
+
+				//cout << "R:" << nx << endl;
+
+				float ny = (ImageBuffer1[(grid0_size * 4) * j + 4 * i + 1]+1.0)/256.0*2.0-1.0;
+				float G = ImageBuffer1[(grid0_size * 4) * j + 4 * i + 2];
+				FN = nx * nx * ImageBuffer[(grid0_size * 4) * j  + 4 * (i - sign(nx))] + ny*ny* ImageBuffer[(grid0_size * 4) * (j - sign(ny)) + 4 * i] + G;
+
+				//cout << nx<<" "<<ny << endl;
+
+				FG = FN;
+				
+				FL = (ImageBuffer[(grid0_size * 4) * (j - 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j + 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i - 1)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+				ImageBuffer[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1-a-b)*FI;
+
 				if (k == grid0_iteration - 1) {
 					grid0[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i]/255.0;
 					grid0[(grid0_size*4) * j + 4 * i + 1] = ImageBuffer[(grid0_size*4) * j + 4 * i + 1]/255.0;
@@ -979,8 +1000,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			//cout << G << " " << _G << endl;
 
-			q4.normal = Rotate(Axis, _normal, phi_init + phi_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
+			q4.normal = Rotate(Axis, _normal, -theta_init - theta_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal, -theta_init - theta_interporate * j);
 
 
 			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), _G / 255.0);
@@ -1137,6 +1158,24 @@ void TrainView::drawStuff(bool doingShadows)
 	draw_gradient_map();
 	jacobi();
 
+	float wi, he;
+	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
+		wi = 100;
+		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+	else {
+		he = 100;
+		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
+	}
+	glViewport(0, 0, w(), h());
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-wi, wi, -he, he, 200, -200);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glRotatef(-90, 1, 0, 0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
