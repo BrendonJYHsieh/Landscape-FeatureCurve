@@ -84,7 +84,7 @@ class TrainView : public Fl_Gl_Window
 		void draw_gradient_map();
 		void jacobi();
 		void scale(float* image, int size, float*);
-
+		int sign(float n);
 
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f, int Area);
