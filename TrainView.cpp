@@ -279,7 +279,7 @@ void TrainView::draw_elevation_map() {
 
 	// Read color from texture
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
-	cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
+	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
 	//cout<< " A:" << (int)ImageBuffer[3] << endl;
 
 
@@ -430,16 +430,12 @@ void TrainView::jacobi() {
 		for (int i = 1; i < grid0_size - 1; i++) {
 			for (int j = 1; j < grid0_size - 1; j++) {
 				float L;
-				if (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] == 0) {
-					ImageBuffer[(grid0_size * 4) * j + 4 * i] = ImageBuffer[(grid0_size * 4) * j + 4 * i];
+				if (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] == 255) {
+					L = (ImageBuffer[(grid0_size * 4) * (j - 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j + 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i - 1)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+					ImageBuffer[(grid0_size * 4) * j + 4 * i] = L;
 				}
-				else if (ImageBuffer[(grid0_size*4) * j + 4 * i + 3] == 255) {
+				else if (ImageBuffer[(grid0_size*4) * j + 4 * i + 3] == 0) {
 					ImageBuffer[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i];
-				}
-				else
-				{
-					L = (ImageBuffer[(grid0_size*4) * (j - 1) + 4 * (i)] + ImageBuffer[(grid0_size*4) * (j + 1) + 4 * (i)] + ImageBuffer[(grid0_size*4) * (j)+4 * (i - 1)] + ImageBuffer[(grid0_size*4) * (j)+4 * (i + 1)]) / 4.0f;
-					ImageBuffer[(grid0_size*4) * j + 4 * i] = L;
 				}
 				if (k == grid0_iteration - 1) {
 					grid0[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i]/255.0;
