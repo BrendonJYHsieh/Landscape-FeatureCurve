@@ -127,29 +127,10 @@ void TrainView::scale(float* image,int image_size,float* result) {
 	//float* temp = new float[tmep_size * tmep_size];
 	for (int i = 0; i < tmep_size; i++) {
 		for (int j = 0; j < tmep_size; j++) {
-			result[(tmep_size * 4) * j + 4 * i] =
-				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2)]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2)]
-					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2)]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2)]) / 4.0f;
-
-			result[(tmep_size * 4) * j + 4 * i + 1] =
-				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 1]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 1]
-					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 1]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 1]) / 4.0f;
-
-			result[(tmep_size * 4) * j + 4 * i + 2] =
-				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 2]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 2]
-					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 2]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 2]) / 4.0f;
-
-			result[(tmep_size * 4) * j + 4 * i + 3] =
-				(     image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)floor(i / 2) + 3]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)floor(i / 2) + 3]
-					+ image[(image_size * 4) * (int)floor(j / 2) + 4 * (int)ceil(i / 2) + 3]
-					+ image[(image_size * 4) * (int)ceil(j / 2) + 4 * (int)ceil(i / 2) + 3]) / 4.0f;
+			result[(tmep_size * 4) * j + 4 * i] = image[(image_size * 4) * (j / 2) + 4 * (i / 2)];
+			result[(tmep_size * 4) * j + 4 * i + 1] = image[(image_size * 4) * (j / 2) + 4 * (i / 2) + 1];
+			result[(tmep_size * 4) * j + 4 * i + 2] = image[(image_size * 4) * (j / 2) + 4 * (i / 2) + 2];
+			result[(tmep_size * 4) * j + 4 * i + 3] =image[(image_size * 4) * (j / 2) + 4 * (i / 2) + 3];
 		}
 	}
 }
@@ -280,7 +261,7 @@ void TrainView::draw_elevation_map() {
 	// Read color from texture
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
 	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	//cout<< " A:" << (int)ImageBuffer[3] << endl;
+	cout<< " A:" << (int)ImageBuffer[3] << endl;
 
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
@@ -389,7 +370,8 @@ void TrainView::draw_gradient_map() {
 
 	//Read value from gradient map
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
-	cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
+	//cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
+	
 	//Ground
 	background_shader->Use();
 	glm::mat4 trans = glm::mat4(1.0f);
@@ -1027,15 +1009,15 @@ void TrainView::drawStuff(bool doingShadows)
 				//q0,q3,p2
 				push_elevation_data(q0, 0);
 				push_elevation_data(q3, 0);
-				push_elevation_data(p2, 0);
+				push_elevation_data(_p2, 0);
 				//q0,q3,p2
-				push_elevation_data(p4, 1);
+				push_elevation_data(_p4, 1);
 				push_elevation_data(q5, 1);
 				push_elevation_data(q7, 1);
 				//q0,q3,p2
 				push_elevation_data(q7, 1);
-				push_elevation_data(p6, 1);
-				push_elevation_data(p4, 1);
+				push_elevation_data(_p6, 1);
+				push_elevation_data(_p4, 1);
 			}
 
 			/*Gradient Vertex*/
