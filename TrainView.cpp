@@ -351,7 +351,7 @@ void TrainView::draw_gradient_map() {
 		he = 100;
 		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
 	}
-	glViewport(0, 0, w(), h());
+	glViewport(0, 0, grid0_size, grid0_size);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-wi, wi, -he, he, 200, -200);
@@ -432,7 +432,7 @@ void TrainView::jacobi() {
 				float ny = (ImageBuffer1[(grid0_size * 4) * j + 4 * i + 1]+1.0)/256.0*2.0-1.0;
 				float G = ImageBuffer1[(grid0_size * 4) * j + 4 * i + 2];
 				FN = nx * nx * ImageBuffer[(grid0_size * 4) * j  + 4 * (i - sign(nx))] + ny*ny* ImageBuffer[(grid0_size * 4) * (j - sign(ny)) + 4 * i] + G;
-
+				FN = G;
 				//cout << nx<<" "<<ny << endl;
 
 				FG = FN;
@@ -879,26 +879,26 @@ void TrainView::drawStuff(bool doingShadows)
 				q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1));
 				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 			}
-			glm::vec3 Axis = glm::vec3(q3.x - q2.x,0.0f, q3.z - q2.z);
+			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x,q3.y-q2.y, q3.z - q2.z));
+			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
+			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
-			glm::vec3 normal =  (Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5));
-			glm::vec3 _normal = (Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4));
 
-			float G = sqrtf(normal.x * normal.x + normal.z * normal.z);
-			float _G = sqrtf(_normal.x * _normal.x + _normal.z * _normal.z);
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			normal = glm::normalize(normal);
-			_normal = glm::normalize(_normal);
+			q6.normal.z = q6.y / 255.0;
+			q7.normal.z = q7.y / 255.0;
 
-			//cout << G << " " << _G << endl;
+			Axis.y = 0;
 
 			q4.normal = Rotate(Axis, _normal, phi_init + phi_interporate * (j + 1));
 			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
 			
-			
-			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), _G/255.0);
-			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), G/255.0);
+			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), q4.y/255.0);
+			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), q5.y/255.0);
 
+			
 			//cout << "X:" << q4.normal.x << " Z:" << q4.normal.y << " Z:" << q4.normal.z<<endl;
 
 			/*Elevation Vertex*/
@@ -989,23 +989,24 @@ void TrainView::drawStuff(bool doingShadows)
 				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
 			}
 
-			normal = (Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5));
-			_normal = (Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4));
+			Axis = glm::normalize(glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z));
+			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
+			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
-			G = sqrtf(normal.x * normal.x + normal.z * normal.z);
-			_G = sqrtf(_normal.x * _normal.x + _normal.z * _normal.z);
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
+			q6.normal.z = q6.y / 255.0;
+			q7.normal.z = q7.y / 255.0;
 
-			normal = glm::normalize(normal);
-			_normal = glm::normalize(_normal);
+			Axis.y = 0;
 
-			//cout << G << " " << _G << endl;
+			q4.normal = Rotate(Axis, _normal,  - theta_init - theta_interporate * (j + 1));
+			q5.normal = Rotate(Axis, normal,  - theta_init - theta_interporate * j);
 
-			q4.normal = Rotate(Axis, _normal, -theta_init - theta_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, -theta_init - theta_interporate * j);
+			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), q4.y / 255.0);
+			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), q5.y / 255.0);
 
-
-			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), _G / 255.0);
-			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), G / 255.0);
+			
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
