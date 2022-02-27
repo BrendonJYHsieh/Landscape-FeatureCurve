@@ -405,7 +405,7 @@ void TrainView::run() {
 		grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
-	jacobi(grid0, gradient_grid0, grid0_size, 15);
+	jacobi(grid0, gradient_grid0, grid0_size, iteration*3);
 
 	// 256 x 256
 	grid1 = new float[grid1_size * grid1_size * 4];
@@ -414,7 +414,7 @@ void TrainView::run() {
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(gradient_grid0, grid0_size, gradient_grid1);
 
-	jacobi(grid1, gradient_grid1, grid1_size, 15);
+	jacobi(grid1, gradient_grid1, grid1_size, iteration*2);
 
 	// 512 x 512
 	grid = new float[gridsize * gridsize * 4];
@@ -423,7 +423,7 @@ void TrainView::run() {
 	gradient_grid = new float[gridsize * gridsize * 4];
 	scale(gradient_grid1, grid1_size, gradient_grid);
 
-	jacobi(grid, gradient_grid, gridsize, 15);
+	jacobi(grid, gradient_grid, gridsize, iteration);
 
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
 		grid[i] /= 255.0;
@@ -1226,9 +1226,11 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteRenderbuffers(1, &rbo1);
 	glDeleteTextures(1, &textureColorbuffer2);
 	delete grid0;
-	//delete grid1;
-	//delete grid;
+	delete grid1;
+	delete grid;
 	delete gradient_grid0;
+	delete gradient_grid1;
+	delete gradient_grid;
 
 	glUseProgram(0);
 

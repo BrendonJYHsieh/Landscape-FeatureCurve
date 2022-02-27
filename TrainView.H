@@ -116,6 +116,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer1;
 		unsigned int rbo1;
 
+		int iteration = 15;
 		int gridsize = 256;
 		int grid0_size = gridsize / 4;
 		int grid1_size = gridsize / 2;

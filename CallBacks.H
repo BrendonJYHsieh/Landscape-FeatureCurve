@@ -59,3 +59,4 @@ void aCB(Fl_Widget*, TrainWindow* tw);
 void bCB(Fl_Widget*, TrainWindow* tw);
 void thetaCB(Fl_Widget*, TrainWindow* tw);
 void phiCB(Fl_Widget*, TrainWindow* tw);
+void iterationCB(Fl_Widget*, TrainWindow* tw);

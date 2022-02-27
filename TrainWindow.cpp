@@ -184,6 +184,13 @@ TrainWindow(const int x, const int y)
 		phi->type(FL_HORIZONTAL);
 		phi->callback((Fl_Callback*)phiCB, this);
 
+		pty += 50;
+		iteration = new Fl_Value_Slider(655, pty, 140, 20, "Iter");
+		iteration->range(1, 30);
+		iteration->value(10);
+		iteration->align(FL_ALIGN_LEFT);
+		iteration->type(FL_HORIZONTAL);
+		iteration->callback((Fl_Callback*)iterationCB, this);
 		// // reset the points
 		// resetButton = new Fl_Button(735,pty,60,20,"Reset");
 		// resetButton->callback((Fl_Callback*)resetCB,this);

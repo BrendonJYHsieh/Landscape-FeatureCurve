@@ -95,6 +95,12 @@ void phiCB(Fl_Widget*, TrainWindow* tw)
 	tw->damageMe();
 }
 
+void iterationCB(Fl_Widget*, TrainWindow* tw)
+{
+	tw->trainView->iteration = tw->iteration->value();
+	tw->damageMe();
+}
+
 //***************************************************************************
 //
 // * Callback that adds a new point to the spline

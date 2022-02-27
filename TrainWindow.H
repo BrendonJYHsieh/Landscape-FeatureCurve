@@ -90,6 +90,7 @@ class TrainWindow : public Fl_Double_Window {
 		Fl_Value_Slider* b;
 		Fl_Value_Slider* theta;
 		Fl_Value_Slider* phi;
+		Fl_Value_Slider* iteration;
 
 
 		// are we animating the train?
