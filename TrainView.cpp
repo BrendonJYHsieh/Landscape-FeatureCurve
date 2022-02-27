@@ -398,130 +398,42 @@ void TrainView::draw_gradient_map() {
 }
 void TrainView::run() {
 
+	// 128 x 128
 	grid0 = new float[grid0_size * grid0_size * 4];
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
-
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
 		grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
-
-	//cout<<"R:" << (int)ImageBuffer1[0] << endl;
-
 	jacobi(grid0, gradient_grid0, grid0_size, 15);
 
-	// Jacobi
-	//int grid0_iteration = 15;
-	//for (int k = 0; k < grid0_iteration; k++) {
-	//	for (int i = 1; i < grid0_size - 1; i++) {
-	//		for (int j = 1; j < grid0_size - 1; j++) {
-	//			float a, b;
-	//			float FL,FN,FG,FI;
-	//			float nx, ny;
-	//			if (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] == 0) {
-	//				a = 0;
-	//				b = 0;
-	//			}
-	//			else {
-	//				a = (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0;
-	//				b = 1 - a;
-	//			}
+	// 256 x 256
+	grid1 = new float[grid1_size * grid1_size * 4];
+	scale(grid0, grid0_size, grid1);
 
-	//			//cout << a << " " << b << endl;
-	//			FI = ImageBuffer[(grid0_size * 4) * j + 4 * i];
-	//			if (ImageBuffer1[(grid0_size * 4) * j + 4 * i] == 0) {
-	//				nx = 0;
-	//			}
-	//			else {
-	//				nx = (ImageBuffer1[(grid0_size * 4) * j + 4 * i] + 1.0) / 256.0 * 2.0 - 1.0;
-	//			}
-	//			 
-	//			if (ImageBuffer1[(grid0_size * 4) * j + 4 * i + 1] == 0) {
-	//				ny = 0;
-	//			}
-	//			else {
-	//				ny = (ImageBuffer1[(grid0_size * 4) * j + 4 * i + 1] + 1.0) / 256.0 * 2.0 - 1.0;
-	//			}
+	gradient_grid1 = new float[grid1_size * grid1_size * 4];
+	scale(gradient_grid0, grid0_size, gradient_grid1);
 
-	//			float G = ImageBuffer1[(grid0_size * 4) * j + 4 * i + 2];
-	//			FN = nx * nx * ImageBuffer[(grid0_size * 4) * j  + 4 * (i - sign(nx))] + ny*ny* ImageBuffer[(grid0_size * 4) * (j - sign(ny)) + 4 * i] + G;
-	//			FN = G;
-	//			//cout << nx<<" "<<ny << endl;
+	jacobi(grid1, gradient_grid1, grid1_size, 15);
 
-	//			FG = FN;
-	//			
-	//			FL = (ImageBuffer[(grid0_size * 4) * (j - 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j + 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i - 1)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-	//			ImageBuffer[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1-a-b)*FI;
+	// 512 x 512
+	grid = new float[gridsize * gridsize * 4];
+	scale(grid1, grid1_size, grid);
 
-	//			if (k == grid0_iteration - 1) {
-	//				grid0[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i]/255.0;
-	//				grid0[(grid0_size*4) * j + 4 * i + 1] = ImageBuffer[(grid0_size*4) * j + 4 * i + 1]/255.0;
-	//				grid0[(grid0_size*4) * j + 4 * i + 2] = ImageBuffer[(grid0_size*4) * j + 4 * i + 2]/255.0;
-	//				grid0[(grid0_size*4) * j + 4 * i + 3] = ImageBuffer[(grid0_size*4) * j + 4 * i + 3]/255.0;
-	//			}
-	//		}
-	//	}
-	//}
+	gradient_grid = new float[gridsize * gridsize * 4];
+	scale(gradient_grid1, grid1_size, gradient_grid);
 
-	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] /= 255.0;
+	jacobi(grid, gradient_grid, gridsize, 15);
+
+	for (int i = 0; i < gridsize * gridsize * 4; i++) {
+		grid[i] /= 255.0;
 	}
-
-	//grid1 = new float[grid1_size * grid1_size * 4];
-	//// 2x Scale
-	//scale(grid0,grid0_size, grid1);
-	//// jacobi
-	//int grid1_iteration = 10;
-	//for (int k = 0; k < grid1_iteration; k++) {
-	//	for (int i = 1; i < grid1_size - 1; i++) {
-	//		for (int j = 1; j < grid1_size - 1; j++) {
-	//			float L;
-	//			if (grid1[(grid1_size * 4) * j + 4 * i + 3] == 255) {
-	//				grid1[(grid1_size * 4) * j + 4 * i] = grid1[(grid1_size * 4) * j + 4 * i];
-	//			}
-	//			else
-	//			{
-	//				L = (grid1[(grid1_size * 4) * (j - 1) + 4 * (i)] + grid1[(grid1_size * 4) * (j + 1) + 4 * (i)] + grid1[(grid1_size * 4) * (j)+4 * (i - 1)] + grid1[(grid1_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-	//				grid1[(grid1_size * 4) * j + 4 * i] = L;
-	//			}
-	//		}
-	//	}
-	//}
-	//grid = new float[gridsize * gridsize * 4];
-	//// 2x Scale
-	//scale(grid1, grid1_size, grid);
-	//for (int i = 0; i < gridsize; i++) {
-	//	for (int j = 0; j < gridsize; j++) {
-	//		grid[(gridsize * 4) * j + 4 * i] /=255.0f;
-	//		grid[(gridsize * 4) * j + 4 * i + 1] /= 255.0f;
-	//		grid[(gridsize * 4) * j + 4 * i + 2] /= 255.0f;
-	//		grid[(gridsize * 4) * j + 4 * i + 3] /= 255.0f;
-	//	}
-	//}
-	//// jacobi
-	//int grid_iteration = 5;
-	//for (int k = 0; k < grid_iteration; k++) {
-	//	for (int i = 1; i < gridsize - 1; i++) {
-	//		for (int j = 1; j < gridsize - 1; j++) {
-	//			float L;
-	//			if (grid[(gridsize * 4) * j + 4 * i + 3] == 255) {
-	//				grid[(gridsize * 4) * j + 4 * i] = grid[(gridsize * 4) * j + 4 * i];
-	//			}
-	//			else
-	//			{
-	//				L = (grid[(gridsize * 4) * (j - 1) + 4 * (i)] + grid[(gridsize * 4) * (j + 1) + 4 * (i)] + grid[(gridsize * 4) * (j)+4 * (i - 1)] + grid[(gridsize * 4) * (j)+4 * (i + 1)]) / 4.0f;
-	//				grid[(gridsize * 4) * j + 4 * i] = L;
-	//			}
-	//		}
-	//	}
-	//}
-
 	glGenTextures(1, &textureColorbuffer2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, grid0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, grid);
 }
 //************************************************************************
 //
