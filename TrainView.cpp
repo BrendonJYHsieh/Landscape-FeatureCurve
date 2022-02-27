@@ -396,58 +396,75 @@ void TrainView::draw_gradient_map() {
 	glDeleteVertexArrays(2, VAO);
 	glDeleteBuffers(2, VBO);
 }
-void TrainView::jacobi() {
+void TrainView::run() {
 
 	grid0 = new float[grid0_size * grid0_size * 4];
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
 
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] = 0.0f;
-		gradient_grid0[i] = 0.0f;
+		grid0[i] = ImageBuffer[i];
+		gradient_grid0[i] = ImageBuffer1[i];
 	}
 
 	//cout<<"R:" << (int)ImageBuffer1[0] << endl;
 
+	jacobi(grid0, gradient_grid0, grid0_size, 15);
+
 	// Jacobi
-	int grid0_iteration = 15;
-	for (int k = 0; k < grid0_iteration; k++) {
-		for (int i = 1; i < grid0_size - 1; i++) {
-			for (int j = 1; j < grid0_size - 1; j++) {
-				float a, b;
-				float FL,FN,FG,FI;
-				if (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] == 0) {
-					a = 0;
-					b = 0;
-				}
-				else {
-					a = (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0;
-					b = 1 - a;
-				}
-				//cout << a << " " << b << endl;
-				FI = ImageBuffer[(grid0_size * 4) * j + 4 * i];
-				float nx = (ImageBuffer1[(grid0_size * 4) * j + 4 * i]+1.0)/256.0*2.0-1.0;
+	//int grid0_iteration = 15;
+	//for (int k = 0; k < grid0_iteration; k++) {
+	//	for (int i = 1; i < grid0_size - 1; i++) {
+	//		for (int j = 1; j < grid0_size - 1; j++) {
+	//			float a, b;
+	//			float FL,FN,FG,FI;
+	//			float nx, ny;
+	//			if (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] == 0) {
+	//				a = 0;
+	//				b = 0;
+	//			}
+	//			else {
+	//				a = (ImageBuffer[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0;
+	//				b = 1 - a;
+	//			}
 
-				//cout << "R:" << nx << endl;
+	//			//cout << a << " " << b << endl;
+	//			FI = ImageBuffer[(grid0_size * 4) * j + 4 * i];
+	//			if (ImageBuffer1[(grid0_size * 4) * j + 4 * i] == 0) {
+	//				nx = 0;
+	//			}
+	//			else {
+	//				nx = (ImageBuffer1[(grid0_size * 4) * j + 4 * i] + 1.0) / 256.0 * 2.0 - 1.0;
+	//			}
+	//			 
+	//			if (ImageBuffer1[(grid0_size * 4) * j + 4 * i + 1] == 0) {
+	//				ny = 0;
+	//			}
+	//			else {
+	//				ny = (ImageBuffer1[(grid0_size * 4) * j + 4 * i + 1] + 1.0) / 256.0 * 2.0 - 1.0;
+	//			}
 
-				float ny = (ImageBuffer1[(grid0_size * 4) * j + 4 * i + 1]+1.0)/256.0*2.0-1.0;
-				float G = ImageBuffer1[(grid0_size * 4) * j + 4 * i + 2];
-				FN = nx * nx * ImageBuffer[(grid0_size * 4) * j  + 4 * (i - sign(nx))] + ny*ny* ImageBuffer[(grid0_size * 4) * (j - sign(ny)) + 4 * i] + G;
-				FN = G;
-				//cout << nx<<" "<<ny << endl;
+	//			float G = ImageBuffer1[(grid0_size * 4) * j + 4 * i + 2];
+	//			FN = nx * nx * ImageBuffer[(grid0_size * 4) * j  + 4 * (i - sign(nx))] + ny*ny* ImageBuffer[(grid0_size * 4) * (j - sign(ny)) + 4 * i] + G;
+	//			FN = G;
+	//			//cout << nx<<" "<<ny << endl;
 
-				FG = FN;
-				
-				FL = (ImageBuffer[(grid0_size * 4) * (j - 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j + 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i - 1)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-				ImageBuffer[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1-a-b)*FI;
+	//			FG = FN;
+	//			
+	//			FL = (ImageBuffer[(grid0_size * 4) * (j - 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j + 1) + 4 * (i)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i - 1)] + ImageBuffer[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+	//			ImageBuffer[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1-a-b)*FI;
 
-				if (k == grid0_iteration - 1) {
-					grid0[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i]/255.0;
-					grid0[(grid0_size*4) * j + 4 * i + 1] = ImageBuffer[(grid0_size*4) * j + 4 * i + 1]/255.0;
-					grid0[(grid0_size*4) * j + 4 * i + 2] = ImageBuffer[(grid0_size*4) * j + 4 * i + 2]/255.0;
-					grid0[(grid0_size*4) * j + 4 * i + 3] = ImageBuffer[(grid0_size*4) * j + 4 * i + 3]/255.0;
-				}
-			}
-		}
+	//			if (k == grid0_iteration - 1) {
+	//				grid0[(grid0_size*4) * j + 4 * i] = ImageBuffer[(grid0_size*4) * j + 4 * i]/255.0;
+	//				grid0[(grid0_size*4) * j + 4 * i + 1] = ImageBuffer[(grid0_size*4) * j + 4 * i + 1]/255.0;
+	//				grid0[(grid0_size*4) * j + 4 * i + 2] = ImageBuffer[(grid0_size*4) * j + 4 * i + 2]/255.0;
+	//				grid0[(grid0_size*4) * j + 4 * i + 3] = ImageBuffer[(grid0_size*4) * j + 4 * i + 3]/255.0;
+	//			}
+	//		}
+	//	}
+	//}
+
+	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
+		grid0[i] /= 255.0;
 	}
 
 	//grid1 = new float[grid1_size * grid1_size * 4];
@@ -510,6 +527,53 @@ void TrainView::jacobi() {
 //
 // * Constructor to set up the GL window
 //========================================================================
+
+void TrainView::jacobi(float* grid0, float* gradient_grid0, int grid0_size, int grid0_iteration) {
+	for (int k = 0; k < grid0_iteration; k++) {
+		for (int i = 1; i < grid0_size - 1; i++) {
+			for (int j = 1; j < grid0_size - 1; j++) {
+				float a, b;
+				float FL, FN, FG, FI;
+				float nx, ny;
+				if (grid0[(grid0_size * 4) * j + 4 * i + 3] == 0) {
+					a = 0;
+					b = 0;
+				}
+				else {
+					a = (grid0[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0;
+					b = 1 - a;
+				}
+
+				//cout << a << " " << b << endl;
+				FI = grid0[(grid0_size * 4) * j + 4 * i];
+				if (gradient_grid0[(grid0_size * 4) * j + 4 * i] == 0) {
+					nx = 0;
+				}
+				else {
+					nx = (gradient_grid0[(grid0_size * 4) * j + 4 * i] + 1.0) / 256.0 * 2.0 - 1.0;
+				}
+
+				if (gradient_grid0[(grid0_size * 4) * j + 4 * i + 1] == 0) {
+					ny = 0;
+				}
+				else {
+					ny = (gradient_grid0[(grid0_size * 4) * j + 4 * i + 1] + 1.0) / 256.0 * 2.0 - 1.0;
+				}
+
+				float G = gradient_grid0[(grid0_size * 4) * j + 4 * i + 2];
+				FN = nx * nx * grid0[(grid0_size * 4) * j + 4 * (i - sign(nx))] + ny * ny * grid0[(grid0_size * 4) * (j - sign(ny)) + 4 * i] + G;
+				FN = G;
+				//cout << nx<<" "<<ny << endl;
+
+				FG = FN;
+
+				FL = (grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+				grid0[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
+			}
+		}
+	}
+}
+
 TrainView::
 TrainView(int x, int y, int w, int h, const char* l) 
 	: Fl_Gl_Window(x,y,w,h,l)
@@ -880,6 +944,7 @@ void TrainView::drawStuff(bool doingShadows)
 				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 			}
 			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x,q3.y-q2.y, q3.z - q2.z));
+
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
@@ -1157,7 +1222,7 @@ void TrainView::drawStuff(bool doingShadows)
 
 	draw_elevation_map();
 	draw_gradient_map();
-	jacobi();
+	run();
 
 	float wi, he;
 	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {

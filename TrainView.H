@@ -82,7 +82,8 @@ class TrainView : public Fl_Gl_Window
 
 		void draw_elevation_map();
 		void draw_gradient_map();
-		void jacobi();
+		void run();
+		void jacobi(float*, float*, int, int);
 		void scale(float* image, int size, float*);
 		int sign(float n);
 
@@ -115,7 +116,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer1;
 		unsigned int rbo1;
 
-		int gridsize = 512;
+		int gridsize = 256;
 		int grid0_size = gridsize / 4;
 		int grid1_size = gridsize / 2;
 		
