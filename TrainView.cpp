@@ -294,7 +294,7 @@ void TrainView::draw_gradient_map() {
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer1);
 
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->pixel_w(), this->pixel_h(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -302,7 +302,7 @@ void TrainView::draw_gradient_map() {
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 	glGenRenderbuffers(1, &rbo1);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo1);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->pixel_w(), this->pixel_h()); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, grid0_size, grid0_size); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo1); // now actually attach it
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
