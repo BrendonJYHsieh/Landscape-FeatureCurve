@@ -46,7 +46,7 @@
 #include <assimp/postprocess.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include"RenderUtilities/model.h"
 #ifdef EXAMPLE_SOLUTION
@@ -122,6 +122,11 @@ int TrainView::sign(float n) {
 	}
 }
 
+void TrainView::image_output() {
+	for (int i = 0; i < gridsize; i++) {
+		cout << grid[i] << endl;
+	}
+}
 void TrainView::scale(float* image,int image_size,float* result) {
 	int tmep_size = image_size * 2;
 	//float* temp = new float[tmep_size * tmep_size];
@@ -175,7 +180,6 @@ void TrainView::draw_elevation_map() {
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
@@ -264,6 +268,21 @@ void TrainView::draw_elevation_map() {
 	//cout<< " A:" << (int)ImageBuffer[3] << endl;
 
 
+	if (output_switch) {
+		GLsizei nrChannels = 4;
+		GLsizei stride = nrChannels * grid0_size;
+		stride += (stride % 4) ? (4 - stride % 4) : 0;
+		GLsizei bufferSize = stride * grid0_size;
+		std::vector<char> buffer(bufferSize);
+		//glPixelStorei(GL_PACK_ALIGNMENT, 4);
+		//glReadBuffer(GL_FRONT);
+		glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
+		stbi_flip_vertically_on_write(true);
+		//stbi_write_png(filepath, width, height, nrChannels, buffer.data(), stride);
+		stbi_write_png("/Users/JunYao/Desktop/output.png", grid0_size, grid0_size, nrChannels, ImageBuffer, stride);
+		output_switch = false;
+	}
+
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
@@ -276,7 +295,6 @@ void TrainView::draw_elevation_map() {
 
 }
 void TrainView::draw_gradient_map() {
-	glDisable(GL_STENCIL_TEST);
 	float vertices[] = {
 		// positions                          // texture coords
 		 1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
@@ -392,18 +410,20 @@ void TrainView::draw_gradient_map() {
 	
 	glDisable(GL_STENCIL_TEST);
 
-	//Ground
-	//background_shader->Use();
-	//glm::mat4 trans = glm::mat4(1.0f);
-	//trans = glm::translate(trans, glm::vec3(0, -200, 0));
-	//trans = glm::scale(trans, glm::vec3(100, 0, 100));
-	//// pass transformation matrices to the shader
-	//glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
 
-	//glBindVertexArray(VAO[1]);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnable(GL_DEPTH_TEST);
+	//Ground
+	background_shader->Use();
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(0, -200, 0));
+	trans = glm::scale(trans, glm::vec3(100, 0, 100));
+	// pass transformation matrices to the shader
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
+
+	glBindVertexArray(VAO[1]);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
@@ -448,6 +468,8 @@ void TrainView::run() {
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
 		grid[i] /= 255.0;
 	}
+
+
 	glGenTextures(1, &textureColorbuffer2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
@@ -1185,6 +1207,55 @@ void TrainView::drawStuff(bool doingShadows)
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
+	//unsigned int framebufferr;
+	//glGenFramebuffers(1, &framebufferr);
+	//glBindFramebuffer(GL_FRAMEBUFFER, framebufferr);
+	//// create a color attachment texture
+	//unsigned int textureColorbufferr;
+	//glGenTextures(1, &textureColorbufferr);
+	//glBindTexture(GL_TEXTURE_2D, textureColorbufferr);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gridsize, gridsize, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbufferr, 0);
+	//// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	//unsigned int rboo;
+	//glGenRenderbuffers(1, &rboo);
+	//glBindRenderbuffer(GL_RENDERBUFFER, rboo);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, gridsize, gridsize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboo); // now actually attach it
+	//heightmap_shader->Use();
+	////Ground of Height Map
+	//glm::mat4 trans2 = glm::mat4(1.0f);
+	//trans2 = glm::translate(trans2, glm::vec3(0, 0, 200));
+	//trans2 = glm::scale(trans2, glm::vec3(100, 1.0f, 100));
+
+
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans2[0][0]);
+	////glUniform1i(glGetUniformLocation(heightmap_shader->Program, "texture_d"), textureColorbuffer);
+	//wave_model->meshes[0].textures[0].id = textureColorbuffer2;
+	//wave_model->Draw(*heightmap_shader);
+
+	//if (output_switch) {
+	//	GLsizei nrChannels = 4;
+	//	GLsizei stride = nrChannels * gridsize;
+	//	stride += (stride % 4) ? (4 - stride % 4) : 0;
+	//	GLsizei bufferSize = stride * gridsize;
+	//	std::vector<char> buffer(bufferSize);
+	//	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	//	glReadBuffer(GL_FRONT);
+	//	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+	//	stbi_flip_vertically_on_write(true);
+	//	//stbi_write_png(filepath, width, height, nrChannels, buffer.data(), stride);
+	//	stbi_write_png("/Users/JunYao/Desktop/output.png", gridsize, gridsize, 4, buffer.data(), stride);
+	//	output_switch = false;
+	//}
+	//glDeleteFramebuffers(1, &framebufferr);
+	//glDeleteRenderbuffers(1, &rboo);
+	//glDeleteTextures(1, &textureColorbufferr);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glMatrixMode(GL_PROJECTION);
@@ -1210,13 +1281,13 @@ void TrainView::drawStuff(bool doingShadows)
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	//Ground of Gradient
-	glm::mat4 trans1 = glm::mat4(1.0f);
-	trans1 = glm::translate(trans1, glm::vec3(-200, 1, 0));
-	trans1 = glm::scale(trans1, glm::vec3(100, 1, 100));
+	glm::mat4 transs = glm::mat4(1.0f);
+	transs = glm::translate(transs, glm::vec3(-200, 1, 0));
+	transs = glm::scale(transs, glm::vec3(100, 1, 100));
 
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans1[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
 	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 1);
 
 	glBindVertexArray(VAO[1]);
@@ -1224,14 +1295,14 @@ void TrainView::drawStuff(bool doingShadows)
 
 	heightmap_shader->Use();
 	//Ground of Height Map
-	glm::mat4 trans2 = glm::mat4(1.0f);
-	trans2 = glm::translate(trans2, glm::vec3(0, 0,200));
-	trans2 = glm::scale(trans2, glm::vec3(100, 1.0f, 100));
+	glm::mat4 transss = glm::mat4(1.0f);
+	transss = glm::translate(transss, glm::vec3(0, 0,200));
+	transss = glm::scale(transss, glm::vec3(100, 1.0f, 100));
 
 
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans2[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "texture_d"), textureColorbuffer);
 	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
 	wave_model->Draw(*heightmap_shader);

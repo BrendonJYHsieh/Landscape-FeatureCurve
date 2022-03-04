@@ -100,8 +100,10 @@ TrainWindow(const int x, const int y)
 		topCam->callback((Fl_Callback*)damageCB,this);
 		camGroup->end();
 
-		// pty += 30;
-
+		pty += 30;
+		// add and delete points
+		Fl_Button* output = new Fl_Button(600, pty, 80, 30, "Output");
+		output->callback((Fl_Callback*)Output, this);
 		// // browser to select spline types
 		// // TODO: make sure these choices are the same as what the code supports
 		// splineBrowser = new Fl_Browser(605,pty,120,75,"Spline Type");
@@ -112,7 +114,7 @@ TrainWindow(const int x, const int y)
 		// splineBrowser->add("Cubic B-Spline");
 		// splineBrowser->select(2);
 
-		pty += 110;
+		pty += 50;
 
 		// add and delete points
 		Fl_Button* ac = new Fl_Button(600,pty,80,30,"Add Curve");

@@ -13,6 +13,8 @@
 #include"Shader.h"
 #include"mesh.h"
 #include "stb_image.h"
+#include "stb_image_write.h"
+
 
 #include <string>
 #include <fstream>

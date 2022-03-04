@@ -50,6 +50,7 @@ void loadCB(Fl_Widget*, TrainWindow* tw);
 void saveCB(Fl_Widget*, TrainWindow* tw);
 
 //Landscape
+void Output(Fl_Widget*, TrainWindow* tw);
 void addCurve(Fl_Widget*, TrainWindow* tw);
 void deleteCurve(Fl_Widget*, TrainWindow* tw);
 

@@ -87,6 +87,8 @@ class TrainView : public Fl_Gl_Window
 		void scale(float* image, int size, float*);
 		int sign(float n);
 
+		void image_output();
+
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f, int Area);
 	public:
@@ -122,7 +124,7 @@ class TrainView : public Fl_Gl_Window
 		int grid0_size = gridsize / 4;
 		int grid1_size = gridsize / 2;
 		
-
+		bool output_switch = false;
 
 		vector<float> gradient_data;
 		vector<float> elevation_data;
