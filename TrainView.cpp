@@ -276,6 +276,7 @@ void TrainView::draw_elevation_map() {
 
 }
 void TrainView::draw_gradient_map() {
+	glDisable(GL_STENCIL_TEST);
 	float vertices[] = {
 		// positions                          // texture coords
 		 1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
@@ -336,8 +337,11 @@ void TrainView::draw_gradient_map() {
 
 	// make sure we clear the framebuffer's content
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	glEnable(GL_STENCIL_TEST);
+	
+	
 	//Curve
 	gradient_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
@@ -366,24 +370,40 @@ void TrainView::draw_gradient_map() {
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
+
+	glStencilFunc(GL_ALWAYS, 0, 0xFF);
+	glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+	glStencilMask(0xFF);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
+	test_shader->Use();
+	glStencilFunc(GL_LESS, 1, 0xFF);
+	glStencilMask(0x00);
+	glDisable(GL_DEPTH_TEST);
+
+	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
+
+	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 	//Read value from gradient map
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
 	//cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
 	
-	//Ground
-	background_shader->Use();
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::translate(trans, glm::vec3(0, -200, 0));
-	trans = glm::scale(trans, glm::vec3(100, 0, 100));
-	// pass transformation matrices to the shader
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
+	glDisable(GL_STENCIL_TEST);
 
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//Ground
+	//background_shader->Use();
+	//glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::translate(trans, glm::vec3(0, -200, 0));
+	//trans = glm::scale(trans, glm::vec3(100, 0, 100));
+	//// pass transformation matrices to the shader
+	//glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
+
+	//glBindVertexArray(VAO[1]);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
@@ -652,8 +672,9 @@ void TrainView::draw()
 	// we need to clear out the stencil buffer since we'll use
 	// it for shadows
 	glClearStencil(0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glEnable(GL_DEPTH);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	
 
 	// Blayne prefers GL_DIFFUSE
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
@@ -673,6 +694,7 @@ void TrainView::draw()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	// top view only needs one light
 	if (tw->topCam->value()) {
@@ -727,6 +749,7 @@ void TrainView::draw()
 	setupObjects();
 	
 	drawStuff();
+	
 	glPointSize(5);
 	glBegin(GL_POINTS);
 	glColor3ub(0, 255, 0);
@@ -1096,6 +1119,13 @@ void TrainView::drawStuff(bool doingShadows)
 				nullptr, nullptr, nullptr,
 				"../src/Shaders/heightmap.fs");
 	}
+	if (!this->test_shader) {
+		this->test_shader = new
+			Shader(
+				"../src/Shaders/test.vs",
+				nullptr, nullptr, nullptr,
+				"../src/Shaders/test.fs");
+	}
 
 	if (!wave_model) {
 		wave_model = new Model("../wave/wave.obj");
@@ -1210,9 +1240,9 @@ void TrainView::drawStuff(bool doingShadows)
 	gradient_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
 
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
