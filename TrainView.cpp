@@ -193,29 +193,19 @@ void TrainView::draw_elevation_map() {
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	
 	/*VAO*/
-	unsigned int VBO[2], VAO[2];
-    glGenVertexArrays(2, VAO);
-    glGenBuffers(2, VBO);
-
+	unsigned int VBO[1], VAO[1];
+    glGenVertexArrays(1, VAO);
+    glGenBuffers(1, VBO);
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	//Ground
-	glBindVertexArray(VAO[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
 	// render
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-
 	// make sure we clear the framebuffer's content
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -257,11 +247,11 @@ void TrainView::draw_elevation_map() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 	// clear all relevant buffers
-	glClearColor(0.0f, 0.0f, 0.3f, 0.5f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glDeleteVertexArrays(2, VAO);
-	glDeleteBuffers(2, VBO);
+	glDeleteVertexArrays(1, VAO);
+	glDeleteBuffers(1, VBO);
 
 }
 void TrainView::draw_gradient_map() {
@@ -404,9 +394,9 @@ void TrainView::draw_save() {
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
 	/*VAO*/
-	unsigned int VBO[2], VAO[2];
-	glGenVertexArrays(2, VAO);
-	glGenBuffers(2, VBO);
+	unsigned int VBO[1], VAO[1];
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
 
 	//Curve
 	glBindVertexArray(VAO[0]);
@@ -414,14 +404,6 @@ void TrainView::draw_save() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	//Ground
-	glBindVertexArray(VAO[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
 	// render
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -494,8 +476,8 @@ void TrainView::draw_save() {
 	glClearColor(0.0f, 0.0f, 0.3f, 0.5f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glDeleteVertexArrays(2, VAO);
-	glDeleteBuffers(2, VBO);
+	glDeleteVertexArrays(1, VAO);
+	glDeleteBuffers(1, VBO);
 }
 void TrainView::run() {
 
