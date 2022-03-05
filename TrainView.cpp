@@ -250,24 +250,8 @@ void TrainView::draw_elevation_map() {
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
 
-	//Ground
-	background_shader->Use();
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::translate(trans, glm::vec3(0, -200, 0));
-	trans = glm::scale(trans, glm::vec3(100, 0, 100));
-	// pass transformation matrices to the shader
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
 	// Read color from texture
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
-	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	//cout<< " A:" << (int)ImageBuffer[3] << endl;
-
-
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -290,17 +274,13 @@ void TrainView::draw_gradient_map() {
 		-1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
 		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
 	};
-
 	//glGenFramebuffers(1, &this->framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
 	glGenTextures(1, &textureColorbuffer1);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer1);
-
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer1, 0);
@@ -314,9 +294,9 @@ void TrainView::draw_gradient_map() {
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
 	/*VAO*/
-	unsigned int VBO[2], VAO[2];
-	glGenVertexArrays(2, VAO);
-	glGenBuffers(2, VBO);
+	unsigned int VBO[1], VAO[1];
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
 
 	//Curve
 	glBindVertexArray(VAO[0]);
@@ -326,26 +306,16 @@ void TrainView::draw_gradient_map() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	//Ground
-	glBindVertexArray(VAO[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
 	// render
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
 
 	// make sure we clear the framebuffer's content
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	glEnable(GL_STENCIL_TEST);
-	
-	
 	//Curve
 	gradient_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
@@ -380,16 +350,16 @@ void TrainView::draw_gradient_map() {
 	glStencilMask(0xFF);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
+	// Override curve ntersection part
 	test_shader->Use();
 	glStencilFunc(GL_GREATER, 1, 0xFF);
 	glStencilMask(0x00);
 	glDisable(GL_DEPTH_TEST);
-
 	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
-
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
+
 	//Read value from gradient map
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
 	//cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
@@ -397,30 +367,11 @@ void TrainView::draw_gradient_map() {
 	glDisable(GL_STENCIL_TEST);
 
 
-	glEnable(GL_DEPTH_TEST);
-	//Ground
-	background_shader->Use();
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::translate(trans, glm::vec3(0, -200, 0));
-	trans = glm::scale(trans, glm::vec3(100, 0, 100));
-	// pass transformation matrices to the shader
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(background_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-	// clear all relevant buffers
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
-	glClear(GL_COLOR_BUFFER_BIT);
 
-	glDeleteVertexArrays(2, VAO);
-	glDeleteBuffers(2, VBO);
+	glDeleteVertexArrays(1, VAO);
+	glDeleteBuffers(1, VBO);
 }
 void TrainView::draw_save() {
 	output_switch = false;
