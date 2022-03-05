@@ -1318,59 +1318,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
-
-	//unsigned int framebufferr;
-	//glGenFramebuffers(1, &framebufferr);
-	//glBindFramebuffer(GL_FRAMEBUFFER, framebufferr);
-	//// create a color attachment texture
-	//unsigned int textureColorbufferr;
-	//glGenTextures(1, &textureColorbufferr);
-	//glBindTexture(GL_TEXTURE_2D, textureColorbufferr);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gridsize, gridsize, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbufferr, 0);
-	//// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	//unsigned int rboo;
-	//glGenRenderbuffers(1, &rboo);
-	//glBindRenderbuffer(GL_RENDERBUFFER, rboo);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, gridsize, gridsize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboo); // now actually attach it
-	//heightmap_shader->Use();
-	////Ground of Height Map
-	//glm::mat4 trans2 = glm::mat4(1.0f);
-	//trans2 = glm::translate(trans2, glm::vec3(0, 0, 200));
-	//trans2 = glm::scale(trans2, glm::vec3(100, 1.0f, 100));
-
-
-	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &trans2[0][0]);
-	////glUniform1i(glGetUniformLocation(heightmap_shader->Program, "texture_d"), textureColorbuffer);
-	//wave_model->meshes[0].textures[0].id = textureColorbuffer2;
-	//wave_model->Draw(*heightmap_shader);
-
-	//if (output_switch) {
-	//	GLsizei nrChannels = 4;
-	//	GLsizei stride = nrChannels * gridsize;
-	//	stride += (stride % 4) ? (4 - stride % 4) : 0;
-	//	GLsizei bufferSize = stride * gridsize;
-	//	std::vector<char> buffer(bufferSize);
-	//	glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	//	glReadBuffer(GL_FRONT);
-	//	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
-	//	stbi_flip_vertically_on_write(true);
-	//	//stbi_write_png(filepath, width, height, nrChannels, buffer.data(), stride);
-	//	stbi_write_png("/Users/JunYao/Desktop/output.png", gridsize, gridsize, 4, buffer.data(), stride);
-	//	output_switch = false;
-	//}
-	//glDeleteFramebuffers(1, &framebufferr);
-	//glDeleteRenderbuffers(1, &rboo);
-	//glDeleteTextures(1, &textureColorbufferr);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1378,6 +1325,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 
 	screen_shader->Use();
