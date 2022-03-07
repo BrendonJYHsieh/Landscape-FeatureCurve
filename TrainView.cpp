@@ -90,7 +90,6 @@ Pnt3f _Intersect(Pnt3f A, Pnt3f B,float length) {
 	C.z = (-d * c + a * f) / det;
 	return C;
 }
-
 glm::vec3 Rotate(glm::vec3 n, glm::vec3 v, float degree) {
 	float theta = glm::radians(degree);
 	n = glm::normalize(n);
@@ -101,15 +100,12 @@ glm::vec3 Rotate(glm::vec3 n, glm::vec3 v, float degree) {
 	};
 	return glm::vec3(v.x, v.y, v.z) * T;
 }
-
 glm::vec3 Pnt3_to_Vec3(Pnt3f a) {
 	return glm::vec3(a.x, a.y, a.z);
 }
-
 Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
-
 int TrainView::sign(float n) {
 	if (n > 0) {
 		return 1;
@@ -121,7 +117,6 @@ int TrainView::sign(float n) {
 		return 0;
 	}
 }
-
 void TrainView::image_output() {
 	for (int i = 0; i < gridsize; i++) {
 		cout << grid[i] << endl;
@@ -344,7 +339,7 @@ void TrainView::draw_gradient_map() {
 
 	// Override curve ntersection part
 	test_shader->Use();
-	glStencilFunc(GL_GREATER, 1, 0xFF);
+	glStencilFunc(GL_LESS, 1, 0xFF);
 	glStencilMask(0x00);
 	glDisable(GL_DEPTH_TEST);
 	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
@@ -600,54 +595,6 @@ void TrainView::draw_curve_save() {
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
-
-
-void TrainView::run() {
-
-	// 128 x 128
-	grid0 = new float[grid0_size * grid0_size * 4];
-	gradient_grid0 = new float[grid0_size * grid0_size * 4];
-	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] = ImageBuffer[i];
-		gradient_grid0[i] = ImageBuffer1[i];
-	}
-	jacobi(grid0, gradient_grid0, grid0_size, iteration*3);
-
-	// 256 x 256
-	grid1 = new float[grid1_size * grid1_size * 4];
-	scale(grid0, grid0_size, grid1);
-
-	gradient_grid1 = new float[grid1_size * grid1_size * 4];
-	scale(gradient_grid0, grid0_size, gradient_grid1);
-
-	jacobi(grid1, gradient_grid1, grid1_size, iteration*2);
-
-	// 512 x 512
-	grid = new float[gridsize * gridsize * 4];
-	scale(grid1, grid1_size, grid);
-
-	gradient_grid = new float[gridsize * gridsize * 4];
-	scale(gradient_grid1, grid1_size, gradient_grid);
-
-	jacobi(grid, gradient_grid, gridsize, iteration);
-
-	for (int i = 0; i < gridsize * gridsize * 4; i++) {
-		grid[i] /= 255.0;
-	}
-
-
-	glGenTextures(1, &textureColorbuffer2);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, grid);
-}
-//************************************************************************
-//
-// * Constructor to set up the GL window
-//========================================================================
-
 void TrainView::jacobi(float* grid0, float* gradient_grid0, int grid0_size, int grid0_iteration) {
 	for (int k = 0; k < grid0_iteration; k++) {
 		for (int i = 1; i < grid0_size - 1; i++) {
@@ -693,6 +640,63 @@ void TrainView::jacobi(float* grid0, float* gradient_grid0, int grid0_size, int 
 		}
 	}
 }
+void TrainView::run() {
+
+	// 128 x 128
+	grid0 = new float[grid0_size * grid0_size * 4];
+	gradient_grid0 = new float[grid0_size * grid0_size * 4];
+	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
+		grid0[i] = ImageBuffer[i];
+		gradient_grid0[i] = ImageBuffer1[i];
+	}
+	//jacobi(grid0, gradient_grid0, grid0_size, iteration*3);
+
+	// 256 x 256
+	grid1 = new float[grid1_size * grid1_size * 4];
+	scale(grid0, grid0_size, grid1);
+
+	gradient_grid1 = new float[grid1_size * grid1_size * 4];
+	scale(gradient_grid0, grid0_size, gradient_grid1);
+
+	//jacobi(grid1, gradient_grid1, grid1_size, iteration*2);
+
+	// 512 x 512
+	grid = new float[gridsize * gridsize * 4];
+	scale(grid1, grid1_size, grid);
+
+	gradient_grid = new float[gridsize * gridsize * 4];
+	scale(gradient_grid1, grid1_size, gradient_grid);
+
+	//jacobi(grid, gradient_grid, gridsize, iteration);
+
+	for (int i = 0; i < gridsize * gridsize * 4; i++) {
+		grid[i] /= 255.0;
+	}
+
+	for (int i = 0; i < gridsize * gridsize * 4; i++) {
+		gradient_grid[i] /= 255.0;
+	}
+
+	glGenTextures(1, &textureColorbuffer2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, grid);
+
+	glGenTextures(1, &textureColorbuffer5);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer5);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, gradient_grid);
+}
+//************************************************************************
+//
+// * Constructor to set up the GL window
+//========================================================================
+
+
 
 TrainView::
 TrainView(int x, int y, int w, int h, const char* l) 
@@ -1412,6 +1416,20 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+	//Ground of gradient
+	glm::mat4 trans_gradient= glm::mat4(1.0f);
+	trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 0, 200));
+	trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 1, 100));
+
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 3);
+
+	glBindVertexArray(VAO[1]);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
 	heightmap_shader->Use();
 	//Ground of Height Map
 	glm::mat4 transss = glm::mat4(1.0f);
@@ -1449,6 +1467,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(1, &textureColorbuffer3);
 	glDeleteRenderbuffers(1, &rbo3);
 	glDeleteTextures(1, &textureColorbuffer4);
+	glDeleteTextures(1, &textureColorbuffer5);
 	delete grid0;
 	delete grid1;
 	delete grid;
