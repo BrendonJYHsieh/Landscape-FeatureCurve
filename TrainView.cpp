@@ -348,6 +348,8 @@ void TrainView::draw_gradient_map() {
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
 	//Read value from gradient map
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
 	//cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
 	
@@ -636,6 +638,10 @@ void TrainView::jacobi(float* grid0, float* gradient_grid0, int grid0_size, int 
 
 				FL = (grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 				grid0[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
+
+				gradient_grid0[(grid0_size * 4) * j + 4 * i] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+				gradient_grid0[(grid0_size * 4) * j + 4 * i+1] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1)+1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1)+1]) / 4.0f;
+				gradient_grid0[(grid0_size * 4) * j + 4 * i + 2] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1) + 2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
 			}
 		}
 	}
@@ -649,7 +655,7 @@ void TrainView::run() {
 		grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
-	//jacobi(grid0, gradient_grid0, grid0_size, iteration*3);
+	jacobi(grid0, gradient_grid0, grid0_size, iteration*3);
 
 	// 256 x 256
 	grid1 = new float[grid1_size * grid1_size * 4];
