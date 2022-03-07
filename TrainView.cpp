@@ -351,7 +351,7 @@ void TrainView::draw_gradient_map() {
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
-	//cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
+	cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
 	
 	glDisable(GL_STENCIL_TEST);
 
@@ -601,6 +601,11 @@ void TrainView::jacobi(float* grid0, float* gradient_grid0, int grid0_size, int 
 	for (int k = 0; k < grid0_iteration; k++) {
 		for (int i = 1; i < grid0_size - 1; i++) {
 			for (int j = 1; j < grid0_size - 1; j++) {
+				if ((gradient_grid0[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0 == 0.5) {
+					gradient_grid0[(grid0_size * 4) * j + 4 * i] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+					gradient_grid0[(grid0_size * 4) * j + 4 * i + 1] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1) + 1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
+					gradient_grid0[(grid0_size * 4) * j + 4 * i + 2] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1) + 2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
+				}
 				float a, b;
 				float FL, FN, FG, FI;
 				float nx, ny;
@@ -638,10 +643,6 @@ void TrainView::jacobi(float* grid0, float* gradient_grid0, int grid0_size, int 
 
 				FL = (grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 				grid0[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
-
-				gradient_grid0[(grid0_size * 4) * j + 4 * i] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-				gradient_grid0[(grid0_size * 4) * j + 4 * i+1] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1)+1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1)+1]) / 4.0f;
-				gradient_grid0[(grid0_size * 4) * j + 4 * i + 2] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1) + 2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
 			}
 		}
 	}
