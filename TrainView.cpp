@@ -351,7 +351,7 @@ void TrainView::draw_gradient_map() {
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
-	cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
+	//cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
 	
 	glDisable(GL_STENCIL_TEST);
 
@@ -1436,6 +1436,18 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
+	//Ground of heightmap
+	glm::mat4 trans_height = glm::mat4(1.0f);
+	trans_height = glm::translate(trans_height, glm::vec3(200, 0, 200));
+	trans_height = glm::scale(trans_height, glm::vec3(100, 1, 100));
+
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 2);
+
+	glBindVertexArray(VAO[1]);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	heightmap_shader->Use();
 	//Ground of Height Map
