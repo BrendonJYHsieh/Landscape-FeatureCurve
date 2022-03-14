@@ -82,10 +82,11 @@ class TrainView : public Fl_Gl_Window
 
 		void draw_elevation_map();
 		void draw_gradient_map();
+		void draw_gradientnorm_map();
 		void draw_save();
 		void draw_curve_save();
 		void run();
-		void jacobi(float*, float*, int, int);
+		void jacobi(float*, float*, float*, int, int);
 		void scale(float* image, int size, float*);
 		int sign(float n);
 
@@ -107,6 +108,7 @@ class TrainView : public Fl_Gl_Window
 		Shader* background_shader = nullptr;
 		Shader* screen_shader = nullptr;
 		Shader* gradient_shader = nullptr;
+		Shader* gradientnorm_shader = nullptr;
 		Shader* heightmap_shader = nullptr;
 		Shader* heightmap_shader1 = nullptr;
 		Shader* test_shader = nullptr;
@@ -124,6 +126,8 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rbo2;
 		unsigned int textureColorbuffer4;
 		unsigned int rbo3;
+		unsigned int textureColorbuffer6;
+		unsigned int rbo4;
 
 		int iteration = 15;
 		int gridsize = 256;
@@ -145,8 +149,13 @@ class TrainView : public Fl_Gl_Window
 		float* gradient_grid1;
 		float* gradient_grid;
 
+		float* gradientnorm_grid0;
+		float* gradientnorm_grid1;
+		float* gradientnorm_grid;
+
 		uint8_t* ImageBuffer = new uint8_t[gridsize * gridsize * 4];
 		uint8_t* ImageBuffer1 = new uint8_t[gridsize * gridsize * 4];
+		uint8_t* ImageBuffer2 = new uint8_t[gridsize * gridsize * 4];
 
 		glm::mat4 view;
 		glm::mat4 projection;
