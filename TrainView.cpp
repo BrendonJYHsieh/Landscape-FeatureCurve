@@ -1509,6 +1509,9 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
 
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
 	screen_shader->Use();
 	//Ground of Elevation
 	glm::mat4 trans = glm::mat4(1.0f);
