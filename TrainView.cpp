@@ -692,52 +692,35 @@ void TrainView::draw_curve_save() {
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
-void TrainView::jacobi(float* grid0, float* gradient_grid0, float* gradientnorm_grid0,int grid0_size, int grid0_iteration) {
-	for (int k = 0; k < grid0_iteration; k++) {
-		for (int i = 1; i < grid0_size - 1; i++) {
-			for (int j = 1; j < grid0_size - 1; j++) {
-				if ((gradient_grid0[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0 == 0.5) {
-					gradient_grid0[(grid0_size * 4) * j + 4 * i] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-					gradient_grid0[(grid0_size * 4) * j + 4 * i + 1] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1) + 1] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
-					gradient_grid0[(grid0_size * 4) * j + 4 * i + 2] = (gradient_grid0[(grid0_size * 4) * (j - 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j + 1) + 4 * (i)+2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i - 1) + 2] + gradient_grid0[(grid0_size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
+void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
+	for (int k = 0; k < iteration; k++) {
+		for (int i = 1; i < size - 1; i++) {
+			for (int j = 1; j < size - 1; j++) {
+				if ((G[(size * 4) * j + 4 * i + 3] + 1) / 256.0 == 0.5) {
+					G[(size * 4) * j + 4 * i] = (G[(size * 4) * (j - 1) + 4 * (i)] + G[(size * 4) * (j + 1) + 4 * (i)] + G[(size * 4) * (j)+4 * (i - 1)] + G[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+					G[(size * 4) * j + 4 * i + 1] = (G[(size * 4) * (j - 1) + 4 * (i)+1] + G[(size * 4) * (j + 1) + 4 * (i)+1] + G[(size * 4) * (j)+4 * (i - 1) + 1] + G[(size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
+					G[(size * 4) * j + 4 * i + 2] = (G[(size * 4) * (j - 1) + 4 * (i)+2] + G[(size * 4) * (j + 1) + 4 * (i)+2] + G[(size * 4) * (j)+4 * (i - 1) + 2] + G[(size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
 				}
 				float a, b;
 				float FL, FN, FG, FI;
 				float nx, ny;
-				if (grid0[(grid0_size * 4) * j + 4 * i + 3] == 0) {
+				if (E[(size * 4) * j + 4 * i + 3] == 0) {
 					a = 0;
 					b = 0;
 				}
 				else {
-					a = (grid0[(grid0_size * 4) * j + 4 * i + 3] + 1) / 256.0;
+					a = (E[(size * 4) * j + 4 * i + 3] + 1) / 256.0;
 					b = 1 - a;
 				}
-
-				//cout << a << " " << b << endl;
-				FI = grid0[(grid0_size * 4) * j + 4 * i];
-				if (gradient_grid0[(grid0_size * 4) * j + 4 * i] == 0) {
-					nx = 0;
-				}
-				else {
-					nx = (gradient_grid0[(grid0_size * 4) * j + 4 * i] + 1.0) / 256.0 * 2.0 - 1.0;
-				}
-
-				if (gradient_grid0[(grid0_size * 4) * j + 4 * i + 1] == 0) {
-					ny = 0;
-				}
-				else {
-					ny = (gradient_grid0[(grid0_size * 4) * j + 4 * i + 1] + 1.0) / 256.0 * 2.0 - 1.0;
-				}
-
-				float G = gradientnorm_grid0[(grid0_size * 4) * j + 4 * i + 2];
-				FN = nx * nx * grid0[(grid0_size * 4) * j + 4 * (i - sign(nx))] / 256.0 + ny * ny * grid0[(grid0_size * 4) * (j - sign(ny)) + 4 * i] / 256.0 + G;
-				//FN = G;
-				//cout << nx<<" "<<ny << endl;
-
+				FI = E[(size * 4) * j + 4 * i];
+				nx = (G[(size * 4) * j + 4 * i] + 1.0) / 256.0 * 2.0 - 1.0;
+				ny = (G[(size * 4) * j + 4 * i + 1] + 1.0) / 256.0 * 2.0 - 1.0;
+				float GG = G[(size * 4) * j + 4 * i + 2];
+				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] / 256.0 + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i] / 256.0 + GG;
 				FG = FN;
 
-				FL = (grid0[(grid0_size * 4) * (j - 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j + 1) + 4 * (i)] + grid0[(grid0_size * 4) * (j)+4 * (i - 1)] + grid0[(grid0_size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-				grid0[(grid0_size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
+				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+				F[(size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
 			}
 		}
 	}
@@ -746,36 +729,35 @@ void TrainView::run() {
 
 	// 128 x 128
 	grid0 = new float[grid0_size * grid0_size * 4];
+	elevation_grid0 = new float[grid0_size * grid0_size * 4];
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
-	gradientnorm_grid0 = new float[grid0_size * grid0_size * 4];
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] = ImageBuffer[i];
+		grid0[i] = 0;
+		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
-		gradientnorm_grid0[i] = ImageBuffer2[i];
 	}
-	jacobi(grid0, gradient_grid0, gradientnorm_grid0, grid0_size, iteration*3);
+	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*3);
 
 	// 256 x 256
 	grid1 = new float[grid1_size * grid1_size * 4];
 	scale(grid0, grid0_size, grid1);
 
+	elevation_grid1 = new float[grid1_size * grid1_size * 4];
+	scale(elevation_grid0, grid0_size, elevation_grid1);
+
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(gradient_grid0, grid0_size, gradient_grid1);
-
-	gradientnorm_grid1 = new float[grid1_size * grid1_size * 4];
-	scale(gradientnorm_grid0, grid0_size, gradientnorm_grid1);
-
 	//jacobi(grid1, gradient_grid1, grid1_size, iteration*2);
 
 	// 512 x 512
 	grid = new float[gridsize * gridsize * 4];
 	scale(grid1, grid1_size, grid);
 
+	elevation_grid = new float[gridsize * gridsize * 4];
+	scale(elevation_grid1, grid0_size, elevation_grid);
+
 	gradient_grid = new float[gridsize * gridsize * 4];
 	scale(gradient_grid1, grid1_size, gradient_grid);
-
-	gradientnorm_grid = new float[gridsize * gridsize * 4];
-	scale(gradientnorm_grid, grid1_size, gradientnorm_grid);
 
 	//jacobi(grid, gradient_grid, gridsize, iteration);
 
@@ -1618,15 +1600,18 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(1, &textureColorbuffer5);
 	glDeleteTextures(1, &textureColorbuffer6);
 	glDeleteRenderbuffers(1, &rbo4);
+
 	delete grid0;
 	delete grid1;
 	delete grid;
+
+	delete elevation_grid0;
+	delete elevation_grid1;
+	delete elevation_grid;
+
 	delete gradient_grid0;
 	delete gradient_grid1;
 	delete gradient_grid;
-	delete gradientnorm_grid0;
-	delete gradientnorm_grid1;
-	delete gradientnorm_grid;
 
 	glUseProgram(0);
 

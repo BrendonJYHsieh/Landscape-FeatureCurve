@@ -145,6 +145,10 @@ class TrainView : public Fl_Gl_Window
 		float* grid1;
 		float* grid;
 
+		float* elevation_grid0;
+		float* elevation_grid1;
+		float* elevation_grid;
+
 		float* gradient_grid0;
 		float* gradient_grid1;
 		float* gradient_grid;
