@@ -4,7 +4,7 @@ in vec4 ourColor;
 void main()
 {
     if(ourColor.r>0.0f){
-        FragColor = vec4(ourColor.r*2.0,ourColor.gba);
+        FragColor = vec4(0.0,ourColor.r,ourColor.ba);
     }
     else{
         FragColor = ourColor;

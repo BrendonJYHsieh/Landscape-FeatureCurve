@@ -188,7 +188,7 @@ TrainWindow(const int x, const int y)
 
 		pty += 50;
 		iteration = new Fl_Value_Slider(655, pty, 140, 20, "Iter");
-		iteration->range(1, 30);
+		iteration->range(1, 300);
 		iteration->value(10);
 		iteration->align(FL_ALIGN_LEFT);
 		iteration->type(FL_HORIZONTAL);
