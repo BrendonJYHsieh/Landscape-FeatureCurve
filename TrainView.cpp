@@ -718,7 +718,6 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 				float GG = G[(size * 4) * j + 4 * i + 2];
 				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] / 256.0 + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i] / 256.0 + GG;
 				FG = FN;
-
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 				F[(size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
 			}
@@ -747,19 +746,19 @@ void TrainView::run() {
 
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(gradient_grid0, grid0_size, gradient_grid1);
-	//jacobi(grid1, gradient_grid1, grid1_size, iteration*2);
+	jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*2);
 
 	// 512 x 512
 	grid = new float[gridsize * gridsize * 4];
 	scale(grid1, grid1_size, grid);
 
 	elevation_grid = new float[gridsize * gridsize * 4];
-	scale(elevation_grid1, grid0_size, elevation_grid);
+	scale(elevation_grid1, grid1_size, elevation_grid);
 
 	gradient_grid = new float[gridsize * gridsize * 4];
 	scale(gradient_grid1, grid1_size, gradient_grid);
 
-	//jacobi(grid, gradient_grid, gridsize, iteration);
+	jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration);
 
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
 		grid[i] /= 255.0;
