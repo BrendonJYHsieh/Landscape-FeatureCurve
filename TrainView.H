@@ -82,7 +82,6 @@ class TrainView : public Fl_Gl_Window
 
 		void draw_elevation_map();
 		void draw_gradient_map();
-		void draw_gradientnorm_map();
 		void draw_save();
 		void draw_curve_save();
 		void run();
@@ -129,6 +128,9 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer6;
 		unsigned int rbo4;
 
+		unsigned int textureColorbuffer7;
+		unsigned int textureColorbuffer8;
+
 		int iteration = 15;
 		int gridsize = 256;
 		int grid0_size = gridsize / 4;
@@ -152,10 +154,6 @@ class TrainView : public Fl_Gl_Window
 		float* gradient_grid0;
 		float* gradient_grid1;
 		float* gradient_grid;
-
-		float* gradientnorm_grid0;
-		float* gradientnorm_grid1;
-		float* gradientnorm_grid;
 
 		uint8_t* ImageBuffer = new uint8_t[gridsize * gridsize * 4];
 		uint8_t* ImageBuffer1 = new uint8_t[gridsize * gridsize * 4];
