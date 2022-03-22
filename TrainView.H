@@ -82,7 +82,6 @@ class TrainView : public Fl_Gl_Window
 
 		void draw_elevation_map();
 		void draw_gradient_map();
-		void draw_gradientnorm_map();
 		void draw_save();
 		void draw_curve_save();
 		void run();
