@@ -138,8 +138,8 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
 	gradient_data.push_back(q0.z);
-	gradient_data.push_back((q0.normal.x+1.0)/2.0);
-	gradient_data.push_back((q0.normal.y+1.0)/2.0);
+	gradient_data.push_back(abs(q0.normal.x));
+	gradient_data.push_back(abs(q0.normal.y));
 	gradient_data.push_back(q0.normal.z);
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
@@ -618,13 +618,25 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 					b = 1 - a;
 				}
 				FI = E[(size * 4) * j + 4 * i];
-				nx = (G[(size * 4) * j + 4 * i] + 1.0) / 256.0 * 2.0 - 1.0;
-				ny = (G[(size * 4) * j + 4 * i + 1] + 1.0) / 256.0 * 2.0 - 1.0;
+
+				nx = (G[(size * 4) * j + 4 * i] + 1.0) / 256.0;
+				ny = (G[(size * 4) * j + 4 * i + 1] + 1.0) / 256.0;
+
+				
 				float GG = G[(size * 4) * j + 4 * i + 2];
-				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] / 256.0 + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i] / 256.0 + GG;
-				FG = FN;
+				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i] + GG;
+				FG = GG;
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 				F[(size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
+			}
+		}
+	}
+}
+void TrainView::fill(float* E, float* G, int size) {
+	for (int i = 1; i < size - 1; i++) {
+		for (int j = 1; j < size - 1; j++) {
+			if ((G[(size * 4) * j + 4 * i + 3] + 1) / 256.0 == 0.5) {
+				G[(size * 4) * j + 4 * i + 2] = E[(size * 4) * j + 4 * i];
 			}
 		}
 	}
@@ -640,6 +652,7 @@ void TrainView::run() {
 		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
+	fill(elevation_grid0, gradient_grid0, grid0_size);
 	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*3);
 
 	// 256 x 256
@@ -1539,6 +1552,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(1, &textureColorbuffer4);
 	glDeleteTextures(1, &textureColorbuffer5);
 	glDeleteTextures(1, &textureColorbuffer6);
+	glDeleteTextures(1, &textureColorbuffer7);
+	glDeleteTextures(1, &textureColorbuffer8);
 	glDeleteRenderbuffers(1, &rbo4);
 
 	delete grid0;

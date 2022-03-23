@@ -87,6 +87,7 @@ class TrainView : public Fl_Gl_Window
 		void run();
 		void jacobi(float*, float*, float*, int, int);
 		void scale(float* image, int size, float*);
+		void fill(float* image, float* ,int );
 		int sign(float n);
 
 		void image_output();
@@ -137,6 +138,7 @@ class TrainView : public Fl_Gl_Window
 		int grid1_size = gridsize / 2;
 		
 		bool output_switch = false;
+
 
 		vector<float> gradient_data;
 		vector<float> elevation_data;
