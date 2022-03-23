@@ -86,8 +86,9 @@ class TrainView : public Fl_Gl_Window
 		void draw_curve_save();
 		void run();
 		void jacobi(float*, float*, float*, int, int);
-		void scale(float* image, int size, float*);
-		void fill(float* image, float* ,int );
+		void scale(float* , int , float*);
+		void fill(float* , float* ,int );
+		void gradient_diffuse(float* , int,int);
 		int sign(float n);
 
 		void image_output();

@@ -597,7 +597,7 @@ void TrainView::draw_curve_save() {
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
-void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
+void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
@@ -606,6 +606,19 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 					G[(size * 4) * j + 4 * i + 1] = (G[(size * 4) * (j - 1) + 4 * (i)+1] + G[(size * 4) * (j + 1) + 4 * (i)+1] + G[(size * 4) * (j)+4 * (i - 1) + 1] + G[(size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
 					G[(size * 4) * j + 4 * i + 2] = (G[(size * 4) * (j - 1) + 4 * (i)+2] + G[(size * 4) * (j + 1) + 4 * (i)+2] + G[(size * 4) * (j)+4 * (i - 1) + 2] + G[(size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
 				}
+			}
+		}
+	}
+}
+void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
+	for (int k = 0; k < iteration; k++) {
+		for (int i = 1; i < size - 1; i++) {
+			for (int j = 1; j < size - 1; j++) {
+				/*if ((G[(size * 4) * j + 4 * i + 3] + 1) / 256.0 == 0.5) {
+					G[(size * 4) * j + 4 * i] = (G[(size * 4) * (j - 1) + 4 * (i)] + G[(size * 4) * (j + 1) + 4 * (i)] + G[(size * 4) * (j)+4 * (i - 1)] + G[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
+					G[(size * 4) * j + 4 * i + 1] = (G[(size * 4) * (j - 1) + 4 * (i)+1] + G[(size * 4) * (j + 1) + 4 * (i)+1] + G[(size * 4) * (j)+4 * (i - 1) + 1] + G[(size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
+					G[(size * 4) * j + 4 * i + 2] = (G[(size * 4) * (j - 1) + 4 * (i)+2] + G[(size * 4) * (j + 1) + 4 * (i)+2] + G[(size * 4) * (j)+4 * (i - 1) + 2] + G[(size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
+				}*/
 				float a, b;
 				float FL, FN, FG, FI;
 				float nx, ny;
@@ -653,6 +666,7 @@ void TrainView::run() {
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
 	fill(elevation_grid0, gradient_grid0, grid0_size);
+	gradient_diffuse(gradient_grid0, grid0_size, iteration * 3);
 	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*3);
 
 	// 256 x 256
@@ -664,6 +678,7 @@ void TrainView::run() {
 
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(gradient_grid0, grid0_size, gradient_grid1);
+	gradient_diffuse(gradient_grid1, grid1_size, iteration * 2);
 	jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*2);
 
 	// 512 x 512
@@ -675,7 +690,7 @@ void TrainView::run() {
 
 	gradient_grid = new float[gridsize * gridsize * 4];
 	scale(gradient_grid1, grid1_size, gradient_grid);
-
+	gradient_diffuse(gradient_grid, gridsize, iteration * 1);
 	jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration);
 
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
