@@ -138,8 +138,8 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
 	gradient_data.push_back(q0.z);
-	gradient_data.push_back(abs(q0.normal.x));
-	gradient_data.push_back(abs(q0.normal.y));
+	gradient_data.push_back(((q0.normal.x)+1.0)/2.0);
+	gradient_data.push_back(((q0.normal.y)+1.0)/2.0);
 	gradient_data.push_back(q0.normal.z);
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
@@ -151,7 +151,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	}
 	else {
 		elevation_data.push_back(q0.x);
-		elevation_data.push_back(0.0);
+		elevation_data.push_back(q0.y);
 		elevation_data.push_back(q0.z);
 		elevation_data.push_back(0.5);
 	}
@@ -623,16 +623,16 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 				}
 				else {
 					a = (E[(size * 4) * j + 4 * i + 3] + 1) / 256.0;
-					b = 1 - a;
+					b = 1.0 - a;
 				}
 				FI = E[(size * 4) * j + 4 * i];
 
-				nx = (G[(size * 4) * j + 4 * i] + 1.0) / 256.0;
-				ny = (G[(size * 4) * j + 4 * i + 1] + 1.0) / 256.0;
+				nx = ((G[(size * 4) * j + 4 * i] + 1.0) / 256.0)*2.0-1;
+				ny = ((G[(size * 4) * j + 4 * i + 1] + 1.0) / 256.0)*2.0-1;
 
 				
 				float GG = G[(size * 4) * j + 4 * i + 2];
-				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i] + GG;
+				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
 				FG = FN;
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 				F[(size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
@@ -656,12 +656,12 @@ void TrainView::run() {
 	elevation_grid0 = new float[grid0_size * grid0_size * 4];
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] = 0;
+		grid0[i] = ImageBuffer[i];
 		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
-	fill(elevation_grid0, gradient_grid0, grid0_size);
-	gradient_diffuse(gradient_grid0, grid0_size, iteration * 3);
+	//fill(elevation_grid0, gradient_grid0, grid0_size);
+	//gradient_diffuse(gradient_grid0, grid0_size, iteration * 3);
 	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*3);
 
 	// 256 x 256
@@ -1120,16 +1120,11 @@ void TrainView::drawStuff(bool doingShadows)
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			q6.normal.z = q6.y / 255.0;
-			q7.normal.z = q7.y / 255.0;
+			q4.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
+			q5.normal = glm::vec3((normal.x), (normal.z), 0.0);
 
-			Axis.y = 0;
-
-			q4.normal = Rotate(Axis, _normal, phi_init + phi_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal, phi_init + phi_interporate * j);
-			
-			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), q4.y/255.0);
-			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), q5.y/255.0);
+			q6.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
+			q7.normal = glm::vec3((normal.x), (normal.z), 0.0);
 
 			
 			//cout << "X:" << q4.normal.x << " Z:" << q4.normal.y << " Z:" << q4.normal.z<<endl;
@@ -1231,15 +1226,10 @@ void TrainView::drawStuff(bool doingShadows)
 			q6.normal.z = q6.y / 255.0;
 			q7.normal.z = q7.y / 255.0;
 
-			Axis.y = 0;
-
-			q4.normal = Rotate(Axis, _normal,  - theta_init - theta_interporate * (j + 1));
-			q5.normal = Rotate(Axis, normal,  - theta_init - theta_interporate * j);
-
-			q4.normal = glm::vec3((q4.normal.x), (q4.normal.z), q4.y / 255.0);
-			q5.normal = glm::vec3((q5.normal.x), (q5.normal.z), q5.y / 255.0);
-
-			
+			q4.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
+			q5.normal = glm::vec3((normal.x), (normal.z), 0.0);
+			q6.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
+			q7.normal = glm::vec3((normal.x), (normal.z), 0.0);
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
