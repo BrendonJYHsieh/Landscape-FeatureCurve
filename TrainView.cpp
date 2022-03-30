@@ -1116,15 +1116,16 @@ void TrainView::drawStuff(bool doingShadows)
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
+			glm::vec2 n = glm::normalize(glm::vec2(normal.x, normal.z));
+			glm::vec2 _n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			q4.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
-			q5.normal = glm::vec3((normal.x), (normal.z), 0.0);
+			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
+			q5.normal = glm::vec3((n.x), (n.y), 0.0);
 
-			q6.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
-			q7.normal = glm::vec3((normal.x), (normal.z), 0.0);
+
 
 			
 			//cout << "X:" << q4.normal.x << " Z:" << q4.normal.y << " Z:" << q4.normal.z<<endl;
@@ -1218,18 +1219,22 @@ void TrainView::drawStuff(bool doingShadows)
 			}
 
 			Axis = glm::normalize(glm::vec3(q3.x - q2.x,0, q3.z - q2.z));
+
+			
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
+
+			n = glm::normalize(glm::vec2(normal.x, normal.z));
+			_n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
 			q6.normal.z = q6.y / 255.0;
 			q7.normal.z = q7.y / 255.0;
 
-			q4.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
-			q5.normal = glm::vec3((normal.x), (normal.z), 0.0);
-			q6.normal = glm::vec3((_normal.x), (_normal.z), 0.0);
-			q7.normal = glm::vec3((normal.x), (normal.z), 0.0);
+			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
+			q5.normal = glm::vec3((n.x), (n.y), 0.0);
+
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
