@@ -300,7 +300,7 @@ void TrainView::draw_gradient_map() {
 	glEnable(GL_STENCIL_TEST);
 
 	// make sure we clear the framebuffer's content
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	//Curve
@@ -632,10 +632,11 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 
 				
 				float GG = G[(size * 4) * j + 4 * i + 2];
+				//
 				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
-				FG = FN;
+				//FG = FN;
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-				F[(size * 4) * j + 4 * i] = a * FL + b * FG + (1 - a - b) * FI;
+				F[(size * 4) * j + 4 * i] = a *FL + b*FN + (1-a-b)*FI;
 			}
 		}
 	}
@@ -661,8 +662,8 @@ void TrainView::run() {
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
 	//fill(elevation_grid0, gradient_grid0, grid0_size);
-	//gradient_diffuse(gradient_grid0, grid0_size, iteration * 3);
-	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*3);
+	gradient_diffuse(gradient_grid0, grid0_size, iteration * 1);
+	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*1);
 
 	// 256 x 256
 	grid1 = new float[grid1_size * grid1_size * 4];
@@ -674,7 +675,7 @@ void TrainView::run() {
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(gradient_grid0, grid0_size, gradient_grid1);
 	gradient_diffuse(gradient_grid1, grid1_size, iteration * 2);
-	jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*2);
+	jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*1);
 
 	// 512 x 512
 	grid = new float[gridsize * gridsize * 4];
@@ -1124,7 +1125,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			q5.normal = glm::vec3((n.x), (n.y), 0.0);
-
+			q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
+			q7.normal = glm::vec3((n.x), (n.y), 0.0);
 
 
 			
@@ -1234,7 +1236,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			q5.normal = glm::vec3((n.x), (n.y), 0.0);
-
+			q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
+			q7.normal = glm::vec3((n.x), (n.y), 0.0);
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
