@@ -138,8 +138,8 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
 	gradient_data.push_back(q0.z);
-	gradient_data.push_back(((q0.normal.x)+1.0)/2.0);
-	gradient_data.push_back(((q0.normal.y)+1.0)/2.0);
+	gradient_data.push_back(((abs(q0.normal.x))+1.0)/2.0);
+	gradient_data.push_back(((abs(q0.normal.y))+1.0)/2.0);
 	gradient_data.push_back(q0.normal.z);
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
@@ -1125,8 +1125,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			q5.normal = glm::vec3((n.x), (n.y), 0.0);
-			q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
-			q7.normal = glm::vec3((n.x), (n.y), 0.0);
+			//q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
+			//q7.normal = glm::vec3((n.x), (n.y), 0.0);
 
 
 			
@@ -1236,8 +1236,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			q5.normal = glm::vec3((n.x), (n.y), 0.0);
-			q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
-			q7.normal = glm::vec3((n.x), (n.y), 0.0);
+			//q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
+			//q7.normal = glm::vec3((n.x), (n.y), 0.0);
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
