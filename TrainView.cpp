@@ -138,8 +138,8 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
 	gradient_data.push_back(q0.z);
-	gradient_data.push_back(((abs(q0.normal.x))+1.0)/2.0);
-	gradient_data.push_back(((abs(q0.normal.y))+1.0)/2.0);
+	gradient_data.push_back((((q0.normal.x))+1.0)/2.0);
+	gradient_data.push_back((((q0.normal.y))+1.0)/2.0);
 	gradient_data.push_back(q0.normal.z);
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
@@ -624,6 +624,9 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 				else {
 					a = (E[(size * 4) * j + 4 * i + 3] + 1) / 256.0;
 					b = 1.0 - a;
+					if (a == 1) {
+						a = 0;
+					}
 				}
 				FI = E[(size * 4) * j + 4 * i];
 
@@ -674,8 +677,8 @@ void TrainView::run() {
 
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(gradient_grid0, grid0_size, gradient_grid1);
-	gradient_diffuse(gradient_grid1, grid1_size, iteration * 2);
-	jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*1);
+	//gradient_diffuse(gradient_grid1, grid1_size, iteration * 2);
+	//jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*1);
 
 	// 512 x 512
 	grid = new float[gridsize * gridsize * 4];
@@ -686,8 +689,8 @@ void TrainView::run() {
 
 	gradient_grid = new float[gridsize * gridsize * 4];
 	scale(gradient_grid1, grid1_size, gradient_grid);
-	gradient_diffuse(gradient_grid, gridsize, iteration * 1);
-	jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration);
+	//gradient_diffuse(gradient_grid, gridsize, iteration * 1);
+	//jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration);
 
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
 		grid[i] /= 255.0;
