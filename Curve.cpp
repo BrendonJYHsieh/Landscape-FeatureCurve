@@ -49,10 +49,10 @@ resetPoints()
 {
 	int r = rand() % 30 +10;
 	points.clear();
-	points.push_back(ControlPoint(Pnt3f(  0,50,0)));
-	points.push_back(ControlPoint(Pnt3f( 10,50,10)));
-	points.push_back(ControlPoint(Pnt3f( 20,50,20)));
-	points.push_back(ControlPoint(Pnt3f( 30,50,30)));
+	points.push_back(ControlPoint(Pnt3f(  0,100,0)));
+	points.push_back(ControlPoint(Pnt3f( 10,100,10)));
+	points.push_back(ControlPoint(Pnt3f( 20,100,20)));
+	points.push_back(ControlPoint(Pnt3f( 30,100,30)));
 
 
 
