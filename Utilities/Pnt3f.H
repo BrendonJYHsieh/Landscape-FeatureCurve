@@ -68,9 +68,9 @@ class Pnt3f {
 		float x;			/* isn't this obvious */
 		float y;
 		float z;
-		float r=0;
-		float a=30;
-		float b=30;
+		float r=1.5;
+		float a=20;
+		float b=20;
 		float theta=90;
 		float phi=90;
 		glm::vec3 normal = glm::vec3(0.0f,0.0f,0.0f);

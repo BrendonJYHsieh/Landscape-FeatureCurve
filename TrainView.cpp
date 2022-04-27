@@ -147,7 +147,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		elevation_data.push_back(q0.x);
 		elevation_data.push_back(q0.y);
 		elevation_data.push_back(q0.z);
-		elevation_data.push_back(0.0);
+		elevation_data.push_back(0.000000000);
 	}
 	else {
 		elevation_data.push_back(q0.x);
@@ -624,9 +624,6 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 				else {
 					a = (E[(size * 4) * j + 4 * i + 3] + 1) / 256.0;
 					b = 1.0 - a;
-					if (a == 1) {
-						a = 0;
-					}
 				}
 				FI = E[(size * 4) * j + 4 * i];
 
@@ -639,7 +636,7 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
 				//FG = FN;
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-				F[(size * 4) * j + 4 * i] = a *FL + b*FN + (1-a-b)*FI;
+				F[(size * 4) * j + 4 * i] = a * FL + b*FN + (1-a-b)*FI;
 			}
 		}
 	}
