@@ -91,8 +91,6 @@ class TrainView : public Fl_Gl_Window
 		void gradient_diffuse(float* , int,int);
 		int sign(float n);
 
-		void image_output();
-
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f, int Area);
 	public:

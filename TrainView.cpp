@@ -1,33 +1,5 @@
-/************************************************************************
-     File:        TrainView.cpp
-
-     Author:     
-                  Michael Gleicher, gleicher@cs.wisc.edu
-
-     Modifier
-                  Yu-Chi Lai, yu-chi@cs.wisc.edu
-     
-     Comment:     
-						The TrainView is the window that actually shows the 
-						train. Its a
-						GL display canvas (Fl_Gl_Window).  It is held within 
-						a TrainWindow
-						that is the outer window with all the widgets. 
-						The TrainView needs 
-						to be aware of the window - since it might need to 
-						check the widgets to see how to draw
-
-	  Note:        we need to have pointers to this, but maybe not know 
-						about it (beware circular references)
-
-     Platform:    Visio Studio.Net 2003/2005
-
-*************************************************************************/
-
 #include <iostream>
 #include <Fl/fl.h>
-
-// we will need OpenGL, and OpenGL needs windows.h
 #include <windows.h>
 //#include "GL/gl.h"
 #include <glad/glad.h>
@@ -117,14 +89,9 @@ int TrainView::sign(float n) {
 		return 0;
 	}
 }
-void TrainView::image_output() {
-	for (int i = 0; i < gridsize; i++) {
-		cout << grid[i] << endl;
-	}
-}
+
 void TrainView::scale(float* image,int image_size,float* result) {
 	int tmep_size = image_size * 2;
-	//float* temp = new float[tmep_size * tmep_size];
 	for (int i = 0; i < tmep_size; i++) {
 		for (int j = 0; j < tmep_size; j++) {
 			result[(tmep_size * 4) * j + 4 * i] = image[(image_size * 4) * (j / 2) + 4 * (i / 2)];
@@ -138,21 +105,38 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
 	gradient_data.push_back(q0.z);
-	gradient_data.push_back((((q0.normal.x))+1.0)/2.0);
-	gradient_data.push_back((((q0.normal.y))+1.0)/2.0);
-	gradient_data.push_back(q0.normal.z);
+	// Mentioned in 5.1 
+	// n = (nx, ny)
+	// Normalize: Because normal value probably is negative
+	gradient_data.push_back((((q0.normal.x))+1.0)/2.0); // nx
+	gradient_data.push_back((((q0.normal.y))+1.0)/2.0); // ny
+	gradient_data.push_back(q0.normal.z); // gradient norm
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	if (Area == 0) {
 		elevation_data.push_back(q0.x);
 		elevation_data.push_back(q0.y);
 		elevation_data.push_back(q0.z);
-		elevation_data.push_back(0.000000000);
+		/* Mentioned in 5.1 and 5.2
+		The last alpha component of the texture is used to indicate which constraints
+		have been set on the different areas.
+		alpha = 0 -> elevation constrain
+		alpha = 0.5 -> gradient constrain
+		alpha = 1.0 -> else
+		*/
+		elevation_data.push_back(0.0); 
 	}
 	else {
 		elevation_data.push_back(q0.x);
 		elevation_data.push_back(q0.y);
 		elevation_data.push_back(q0.z);
+		/* Mentioned in 5.1 and 5.2
+		The last alpha component of the texture is used to indicate which constraints
+		have been set on the different areas.
+		alpha = 0 -> elevation constrain
+		alpha = 0.5 -> gradient constrain
+		alpha = 1.0 -> else
+		*/
 		elevation_data.push_back(0.5);
 	}
 }
@@ -652,28 +636,35 @@ void TrainView::fill(float* E, float* G, int size) {
 }
 void TrainView::run() {
 
+	/* Mentioned in 5.2 
+	Multigrid implementation
+	*/
+
 	// 128 x 128
 	grid0 = new float[grid0_size * grid0_size * 4];
 	elevation_grid0 = new float[grid0_size * grid0_size * 4];
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
+
+	// 
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
 		grid0[i] = ImageBuffer[i];
 		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
-	//fill(elevation_grid0, gradient_grid0, grid0_size);
+	/* Mentioned in 4.1 Figure 9.
+	To fill gradient's hole caused by gradient intersection
+	*/
 	gradient_diffuse(gradient_grid0, grid0_size, iteration * 1);
 	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*1);
 
-	// 256 x 256
+	// Upsampling from 128 x 128 to 256 x 256
 	grid1 = new float[grid1_size * grid1_size * 4];
 	scale(grid0, grid0_size, grid1);
-
 	elevation_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(elevation_grid0, grid0_size, elevation_grid1);
-
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
 	scale(gradient_grid0, grid0_size, gradient_grid1);
+
 	//gradient_diffuse(gradient_grid1, grid1_size, iteration * 2);
 	//jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*1);
 
@@ -689,6 +680,7 @@ void TrainView::run() {
 	//gradient_diffuse(gradient_grid, gridsize, iteration * 1);
 	//jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration);
 
+	// Normalize color
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
 		grid[i] /= 255.0;
 	}
@@ -711,6 +703,7 @@ void TrainView::run() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, gradient_grid);
 
+	// Code below is using for test and debug
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
 		grid0[i] /= 255.0;
 	}
@@ -768,20 +761,8 @@ resetArcball()
 	arcball.setup(this, 40, 250, .2f, .4f, 0);
 }
 
-//************************************************************************
-//
-// * FlTk Event handler for the window
-//########################################################################
-// TODO: 
-//       if you want to make the train respond to other events 
-//       (like key presses), you might want to hack this.
-//########################################################################
-//========================================================================
 int TrainView::handle(int event)
 {
-	// see if the ArcBall will handle the event - if it does, 
-	// then we're done
-	// note: the arcball only gets the event if we're in world view
 	if (tw->worldCam->value())
 		if (arcball.handle(event)) 
 			return 1;
@@ -812,16 +793,6 @@ int TrainView::handle(int event)
 
 			// Compute the new control point position
 			if ((last_push == FL_LEFT_MOUSE) && (selectedCube >= 0)) {
-				// int i=0;
-				// int temp = selectedCube;
-				// for (i = 0;i < Curves.size(); i++) {
-				// 	if(temp <= Curves[i].points.size()-1){
-				// 		break;
-				// 	}
-				// 	else{
-				// 		temp -= Curves[i].points.size();
-				// 	}
-				// }
 				ControlPoint *cp = &Curves[SelectedCurve].points[SelectedNode];
 				
 				double r1x, r1y, r1z, r2x, r2y, r2z;
@@ -884,11 +855,6 @@ int TrainView::handle(int event)
 void TrainView::draw()
 {
 
-	//*********************************************************************
-	//
-	// * Set up basic opengl informaiton
-	//
-	//**********************************************************************
 	//initialized glad
 	if (gladLoadGL())
 	{
@@ -916,13 +882,7 @@ void TrainView::draw()
 	// prepare for projection
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	setProjection();		// put the code to set up matrices here
-
-	//######################################################################
-	// TODO: 
-	// you might want to set the lighting up differently. if you do, 
-	// we need to set up the lights AFTER setting up the projection
-	//######################################################################
+	setProjection();		
 	// enable the lighting
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
@@ -1035,18 +995,6 @@ setProjection()
 	} 
 }
 
-//************************************************************************
-//
-// * this draws all of the stuff in the world
-//
-//	NOTE: if you're drawing shadows, DO NOT set colors (otherwise, you get 
-//       colored shadows). this gets called twice per draw 
-//       -- once for the objects, once for the shadows
-//########################################################################
-// TODO: 
-// if you have other objects in the world, make sure to draw them
-//########################################################################
-//========================================================================
 void TrainView::drawStuff(bool doingShadows)
 {
 	gradient_data.clear();
@@ -1063,6 +1011,10 @@ void TrainView::drawStuff(bool doingShadows)
 		ControlPoint p4 = Curves[i].points[3];
 		Curves[i].arclength_points.push_back(p1.pos);
 
+		/* Mentioned in 4.1
+		The curve is first discretized along it and approximated
+		into piecewise linear parts.
+		*/
 		for (int j = 0; j < divide; j++) {
 			Pnt3f Q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
 			Pnt3f Q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 1/divide);
@@ -1074,6 +1026,13 @@ void TrainView::drawStuff(bool doingShadows)
 		}
 		Curves[i].arclength_points.push_back(p4.pos);
 	}
+	/* Mentioned in 4.1
+		At each linear coordinate, the
+		whole parameter set is linearly interpolated from constraints
+		points except for the elevation constraint where a cubic interpolation is used to avoid unnatural piecewise linear ridge
+		lines on mountains. Then, at each side, quadrangles are generated in the direction of the normal whose lengths are set
+		from the interpolated radii values r, a and b
+	*/
 	for (int i = 0; i < Curves.size(); i++) {
 		Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].r = Curves[i].points[3].pos.r;
 		Curves[i].arclength_points[0].r = Curves[i].points[0].pos.r;
@@ -1092,10 +1051,15 @@ void TrainView::drawStuff(bool doingShadows)
 
 		float theta_init = Curves[i].arclength_points[0].theta;
 		float theta_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].theta - Curves[i].arclength_points[0].theta) / (Curves[i].arclength_points.size() - 1);
+		
+		/* Mentioned in 3.1
+		To calcualte the point which is parallel with the feature curve 
+		*/
 		Pnt3f p2,_p2,p4,_p4, p6, _p6;
 		for (int j = 0; j < Curves[i].arclength_points.size()-2; j++) {
 			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],q2,q3,q4,q5,q6,q7;
 			
+			// Point in right of feature curve
 			if (q0.x < q1.x) {
 				q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
 				q3 = Intersect(q1, q0, r_init + r_interporate * j);
@@ -1125,12 +1089,6 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			q5.normal = glm::vec3((n.x), (n.y), 0.0);
-			//q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
-			//q7.normal = glm::vec3((n.x), (n.y), 0.0);
-
-
-			
-			//cout << "X:" << q4.normal.x << " Z:" << q4.normal.y << " Z:" << q4.normal.z<<endl;
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
@@ -1150,7 +1108,7 @@ void TrainView::drawStuff(bool doingShadows)
 			push_elevation_data(q7,1);
 			push_elevation_data(q5,1);
 
-			//Fill holes
+			// In order to fill the hole caused by quadrangle
 			if (j > 0) {
 				//q0,q3,p2
 				push_elevation_data(q0,0);
@@ -1203,6 +1161,9 @@ void TrainView::drawStuff(bool doingShadows)
 			p4 = q4;
 			p6 = q6;
 
+
+
+			// Point in left of feature curve
 			if (q0.x < q1.x) {
 				q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
 				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
@@ -1222,7 +1183,6 @@ void TrainView::drawStuff(bool doingShadows)
 
 			Axis = glm::normalize(glm::vec3(q3.x - q2.x,0, q3.z - q2.z));
 
-			
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
@@ -1291,7 +1251,7 @@ void TrainView::drawStuff(bool doingShadows)
 			push_gradient_data(q7);
 			push_gradient_data(q5);
 
-			//Fill holes
+			// In order to fill the hole caused by quadrangle
 			if (j > 0) {
 				//q0,q3,p2
 				push_gradient_data(q0);
@@ -1531,7 +1491,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
-	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "texture_d"), textureColorbuffer);
 	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
 	wave_model->Draw(*heightmap_shader);
 
