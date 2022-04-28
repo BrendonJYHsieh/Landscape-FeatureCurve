@@ -345,6 +345,7 @@ void TrainView::draw_gradient_map() {
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
+// For output elevation map
 void TrainView::draw_save() {
 	output_switch = false;
 	float vertices[] = {
@@ -432,11 +433,6 @@ void TrainView::draw_save() {
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
 	wave_model->Draw(*heightmap_shader);
-
-
-	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	//cout<< " A:" << (int)ImageBuffer[3] << endl;
-
 	
 	GLsizei nrChannels = 4;
 	GLsizei stride = nrChannels * gridsize;
