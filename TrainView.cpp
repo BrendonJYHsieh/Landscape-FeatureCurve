@@ -321,7 +321,7 @@ void TrainView::draw_gradient_map() {
 	glStencilMask(0xFF);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
-	// Override curve ntersection part
+	// clean curve itersection part
 	test_shader->Use();
 	glStencilFunc(GL_LESS, 1, 0xFF);
 	glStencilMask(0x00);
@@ -335,7 +335,6 @@ void TrainView::draw_gradient_map() {
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
-	//cout << "R:" << (int)ImageBuffer1[0] << " G:" << (int)ImageBuffer1[1] << " B:" << (int)ImageBuffer1[2] << " A:" << (int)ImageBuffer1[3] << endl;
 	
 	glDisable(GL_STENCIL_TEST);
 
@@ -621,15 +620,6 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 				//FG = FN;
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 				F[(size * 4) * j + 4 * i] = a * FL + b*FN + (1-a-b)*FI;
-			}
-		}
-	}
-}
-void TrainView::fill(float* E, float* G, int size) {
-	for (int i = 1; i < size - 1; i++) {
-		for (int j = 1; j < size - 1; j++) {
-			if ((G[(size * 4) * j + 4 * i + 3] + 1) / 256.0 == 0.5) {
-				G[(size * 4) * j + 4 * i + 2] = E[(size * 4) * j + 4 * i];
 			}
 		}
 	}
@@ -1089,6 +1079,14 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			q5.normal = glm::vec3((n.x), (n.y), 0.0);
+			/* Mentioned in 4.1
+			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
+			the end of the quadrangle so as to avoid gradient discontinuities and artifacts
+
+			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0).
+			Furthermore q6, q7 are the points in the end of the quadrangle.
+			*/
+
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
@@ -1196,6 +1194,15 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			q5.normal = glm::vec3((n.x), (n.y), 0.0);
+
+			/* Mentioned in 4.1
+			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
+			the end of the quadrangle so as to avoid gradient discontinuities and artifacts
+
+			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0). 
+			Furthermore q6, q7 are the points in the end of the quadrangle.
+			*/
+
 			//q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
 			//q7.normal = glm::vec3((n.x), (n.y), 0.0);
 
@@ -1363,13 +1370,13 @@ void TrainView::drawStuff(bool doingShadows)
 
 	draw_elevation_map();
 	draw_gradient_map();
-
 	run();
 	if (output_switch) {
 		draw_save();
 		draw_curve_save();
 	}
 	
+	// Code below are using for visulization
 
 	float wi, he;
 	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {

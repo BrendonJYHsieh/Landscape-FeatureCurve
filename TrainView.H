@@ -87,7 +87,6 @@ class TrainView : public Fl_Gl_Window
 		void run();
 		void jacobi(float*, float*, float*, int, int);
 		void scale(float* , int , float*);
-		void fill(float* , float* ,int );
 		void gradient_diffuse(float* , int,int);
 		int sign(float n);
 
