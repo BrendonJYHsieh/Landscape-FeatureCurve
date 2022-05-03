@@ -128,7 +128,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	}
 	else {
 		elevation_data.push_back(q0.x);
-		elevation_data.push_back(q0.y);
+		elevation_data.push_back(0.0);
 		elevation_data.push_back(q0.z);
 		/* Mentioned in 5.1 and 5.2
 		The last alpha component of the texture is used to indicate which constraints
@@ -137,7 +137,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		alpha = 0.5 -> gradient constrain
 		alpha = 1.0 -> else
 		*/
-		elevation_data.push_back(0.5);
+		elevation_data.push_back(0.50000);
 	}
 }
 void TrainView::draw_elevation_map() {
@@ -158,7 +158,7 @@ void TrainView::draw_elevation_map() {
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
@@ -222,8 +222,8 @@ void TrainView::draw_elevation_map() {
 	// Read color from texture
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer);
-
+	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer);
+	cout << ImageBuffer[0]<<" "<< ImageBuffer[1] << " " << ImageBuffer[2] << " " << ImageBuffer[3] << endl;
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
@@ -589,7 +589,7 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 		}
 	}
 }
-void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
+void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration)  {
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
@@ -601,10 +601,10 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration) {
 					b = 0;
 				}
 				else {
-					a = (E[(size * 4) * j + 4 * i + 3] + 1) / 256.0;
+					a = E[(size * 4) * j + 4 * i + 3];
 					b = 1.0 - a;
 				}
-				FI = E[(size * 4) * j + 4 * i];
+				FI = E[(size * 4) * j + 4 * i]*255;
 
 				nx = ((G[(size * 4) * j + 4 * i] + 1.0) / 256.0)*2.0-1;
 				ny = ((G[(size * 4) * j + 4 * i + 1] + 1.0) / 256.0)*2.0-1;

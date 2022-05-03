@@ -159,7 +159,7 @@ class TrainView : public Fl_Gl_Window
 		float* gradientnorm_grid1;
 		float* gradientnorm_grid;
 
-		uint8_t* ImageBuffer = new uint8_t[gridsize * gridsize * 4];
+		float* ImageBuffer = new float[gridsize * gridsize * 4];
 		uint8_t* ImageBuffer1 = new uint8_t[gridsize * gridsize * 4];
 		uint8_t* ImageBuffer2 = new uint8_t[gridsize * gridsize * 4];
 
