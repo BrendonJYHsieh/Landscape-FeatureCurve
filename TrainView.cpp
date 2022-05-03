@@ -596,6 +596,7 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 	}
 }
 void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration)  {
+	float* temp = new float[size * size * 4];
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
@@ -619,11 +620,15 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration)  {
 
 				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
 				//FG = FN;
-				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-				F[(size * 4) * j + 4 * i] = a * FL + b*FN + (1-a-b)*FI;
+				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.f;
+				temp[(size * 4) * j + 4 * i] = a * FL + b*FN + (1-a-b)*FI;
 			}
 		}
+		for (int index = 0; index < size * size * 4; index++) {
+			F[index] = temp[index];
+		}
 	}
+	delete temp;
 }
 void TrainView::run() {
 
