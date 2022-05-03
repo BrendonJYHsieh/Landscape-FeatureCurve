@@ -226,7 +226,7 @@ void TrainView::draw_elevation_map() {
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer);
-	cout << ImageBuffer[0]<<" "<< ImageBuffer[1] << " " << ImageBuffer[2] << " " << ImageBuffer[3] << endl;
+	//cout << ImageBuffer[0]<<" "<< ImageBuffer[1] << " " << ImageBuffer[2] << " " << ImageBuffer[3] << endl;
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -339,7 +339,7 @@ void TrainView::draw_gradient_map() {
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer1);
-	//cout << ImageBuffer1[0] << " " << ImageBuffer1[1] << " " << ImageBuffer1[2] << " " << ImageBuffer1[3] << endl;
+	cout << ImageBuffer1[0] << " " << ImageBuffer1[1] << " " << ImageBuffer1[2] << " " << ImageBuffer1[3] << endl;
 	
 	glDisable(GL_STENCIL_TEST);
 
@@ -612,12 +612,11 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration)  {
 				}
 				FI = E[(size * 4) * j + 4 * i]*255;
 
-				nx = ((G[(size * 4) * j + 4 * i] + 1.0) / 256.0)*2.0-1;
-				ny = ((G[(size * 4) * j + 4 * i + 1] + 1.0) / 256.0)*2.0-1;
+				nx = G[(size * 4) * j + 4 * i];
+				ny = G[(size * 4) * j + 4 * i + 1];
 
-				
 				float GG = G[(size * 4) * j + 4 * i + 2];
-				//
+
 				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
 				//FG = FN;
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
