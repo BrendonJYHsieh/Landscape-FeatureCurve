@@ -107,12 +107,13 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.z);
 	// Mentioned in 5.1 
 	// n = (nx, ny)
-	// Normalize: Because normal value probably is negative
-	gradient_data.push_back((((q0.normal.x))+1.0)/2.0); // nx
-	gradient_data.push_back((((q0.normal.y))+1.0)/2.0); // ny
-	gradient_data.push_back(q0.normal.z); // gradient norm
+	gradient_data.push_back(q0.normal.x); // nx
+	gradient_data.push_back(q0.normal.y); // ny
+	gradient_data.push_back(0); // gradient norm
+	//cout << "nx:" << q0.normal.x << " ny:" << q0.normal.y << endl;
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
+	//Area == 0 means that the point is for elevation constraint
 	if (Area == 0) {
 		elevation_data.push_back(q0.x);
 		elevation_data.push_back(q0.y);
@@ -122,10 +123,11 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		have been set on the different areas.
 		alpha = 0 -> elevation constrain
 		alpha = 0.5 -> gradient constrain
-		alpha = 1.0 -> else
+		alpha = 1.0 -> elsewhere
 		*/
 		elevation_data.push_back(0.0); 
 	}
+	//Point is for gradient constraint
 	else {
 		elevation_data.push_back(q0.x);
 		elevation_data.push_back(0.0);
@@ -135,14 +137,14 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		have been set on the different areas.
 		alpha = 0 -> elevation constrain
 		alpha = 0.5 -> gradient constrain
-		alpha = 1.0 -> else
+		alpha = 1.0 -> elsewhere
 		*/
-		elevation_data.push_back(0.50000);
+		elevation_data.push_back(0.5);
 	}
 }
 void TrainView::draw_elevation_map() {
 	float vertices[] = {
-		// positions                          // texture coords
+		 // positions           // texture coords
 		 1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
 		 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
 		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f,    // top left 
@@ -158,7 +160,7 @@ void TrainView::draw_elevation_map() {
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
@@ -184,8 +186,9 @@ void TrainView::draw_elevation_map() {
 
 	// render
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
-	// make sure we clear the framebuffer's content
+	glEnable(GL_DEPTH_TEST); 
+
+	//Clean the alpha to 1.0 as defualt
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -224,6 +227,7 @@ void TrainView::draw_elevation_map() {
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer);
 	cout << ImageBuffer[0]<<" "<< ImageBuffer[1] << " " << ImageBuffer[2] << " " << ImageBuffer[3] << endl;
+
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
@@ -251,7 +255,7 @@ void TrainView::draw_gradient_map() {
 	glGenTextures(1, &textureColorbuffer1);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer1, 0);
@@ -284,7 +288,7 @@ void TrainView::draw_gradient_map() {
 	glEnable(GL_STENCIL_TEST);
 
 	// make sure we clear the framebuffer's content
-	glClearColor(0.5f, 0.5f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	//Curve
@@ -334,13 +338,15 @@ void TrainView::draw_gradient_map() {
 	//Read value from gradient map
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_UNSIGNED_BYTE, ImageBuffer1);
+	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer1);
+	//cout << ImageBuffer1[0] << " " << ImageBuffer1[1] << " " << ImageBuffer1[2] << " " << ImageBuffer1[3] << endl;
 	
 	glDisable(GL_STENCIL_TEST);
 
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
 
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
