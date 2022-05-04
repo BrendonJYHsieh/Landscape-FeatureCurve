@@ -130,7 +130,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	//Point is for gradient constraint
 	else {
 		elevation_data.push_back(q0.x);
-		elevation_data.push_back(0.0);
+		elevation_data.push_back(q0.y);
 		elevation_data.push_back(q0.z);
 		/* Mentioned in 5.1 and 5.2
 		The last alpha component of the texture is used to indicate which constraints
@@ -601,7 +601,7 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration)  {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
 				float a, b;
-				float FL, FN, FG, FI;
+				float FL, FN, FG, FI,GG=0;
 				float nx, ny;
 				if (E[(size * 4) * j + 4 * i + 3] == 0) {
 					a = 0;
@@ -610,23 +610,29 @@ void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration)  {
 				else {
 					a = E[(size * 4) * j + 4 * i + 3];
 					b = 1.0 - a;
+					//if (a == 0.5) {
+					//	a = 1;
+					//	b = 0;
+					//}
 				}
 				FI = E[(size * 4) * j + 4 * i]*255;
 
 				nx = G[(size * 4) * j + 4 * i];
 				ny = G[(size * 4) * j + 4 * i + 1];
 
-				float GG = G[(size * 4) * j + 4 * i + 2];
-
 				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
-				//FG = FN;
+				//float dx = (F[(size * 4) * (j)+4 * (i - 1)] - F[(size * 4) * (j)+4 * (i + 1)])/255.;
+				//float dy = (F[(size * 4) * (j - 1) + 4 * (i)] - F[(size * 4) * (j + 1) + 4 * (i)])/255.;
+				//GG = pow(dy, 2)+pow(dx,2);
+
+				FG = FN + sqrt(GG);
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.f;
-				temp[(size * 4) * j + 4 * i] = a * FL + b*FN + (1-a-b)*FI;
+				temp[(size * 4) * j + 4 * i] = a * FL + b* FG + (1-a-b)*FI;
 			}
 		}
-		for (int index = 0; index < size * size * 4; index++) {
+		/*for (int index = 0; index < size * size * 4; index++) {
 			F[index] = temp[index];
-		}
+		}*/
 	}
 	delete temp;
 }
@@ -662,7 +668,7 @@ void TrainView::run() {
 	scale(gradient_grid0, grid0_size, gradient_grid1);
 
 	//gradient_diffuse(gradient_grid1, grid1_size, iteration * 2);
-	//jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration*1);
+	//jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration/3*2);
 
 	// 512 x 512
 	grid = new float[gridsize * gridsize * 4];
@@ -674,7 +680,7 @@ void TrainView::run() {
 	gradient_grid = new float[gridsize * gridsize * 4];
 	scale(gradient_grid1, grid1_size, gradient_grid);
 	//gradient_diffuse(gradient_grid, gridsize, iteration * 1);
-	//jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration);
+	//jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration/3);
 
 	// Normalize color
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
