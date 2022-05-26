@@ -177,7 +177,7 @@ void TrainView::draw_elevation_map() {
 	unsigned int VBO[1], VAO[1];
     glGenVertexArrays(1, VAO);
     glGenBuffers(1, VBO);
-    //Curve
+    //Curve-
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
@@ -196,19 +196,11 @@ void TrainView::draw_elevation_map() {
 	elevation_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
 	
-	float wi, he;
-	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
-		wi = 100;
-		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
-	}
-	else {
-		he = 100;
-		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
-	}
+
 	glViewport(0, 0, grid0_size, grid0_size);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-wi, wi, -he, he, 200, -200);
+	glOrtho(-200, 200, -200, 200, 500, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -295,19 +287,10 @@ void TrainView::draw_gradient_map() {
 	gradient_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
 
-	float wi, he;
-	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
-		wi = 100;
-		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
-	}
-	else {
-		he = 100;
-		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
-	}
 	glViewport(0, 0, grid0_size, grid0_size);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-wi, wi, -he, he, 200, -200);
+	glOrtho(-200, 200, -200, 200, 1000, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -325,7 +308,7 @@ void TrainView::draw_gradient_map() {
 	glStencilMask(0xFF);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
-	// clean curve itersection part
+	// clean curve intersection part
 	test_shader->Use();
 	glStencilFunc(GL_LESS, 1, 0xFF);
 	glStencilMask(0x00);
@@ -335,7 +318,7 @@ void TrainView::draw_gradient_map() {
 	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
-	//Read value from gradient map
+	// elevation_shaderRead value from gradient map
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer1);
@@ -405,19 +388,11 @@ void TrainView::draw_save() {
 	elevation_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
 
-	float wi, he;
-	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
-		wi = 100;
-		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
-	}
-	else {
-		he = 100;
-		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
-	}
+
 	glViewport(0, 0, gridsize, gridsize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-wi, wi, -he, he, 200, -200);
+	glOrtho(-200, 200, -200, 200, 1000, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -517,19 +492,10 @@ void TrainView::draw_curve_save() {
 	//Curve
 	glm::mat4 model = glm::mat4(1.0f);
 
-	float wi, he;
-	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
-		wi = 100;
-		he = wi / (static_cast<float>(w()) / static_cast<float>(h()));
-	}
-	else {
-		he = 100;
-		wi = he * (static_cast<float>(w()) / static_cast<float>(h()));
-	}
 	glViewport(0, 0, gridsize, gridsize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-wi, wi, -he, he, 200, -200);
+	glOrtho(-200, 200, -200, 200, 1000, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -552,10 +518,6 @@ void TrainView::draw_curve_save() {
 
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
-	//cout << "R:" << (int)ImageBuffer[0] << " G:" << (int)ImageBuffer[1] << " B:" << (int)ImageBuffer[2] << " A:" << (int)ImageBuffer[3] << endl;
-	//cout<< " A:" << (int)ImageBuffer[3] << endl;
 
 
 	GLsizei nrChannels = 4;
@@ -600,9 +562,9 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
-				float a, b;
-				float FL, FN, FG, FI,G=0;
-				float nx, ny;
+				float a=0, b=0;
+				float FL=0, FN=0, FG=0, FI=0,G=0;
+				float nx=0, ny=0;
 
 				/* Mentioned in 5.1 and 5.2
 				The last alpha component of the texture is used to indicate which constraints
@@ -618,6 +580,10 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				else {
 					a = elevation_map[(size * 4) * j + 4 * i + 3];
 					b = 1.0 - a;
+					//if (a == 0.5) {
+					//	a = 1.0;
+					//	b = 0.0;
+					//}
 				}
 
 				/* Mentioned in paper 5.2.1
@@ -641,20 +607,20 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				This constraint implies a null gradient and thus forces points
 				in the neighborhood to be at the same elevation.
 				*/
-				G = 0; // Assumming we create a hill terraion.
+				G = 0; // Assumming we create a hill terrain.
 				FG = FN + G;
 
 				
 				/* Mentioned in paper 5.2.3
 				F(i, j) = E(i, j)
 				*/
-				FI = elevation_map[(size * 4) * j + 4 * i] * 255;
+				FI = elevation_map[(size * 4) * j + 4 * i];
 
 
 				/* Mentioned in paper 5.2
 				F(i, j) = αFL(i,j) + βFG(i, j) + (1−α−β) + FI(i, j)
 				*/
-				hight_map[(size * 4) * j + 4 * i] = a * FL + b * gradient_map[(size * 4) * j + 4 * i] + (1-a-b) * FI;
+				hight_map[(size * 4) * j + 4 * i] = a * FL + b * FG + (1-a-b) * FI;
 			}
 		}
 		for (int index = 0; index < size * size * 4; index++) {
@@ -674,9 +640,8 @@ void TrainView::run() {
 	elevation_grid0 = new float[grid0_size * grid0_size * 4];
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
 
-	// 
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] = ImageBuffer[i]*255;
+		grid0[i] = ImageBuffer[i];
 		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
@@ -1004,24 +969,6 @@ setProjection()
 	if (tw->worldCam->value())
 		arcball.setProjection(false);
 	// Or we use the top cam
-	else if (tw->topCam->value()) {
-		float wi, he;
-		if (aspect >= 1) {
-			wi = 100;
-			he = wi / aspect;
-		} 
-		else {
-			he = 100;
-			wi = he * aspect;
-		}
-		// Set up the top camera drop mode to be orthogonal and set
-		// up proper projection matrix
-		//glMatrixMode(GL_PROJECTION);
-		glOrtho(-wi, wi, -he, he, 200, -200);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glRotatef(-90,1,0,0);
-	} 
 }
 
 void TrainView::drawStuff(bool doingShadows)
@@ -1375,6 +1322,9 @@ void TrainView::drawStuff(bool doingShadows)
 	if (!wave_model) {
 		wave_model = new Model("../wave/wave.obj");
 	}
+	if (!mountain_texture) {
+		mountain_texture = new Texture2D("../wave/mountain.png");
+	}
 
 	float vertices[] = {
     // positions                          // texture coords
@@ -1537,6 +1487,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
+	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
+	mountain_texture->bind(5);
 	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
 	wave_model->Draw(*heightmap_shader);
 

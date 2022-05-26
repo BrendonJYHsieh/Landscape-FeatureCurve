@@ -156,7 +156,7 @@ TrainWindow(const int x, const int y)
 
 		pty += 50;
 		a = new Fl_Value_Slider(655, pty, 140, 20, "a");
-		a->range(0, 100);
+		a->range(0, 200);
 		a->value(10);
 		a->align(FL_ALIGN_LEFT);
 		a->type(FL_HORIZONTAL);
@@ -172,7 +172,7 @@ TrainWindow(const int x, const int y)
 
 		pty += 50;
 		b = new Fl_Value_Slider(655, pty, 140, 20, "b");
-		b->range(0, 100);
+		b->range(0, 200);
 		b->value(10);
 		b->align(FL_ALIGN_LEFT);
 		b->type(FL_HORIZONTAL);
@@ -188,7 +188,7 @@ TrainWindow(const int x, const int y)
 
 		pty += 50;
 		iteration = new Fl_Value_Slider(655, pty, 140, 20, "Iter");
-		iteration->range(1, 50);
+		iteration->range(1, 5000);
 		iteration->value(1);
 		iteration->align(FL_ALIGN_LEFT);
 		iteration->type(FL_HORIZONTAL);

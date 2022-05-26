@@ -111,6 +111,8 @@ class TrainView : public Fl_Gl_Window
 		Shader* heightmap_shader1 = nullptr;
 		Shader* test_shader = nullptr;
 
+		Texture2D* mountain_texture = nullptr;
+
 		Model* wave_model = nullptr;
 
 		Texture2D* background_texture = nullptr;
@@ -131,7 +133,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer8;
 
 		int iteration = 1;
-		int gridsize = 512;
+		int gridsize = 256;
 		int grid0_size = gridsize / 4;
 		int grid1_size = gridsize / 2;
 		
