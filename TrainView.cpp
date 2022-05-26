@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <Fl/fl.h>
 #include <windows.h>
 //#include "GL/gl.h"
@@ -339,7 +339,6 @@ void TrainView::draw_gradient_map() {
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer1);
-	cout << ImageBuffer1[0] << " " << ImageBuffer1[1] << " " << ImageBuffer1[2] << " " << ImageBuffer1[3] << endl;
 	
 	glDisable(GL_STENCIL_TEST);
 
@@ -595,46 +594,74 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 		}
 	}
 }
-void TrainView::jacobi(float* F, float* E, float* G,int size, int iteration)  {
-	float* temp = new float[size * size * 4];
+void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int size, int iteration)  {
+	// height_map is used to catch the value in the iteration, and it will pass to F in the end of iteration.
+	float* hight_map = new float[size * size * 4];
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
 				float a, b;
-				float FL, FN, FG, FI,GG=0;
+				float FL, FN, FG, FI,G=0;
 				float nx, ny;
-				if (E[(size * 4) * j + 4 * i + 3] == 0) {
+
+				/* Mentioned in 5.1 and 5.2
+				The last alpha component of the texture is used to indicate which constraints
+				have been set on the different areas.
+				alpha = 0 -> elevation constrain
+				alpha = 0.5 -> gradient constrain
+				alpha = 1.0 -> elsewhere
+				*/
+				if (elevation_map[(size * 4) * j + 4 * i + 3] == 0) {
 					a = 0;
 					b = 0;
 				}
 				else {
-					a = E[(size * 4) * j + 4 * i + 3];
+					a = elevation_map[(size * 4) * j + 4 * i + 3];
 					b = 1.0 - a;
-					//if (a == 0.5) {
-					//	a = 1;
-					//	b = 0;
-					//}
 				}
-				FI = E[(size * 4) * j + 4 * i]*255;
 
-				nx = G[(size * 4) * j + 4 * i];
-				ny = G[(size * 4) * j + 4 * i + 1];
-
-				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
-				//float dx = (F[(size * 4) * (j)+4 * (i - 1)] - F[(size * 4) * (j)+4 * (i + 1)])/255.;
-				//float dy = (F[(size * 4) * (j - 1) + 4 * (i)] - F[(size * 4) * (j + 1) + 4 * (i)])/255.;
-				//GG = pow(dy, 2)+pow(dx,2);
-
-				FG = FN + sqrt(GG);
+				/* Mentioned in paper 5.2.1
+				FL(i, j) = (1/4) * (FL(i+1,j) + FL(i,j+1) + FL(i-1,j) + FL(i,j-1))
+				*/
 				FL = (F[(size * 4) * (j - 1) + 4 * (i)] + F[(size * 4) * (j + 1) + 4 * (i)] + F[(size * 4) * (j)+4 * (i - 1)] + F[(size * 4) * (j)+4 * (i + 1)]) / 4.f;
-				temp[(size * 4) * j + 4 * i] = a * FL + b* FG + (1-a-b)*FI;
+
+
+				/* Mentioned in paper 5.2.2
+				FG (i, j) = FN(i, j) + G(i, j)
+				FN(i, j) = (nx)^2 * F(i−sign(nx), j) +(ny)^2 (i, j −sign(ny))
+				*/
+
+				nx = gradient_map[(size * 4) * j + 4 * i];
+				ny = gradient_map[(size * 4) * j + 4 * i + 1];
+				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
+
+				/* Mentioned in paper 3.2
+				Hill: A hill is obtained by setting horizontal slope angle
+				constraints at each side of the feature curve (Figure 7 left).
+				This constraint implies a null gradient and thus forces points
+				in the neighborhood to be at the same elevation.
+				*/
+				G = 0; // Assumming we create a hill terraion.
+				FG = FN + G;
+
+				
+				/* Mentioned in paper 5.2.3
+				F(i, j) = E(i, j)
+				*/
+				FI = elevation_map[(size * 4) * j + 4 * i] * 255;
+
+
+				/* Mentioned in paper 5.2
+				F(i, j) = αFL(i,j) + βFG(i, j) + (1−α−β) + FI(i, j)
+				*/
+				hight_map[(size * 4) * j + 4 * i] = a * FL + b * gradient_map[(size * 4) * j + 4 * i] + (1-a-b) * FI;
 			}
 		}
-		/*for (int index = 0; index < size * size * 4; index++) {
-			F[index] = temp[index];
-		}*/
+		for (int index = 0; index < size * size * 4; index++) {
+			F[index] = hight_map[index];
+		}
 	}
-	delete temp;
+	delete hight_map;
 }
 void TrainView::run() {
 
@@ -649,7 +676,7 @@ void TrainView::run() {
 
 	// 
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] = ImageBuffer[i];
+		grid0[i] = ImageBuffer[i]*255;
 		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
