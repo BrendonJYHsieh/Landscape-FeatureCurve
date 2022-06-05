@@ -559,12 +559,17 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int size, int iteration)  {
 	// height_map is used to catch the value in the iteration, and it will pass to F in the end of iteration.
 	float* hight_map = new float[size * size * 4];
+	float* G = new float[size * size * 4];
+	for (int i = 0; i < size * size * 4; i++) {
+		G[i] = 0;
+	}
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
 				float a=0, b=0;
-				float FL=0, FN=0, FG=0, FI=0,G=0;
+				float FL=0, FN=0, FG=0, FI=0;
 				float nx=0, ny=0;
+				float dx = 0, dy = 0;
 
 				/* Mentioned in 5.1 and 5.2
 				The last alpha component of the texture is used to indicate which constraints
@@ -607,10 +612,13 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				This constraint implies a null gradient and thus forces points
 				in the neighborhood to be at the same elevation.
 				*/
-				G = 0; // Assumming we create a hill terrain.
-				FG = FN + G;
+				FG = FN + G[(size * 4) * j + 4 * i];
 
-				
+				dy = (F[(size * 4) * (j - 1) + 4 * (i)] - F[(size * 4) * (j + 1) + 4 * (i)]) / 2.0;
+				dx = (F[(size * 4) * (j) + 4 * (i - 1)] - F[(size * 4) * (j) + 4 * (i + 1)]) / 2.0;
+
+				G[(size * 4) * j + 4 * i] = sqrtf(dy * dy + dx * dx);
+
 				/* Mentioned in paper 5.2.3
 				F(i, j) = E(i, j)
 				*/
@@ -628,6 +636,7 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 		}
 	}
 	delete hight_map;
+	delete G;
 }
 void TrainView::run() {
 
@@ -1480,7 +1489,7 @@ void TrainView::drawStuff(bool doingShadows)
 	heightmap_shader->Use();
 	//Ground of Height Map
 	glm::mat4 transss = glm::mat4(1.0f);
-	transss = glm::translate(transss, glm::vec3(0, 0,200));
+	transss = glm::translate(transss, glm::vec3(0, 0,400));
 	transss = glm::scale(transss, glm::vec3(100, 1.0f, 100));
 
 
@@ -1488,7 +1497,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
-	mountain_texture->bind(5);
+	//mountain_texture->bind(5);
 	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
 	wave_model->Draw(*heightmap_shader);
 
