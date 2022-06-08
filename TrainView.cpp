@@ -130,7 +130,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	//Point is for gradient constraint
 	else {
 		elevation_data.push_back(q0.x);
-		elevation_data.push_back(q0.y);
+		elevation_data.push_back(0);
 		elevation_data.push_back(q0.z);
 		/* Mentioned in 5.1 and 5.2
 		The last alpha component of the texture is used to indicate which constraints
@@ -547,7 +547,7 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
-				if ((G[(size * 4) * j + 4 * i + 3] + 1) / 256.0 == 0.5) {
+				if (G[(size * 4) * j + 4 * i + 3] == 0.5) {
 					G[(size * 4) * j + 4 * i] = (G[(size * 4) * (j - 1) + 4 * (i)] + G[(size * 4) * (j + 1) + 4 * (i)] + G[(size * 4) * (j)+4 * (i - 1)] + G[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 					G[(size * 4) * j + 4 * i + 1] = (G[(size * 4) * (j - 1) + 4 * (i)+1] + G[(size * 4) * (j + 1) + 4 * (i)+1] + G[(size * 4) * (j)+4 * (i - 1) + 1] + G[(size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
 					G[(size * 4) * j + 4 * i + 2] = (G[(size * 4) * (j - 1) + 4 * (i)+2] + G[(size * 4) * (j + 1) + 4 * (i)+2] + G[(size * 4) * (j)+4 * (i - 1) + 2] + G[(size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
@@ -559,15 +559,11 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int size, int iteration)  {
 	// height_map is used to catch the value in the iteration, and it will pass to F in the end of iteration.
 	float* hight_map = new float[size * size * 4];
-	float* G = new float[size * size * 4];
-	for (int i = 0; i < size * size * 4; i++) {
-		G[i] = 0;
-	}
 	for (int k = 0; k < iteration; k++) {
 		for (int i = 1; i < size - 1; i++) {
 			for (int j = 1; j < size - 1; j++) {
 				float a=0, b=0;
-				float FL=0, FN=0, FG=0, FI=0;
+				float FL=0, FN=0, FG=0, FI=0,G;
 				float nx=0, ny=0;
 				float dx = 0, dy = 0;
 
@@ -585,10 +581,6 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				else {
 					a = elevation_map[(size * 4) * j + 4 * i + 3];
 					b = 1.0 - a;
-					//if (a == 0.5) {
-					//	a = 1.0;
-					//	b = 0.0;
-					//}
 				}
 
 				/* Mentioned in paper 5.2.1
@@ -612,12 +604,13 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				This constraint implies a null gradient and thus forces points
 				in the neighborhood to be at the same elevation.
 				*/
-				FG = FN + G[(size * 4) * j + 4 * i];
-
 				dy = (F[(size * 4) * (j - 1) + 4 * (i)] - F[(size * 4) * (j + 1) + 4 * (i)]) / 2.0;
-				dx = (F[(size * 4) * (j) + 4 * (i - 1)] - F[(size * 4) * (j) + 4 * (i + 1)]) / 2.0;
+				dx = (F[(size * 4) * (j)+4 * (i - 1)] - F[(size * 4) * (j)+4 * (i + 1)]) / 2.0;
+				G = sqrtf(dy * dy + dx * dx);
 
-				G[(size * 4) * j + 4 * i] = sqrtf(dy * dy + dx * dx);
+				FG = FN + G;
+
+				
 
 				/* Mentioned in paper 5.2.3
 				F(i, j) = E(i, j)
@@ -636,7 +629,6 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 		}
 	}
 	delete hight_map;
-	delete G;
 }
 void TrainView::run() {
 
@@ -657,7 +649,7 @@ void TrainView::run() {
 	/* Mentioned in 4.1 Figure 9.
 	To fill gradient's hole caused by gradient intersection
 	*/
-	gradient_diffuse(gradient_grid0, grid0_size, iteration * 1);
+	gradient_diffuse(gradient_grid0, grid0_size, 100);
 	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*1);
 
 	// Upsampling from 128 x 128 to 256 x 256
@@ -689,7 +681,7 @@ void TrainView::run() {
 	}
 
 	for (int i = 0; i < gridsize * gridsize * 4; i++) {
-		gradient_grid[i] /= 255.0;
+		//gradient_grid[i] /= 255.0;
 	}
 
 	glGenTextures(1, &textureColorbuffer2);
@@ -1061,7 +1053,7 @@ void TrainView::drawStuff(bool doingShadows)
 				q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1));
 				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
 			}
-			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x,0, q3.z - q2.z));
+			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x,0.0, q3.z - q2.z));
 
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
@@ -1497,7 +1489,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
-	//mountain_texture->bind(5);
+	mountain_texture->bind(5);
 	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
 	wave_model->Draw(*heightmap_shader);
 

@@ -69,7 +69,7 @@ class Pnt3f {
 		float y;
 		float z;
 		float r=3;
-		float a=40;
+		float a=20;
 		float b=20;
 		float theta=90;
 		float phi=90;
