@@ -109,7 +109,7 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	// n = (nx, ny)
 	gradient_data.push_back(q0.normal.x); // nx
 	gradient_data.push_back(q0.normal.y); // ny
-	gradient_data.push_back(0); // gradient norm
+	gradient_data.push_back(q0.normal.z); // gradient norm
 	//cout << "nx:" << q0.normal.x << " ny:" << q0.normal.y << endl;
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
@@ -130,7 +130,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	//Point is for gradient constraint
 	else {
 		elevation_data.push_back(q0.x);
-		elevation_data.push_back(0);
+		elevation_data.push_back(q0.y);
 		elevation_data.push_back(q0.z);
 		/* Mentioned in 5.1 and 5.2
 		The last alpha component of the texture is used to indicate which constraints
@@ -606,9 +606,8 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				*/
 				dy = (F[(size * 4) * (j - 1) + 4 * (i)] - F[(size * 4) * (j + 1) + 4 * (i)]) / 2.0;
 				dx = (F[(size * 4) * (j)+4 * (i - 1)] - F[(size * 4) * (j)+4 * (i + 1)]) / 2.0;
-				G = sqrtf(dy * dy + dx * dx);
-
-				FG = FN + G;
+				G = sqrtf(dy * dy + dx * dx) * gradient_map[(size * 4) * j + 4 * i + 2];
+				FG = (FN + G);
 
 				
 
@@ -1061,11 +1060,18 @@ void TrainView::drawStuff(bool doingShadows)
 			glm::vec2 n = glm::normalize(glm::vec2(normal.x, normal.z));
 			glm::vec2 _n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
+			//cout << "first:" << n.x << " " << n.y << endl;
+
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
-			q5.normal = glm::vec3((n.x), (n.y), 0.0);
+			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
+			q5.normal = glm::vec3((n.x), (n.y), 1.0);
+			_n *= sin(glm::radians(phi_init + phi_interporate * (j + 1)));
+			n *= sin(glm::radians(phi_init + phi_interporate * (j)));
+			q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
+			q7.normal = glm::vec3((n.x), (n.y), 0.0);
+
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
 			the end of the quadrangle so as to avoid gradient discontinuities and artifacts
@@ -1174,13 +1180,18 @@ void TrainView::drawStuff(bool doingShadows)
 			n = glm::normalize(glm::vec2(normal.x, normal.z));
 			_n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
+			//cout << "second:" << n.x << " " << n.y << endl;
+
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
-			q6.normal.z = q6.y / 255.0;
-			q7.normal.z = q7.y / 255.0;
 
-			q4.normal = glm::vec3((_n.x), (_n.y), 0.0);
-			q5.normal = glm::vec3((n.x), (n.y), 0.0);
+			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
+			q5.normal = glm::vec3((n.x), (n.y), 1.0);
+
+			_n *= sin(glm::radians(theta_init + theta_interporate * (j + 1)));
+			n *= sin(glm::radians(theta_init + theta_interporate * (j)));
+			q6.normal = glm::vec3((_n.x), (_n.y), 0);
+			q7.normal = glm::vec3((n.x), (n.y), 0);
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -1190,8 +1201,6 @@ void TrainView::drawStuff(bool doingShadows)
 			Furthermore q6, q7 are the points in the end of the quadrangle.
 			*/
 
-			//q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
-			//q7.normal = glm::vec3((n.x), (n.y), 0.0);
 
 			/*Elevation Vertex*/
 			//q0,q1,q2

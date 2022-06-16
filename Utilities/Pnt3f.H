@@ -68,11 +68,11 @@ class Pnt3f {
 		float x;			/* isn't this obvious */
 		float y;
 		float z;
-		float r=3;
+		float r=2;
 		float a=20;
 		float b=20;
-		float theta=90;
-		float phi=90;
+		float theta=30;
+		float phi=30;
 		glm::vec3 normal = glm::vec3(0.0f,0.0f,0.0f);
 };
 //*****************************************************************************
