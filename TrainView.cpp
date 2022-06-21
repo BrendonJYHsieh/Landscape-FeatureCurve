@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <algorithm>
 #include <Fl/fl.h>
 #include <windows.h>
 //#include "GL/gl.h"
@@ -550,7 +551,13 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 				if (G[(size * 4) * j + 4 * i + 3] == 0.5) {
 					G[(size * 4) * j + 4 * i] = (G[(size * 4) * (j - 1) + 4 * (i)] + G[(size * 4) * (j + 1) + 4 * (i)] + G[(size * 4) * (j)+4 * (i - 1)] + G[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
 					G[(size * 4) * j + 4 * i + 1] = (G[(size * 4) * (j - 1) + 4 * (i)+1] + G[(size * 4) * (j + 1) + 4 * (i)+1] + G[(size * 4) * (j)+4 * (i - 1) + 1] + G[(size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
-					G[(size * 4) * j + 4 * i + 2] = (G[(size * 4) * (j - 1) + 4 * (i)+2] + G[(size * 4) * (j + 1) + 4 * (i)+2] + G[(size * 4) * (j)+4 * (i - 1) + 2] + G[(size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
+					float length = sqrtf(G[(size * 4) * j + 4 * i] * G[(size * 4) * j + 4 * i] + G[(size * 4) * j + 4 * i + 1] * G[(size * 4) * j + 4 * i + 1]);
+					if (length != 0) {
+						G[(size * 4) * j + 4 * i] /= length;
+						G[(size * 4) * j + 4 * i + 1] /=length;
+					}
+					auto tmp = { G[(size * 4) * (j - 1) + 4 * (i)+2] , G[(size * 4) * (j + 1) + 4 * (i)+2] , G[(size * 4) * (j)+4 * (i - 1) + 2] , G[(size * 4) * (j)+4 * (i + 1) + 2] };
+					G[(size * 4) * j + 4 * i + 2] = std::max(tmp);
 				}
 			}
 		}
@@ -594,8 +601,11 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				FN(i, j) = (nx)^2 * F(i−sign(nx), j) +(ny)^2 (i, j −sign(ny))
 				*/
 
-				nx = gradient_map[(size * 4) * j + 4 * i];
-				ny = gradient_map[(size * 4) * j + 4 * i + 1];
+				nx = gradient_map[(size * 4) * j + 4 * i] * gradient_map[(size * 4) * j + 4 * i+2];
+				ny = gradient_map[(size * 4) * j + 4 * i+1] * gradient_map[(size * 4) * j + 4 * i + 2];
+
+				
+
 				FN = nx * nx * F[(size * 4) * j + 4 * (i - sign(nx))] + ny * ny * F[(size * 4) * (j - sign(ny)) + 4 * i];
 
 				/* Mentioned in paper 3.2
@@ -606,7 +616,8 @@ void TrainView::jacobi(float* F, float* elevation_map, float* gradient_map,int s
 				*/
 				dy = (F[(size * 4) * (j - 1) + 4 * (i)] - F[(size * 4) * (j + 1) + 4 * (i)]) / 2.0;
 				dx = (F[(size * 4) * (j)+4 * (i - 1)] - F[(size * 4) * (j)+4 * (i + 1)]) / 2.0;
-				G = sqrtf(dy * dy + dx * dx) * gradient_map[(size * 4) * j + 4 * i + 2];
+				//G = sqrtf(dy * dy + dx * dx) * gradient_map[(size * 4) * j + 4 * i + 1];
+				G = 0;
 				FG = (FN + G);
 
 				
@@ -648,7 +659,7 @@ void TrainView::run() {
 	/* Mentioned in 4.1 Figure 9.
 	To fill gradient's hole caused by gradient intersection
 	*/
-	gradient_diffuse(gradient_grid0, grid0_size, 100);
+	gradient_diffuse(gradient_grid0, grid0_size, 150);
 	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*1);
 
 	// Upsampling from 128 x 128 to 256 x 256
@@ -1067,10 +1078,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
 			q5.normal = glm::vec3((n.x), (n.y), 1.0);
-			_n *= sin(glm::radians(phi_init + phi_interporate * (j + 1)));
-			n *= sin(glm::radians(phi_init + phi_interporate * (j)));
-			q6.normal = glm::vec3((_n.x), (_n.y), 0.0);
-			q7.normal = glm::vec3((n.x), (n.y), 0.0);
+			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(theta_init + theta_interporate * (j + 1))));
+			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(theta_init + theta_interporate * (j))));
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -1187,11 +1196,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
 			q5.normal = glm::vec3((n.x), (n.y), 1.0);
-
-			_n *= sin(glm::radians(theta_init + theta_interporate * (j + 1)));
-			n *= sin(glm::radians(theta_init + theta_interporate * (j)));
-			q6.normal = glm::vec3((_n.x), (_n.y), 0);
-			q7.normal = glm::vec3((n.x), (n.y), 0);
+			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(theta_init + theta_interporate * (j + 1))));
+			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(theta_init + theta_interporate * (j))));
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
