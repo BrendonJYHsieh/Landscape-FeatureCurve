@@ -1078,8 +1078,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
 			q5.normal = glm::vec3((n.x), (n.y), 1.0);
-			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(theta_init + theta_interporate * (j + 1))));
-			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(theta_init + theta_interporate * (j))));
+			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(phi_init + phi_interporate * (j + 1))));
+			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(phi_init + phi_interporate * (j))));
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
