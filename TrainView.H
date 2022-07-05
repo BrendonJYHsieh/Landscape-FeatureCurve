@@ -83,6 +83,7 @@ class TrainView : public Fl_Gl_Window
 		void draw_elevation_map();
 		void draw_gradient_map();
 		void draw_jacobi();
+		void jacobi_texture();
 		void draw_save();
 		void draw_curve_save();
 		void run();
@@ -111,6 +112,7 @@ class TrainView : public Fl_Gl_Window
 		Shader* heightmap_shader = nullptr;
 		Shader* heightmap_shader1 = nullptr;
 		Shader* test_shader = nullptr;
+		Shader* jacobi_shader = nullptr;
 
 		Texture2D* mountain_texture = nullptr;
 
@@ -131,6 +133,8 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rbo4;
 		unsigned int final_texture;
 		unsigned int final_rbo;
+		unsigned int final_vao[1];
+		unsigned int final_vbo[1];
 
 
 		unsigned int textureColorbuffer7;
@@ -168,6 +172,9 @@ class TrainView : public Fl_Gl_Window
 		float* ImageBuffer = new float[gridsize * gridsize * 4];
 		float* ImageBuffer1 = new float[gridsize * gridsize * 4];
 		uint8_t* ImageBuffer2 = new uint8_t[gridsize * gridsize * 4];
+
+
+		float* HeightMapBuffer = new float[gridsize * gridsize * 4];
 
 		glm::mat4 view;
 		glm::mat4 projection;

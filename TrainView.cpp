@@ -144,15 +144,6 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	}
 }
 void TrainView::draw_elevation_map() {
-	float vertices[] = {
-		 // positions           // texture coords
-		 1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
-		 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
-		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f,    // top left 
-		 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
-		-1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
-		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
-	};
 
 	glGenFramebuffers(1, &this->framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
@@ -233,15 +224,6 @@ void TrainView::draw_elevation_map() {
 
 }
 void TrainView::draw_gradient_map() {
-	float vertices[] = {
-		// positions                          // texture coords
-		 1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
-		 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
-		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f,    // top left 
-		 1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
-		-1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
-		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
-	};
 	//glGenFramebuffers(1, &this->framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
@@ -337,18 +319,18 @@ void TrainView::draw_gradient_map() {
 void TrainView::draw_jacobi() {
 	float vertices[] = {
 		// positions           // texture coords
-		1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
-		1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
-	   -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,    // top left 
-		1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
-	   -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
-	   -1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
+		1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f
 	};
-
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
 	glGenTextures(1, &final_texture);
-	glActiveTexture(GL_TEXTURE10);
+	glActiveTexture(GL_TEXTURE20);
 	glBindTexture(GL_TEXTURE_2D, final_texture);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -371,8 +353,8 @@ void TrainView::draw_jacobi() {
 	//Curve-
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	// render
@@ -384,31 +366,20 @@ void TrainView::draw_jacobi() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Curve
-	elevation_shader->Use();
+	jacobi_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
 
-
-	glViewport(0, 0, grid0_size, grid0_size);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-200, 200, -200, 200, 500, -200);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(-90, 1, 0, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
-
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 20);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 9);
 
 	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	// Read color from texture
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer);
+	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, HeightMapBuffer);
 	//cout << ImageBuffer[0]<<" "<< ImageBuffer[1] << " " << ImageBuffer[2] << " " << ImageBuffer[3] << endl;
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
@@ -537,6 +508,7 @@ void TrainView::draw_curve_save() {
 		-1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
 		-1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
 	};
+
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
 	glGenTextures(1, &textureColorbuffer4);
@@ -737,14 +709,17 @@ void TrainView::run() {
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
 
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
+		grid0[i] = HeightMapBuffer[i];
 		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
 	/* Mentioned in 4.1 Figure 9.
 	To fill gradient's hole caused by gradient intersection
 	*/
-	gradient_diffuse(gradient_grid0, grid0_size, 200);
-	jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*1);
+	//gradient_diffuse(gradient_grid0, grid0_size, 200);
+	//jacobi(grid0, elevation_grid0, gradient_grid0, grid0_size, iteration*1);
+
+
 
 	// Upsampling from 128 x 128 to 256 x 256
 	grid1 = new float[grid1_size * grid1_size * 4];
@@ -1424,7 +1399,13 @@ void TrainView::drawStuff(bool doingShadows)
 				nullptr, nullptr, nullptr,
 				"../src/Shaders/test.fs");
 	}
-
+	if (!this->jacobi_shader) {
+		this->jacobi_shader = new
+			Shader(
+				"../src/Shaders/jacobi.vs",
+				nullptr, nullptr, nullptr,
+				"../src/Shaders/jacobi.fs");
+	}
 	if (!wave_model) {
 		wave_model = new Model("../wave/wave.obj");
 	}
@@ -1465,7 +1446,9 @@ void TrainView::drawStuff(bool doingShadows)
 
 	draw_elevation_map();
 	draw_gradient_map();
+	draw_jacobi();
 	run();
+
 	if (output_switch) {
 		draw_save();
 		draw_curve_save();
