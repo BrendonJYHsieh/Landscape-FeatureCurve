@@ -334,6 +334,94 @@ void TrainView::draw_gradient_map() {
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
+void TrainView::draw_jacobi() {
+	float vertices[] = {
+		// positions           // texture coords
+		1.0f,  1.0f, 0.0f,     1.0f, 1.0f,   // top right
+		1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
+	   -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,    // top left 
+		1.0f, -1.0f, 0.0f,     1.0f, 0.0f,   // bottom right
+	   -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,   // bottom left
+	   -1.0f,  1.0f, 0.0f,     0.0f, 1.0f    // top left 
+	};
+
+	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
+	// create a color attachment texture
+	glGenTextures(1, &final_texture);
+	glActiveTexture(GL_TEXTURE10);
+	glBindTexture(GL_TEXTURE_2D, final_texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, final_texture, 0);
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glGenRenderbuffers(1, &final_rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, final_rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, grid0_size, grid0_size); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, final_rbo); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+
+	/*VAO*/
+	unsigned int VBO[1], VAO[1];
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
+	//Curve-
+	glBindVertexArray(VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// render
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glEnable(GL_DEPTH_TEST);
+
+	//Clean the alpha to 1.0 as defualt
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Curve
+	elevation_shader->Use();
+	glm::mat4 model = glm::mat4(1.0f);
+
+
+	glViewport(0, 0, grid0_size, grid0_size);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-200, 200, -200, 200, 500, -200);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glRotatef(-90, 1, 0, 0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
+
+	glBindVertexArray(VAO[0]);
+	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
+
+	// Read color from texture
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, grid0_size, grid0_size, GL_RGBA, GL_FLOAT, ImageBuffer);
+	//cout << ImageBuffer[0]<<" "<< ImageBuffer[1] << " " << ImageBuffer[2] << " " << ImageBuffer[3] << endl;
+
+	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+	// clear all relevant buffers
+	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glDeleteVertexArrays(1, VAO);
+	glDeleteBuffers(1, VBO);
+
+}
 // For output elevation map
 void TrainView::draw_save() {
 	output_switch = false;
@@ -557,8 +645,6 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 						G[(size * 4) * j + 4 * i + 1] /=length;
 					}
 					G[(size * 4) * j + 4 * i + 2] = (G[(size * 4) * (j - 1) + 4 * (i)+2] + G[(size * 4) * (j + 1) + 4 * (i)+2] + G[(size * 4) * (j)+4 * (i - 1) + 2] + G[(size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
-					//auto tmp = { G[(size * 4) * (j - 1) + 4 * (i)+2] , G[(size * 4) * (j + 1) + 4 * (i)+2] , G[(size * 4) * (j)+4 * (i - 1) + 2] , G[(size * 4) * (j)+4 * (i + 1) + 2] };
-					//G[(size * 4) * j + 4 * i + 2] = std::max(tmp);
 				}
 			}
 		}
@@ -651,7 +737,6 @@ void TrainView::run() {
 	gradient_grid0 = new float[grid0_size * grid0_size * 4];
 
 	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] = ImageBuffer[i];
 		elevation_grid0[i] = ImageBuffer[i];
 		gradient_grid0[i] = ImageBuffer1[i];
 	}
@@ -1541,6 +1626,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(1, &textureColorbuffer7);
 	glDeleteTextures(1, &textureColorbuffer8);
 	glDeleteRenderbuffers(1, &rbo4);
+	glDeleteTextures(1, &final_texture);
+	glDeleteRenderbuffers(1, &final_rbo);
 
 	delete grid0;
 	delete grid1;

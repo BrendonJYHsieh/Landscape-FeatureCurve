@@ -82,6 +82,7 @@ class TrainView : public Fl_Gl_Window
 		void fill_gradient(float*);
 		void draw_elevation_map();
 		void draw_gradient_map();
+		void draw_jacobi();
 		void draw_save();
 		void draw_curve_save();
 		void run();
@@ -128,6 +129,9 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rbo3;
 		unsigned int textureColorbuffer6;
 		unsigned int rbo4;
+		unsigned int final_texture;
+		unsigned int final_rbo;
+
 
 		unsigned int textureColorbuffer7;
 		unsigned int textureColorbuffer8;
