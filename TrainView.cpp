@@ -336,7 +336,7 @@ void TrainView::draw_jacobi() {
 
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 20);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 9);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 4);
 
 	glBindVertexArray(final_vao[0]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -516,11 +516,10 @@ void TrainView::gradient_diffuse(float* G, int size,int iteration) {
 	}
 }
 void TrainView::run() {
-
+	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	/* Mentioned in 5.2 
 	Multigrid implementation
 	*/
-	
 
 	// 128 x 128
 	grid0 = new float[grid0_size * grid0_size * 4];
@@ -532,8 +531,17 @@ void TrainView::run() {
 	memcpy(gradient_grid0, ImageBuffer1, grid0_size * grid0_size * 4 * sizeof(float));
 
 	gradient_diffuse(gradient_grid0, grid0_size, 200);
-
 	
+	glGenTextures(1, &textureColorbuffer7);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer7);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, gradient_grid0);
 
 	jacobi_texture();
 	for (int ii = 0; ii < iteration; ii++) {
@@ -578,7 +586,7 @@ void TrainView::run() {
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -593,35 +601,6 @@ void TrainView::run() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, gradient_grid);
-
-	// Code below is using for test and debug
-	for (int i = 0; i < grid0_size * grid0_size * 4; i++) {
-		grid0[i] /= 255.0;
-	}
-	for (int i = 0; i < grid1_size * grid1_size * 4; i++) {
-		grid1[i] /= 255.0;
-	}
-
-
-	glGenTextures(1, &textureColorbuffer7);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer7);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid0_size, grid0_size, 0, GL_RGBA, GL_FLOAT, grid0);
-
-	glGenTextures(1, &textureColorbuffer8);
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer8);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, grid1_size, grid1_size, 0, GL_RGBA, GL_FLOAT, grid1);
 }
 //************************************************************************
 //
@@ -1344,36 +1323,9 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-
-	//grid0
-	glm::mat4 trans_height0 = glm::mat4(1.0f);
-	trans_height0 = glm::translate(trans_height0, glm::vec3(-200, 0, -200));
-	trans_height0 = glm::scale(trans_height0, glm::vec3(100, 1, 100));
-
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height0[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 4);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	//grid1
-	glm::mat4 trans_height1 = glm::mat4(1.0f);
-	trans_height1 = glm::translate(trans_height1, glm::vec3(0, 0, -200));
-	trans_height1 = glm::scale(trans_height1, glm::vec3(100, 1, 100));
-
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height1[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 5);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
 	//grid
 	glm::mat4 trans_height = glm::mat4(1.0f);
-	trans_height = glm::translate(trans_height, glm::vec3(200, 0, -200));
+	trans_height = glm::translate(trans_height, glm::vec3(-200, 0, -200));
 	trans_height = glm::scale(trans_height, glm::vec3(100, 1, 100));
 
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
