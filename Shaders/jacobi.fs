@@ -50,5 +50,5 @@ void main()
     FI = E_pixel.r;
 
     f = a * FL + b * FN + (1.0-a-b) * FI;
-    FragColor = vec4(FI,0.0,0.0,0.0);
+    FragColor = vec4(f,0.0,0.0,0.0);
 }
