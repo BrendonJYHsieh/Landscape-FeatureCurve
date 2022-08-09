@@ -143,6 +143,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		elevation_data.push_back(0.5);
 	}
 }
+
 void TrainView::Rasterization_ElevationMap() {
 	glGenFramebuffers(1, &this->framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
@@ -225,28 +226,27 @@ void TrainView::Rasterization_ElevationMap() {
 	glDeleteBuffers(1, &VBO);
 
 }
-void TrainView::draw_gradient_map() {
+void TrainView::Rasterization_GradientMap() {
 	//glGenFramebuffers(1, &this->framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
-	glGenTextures(1, &textureColorbuffer1);
+	glGenTextures(1, &textureGradientMap);
 	glActiveTexture(GL_TEXTURE9);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer1);
+	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer1, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureGradientMap, 0);
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &rbo1);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo1);
+	glGenRenderbuffers(1, &rboGradientMap);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo1); // now actually attach it
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboGradientMap); // now actually attach it
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
@@ -301,13 +301,13 @@ void TrainView::draw_gradient_map() {
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
 	// clean curve intersection part
-	test_shader->Use();
+	overlay_shader->Use();
 	glStencilFunc(GL_LESS, 1, 0xFF);
 	glStencilMask(0x00);
 	glDisable(GL_DEPTH_TEST);
-	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(test_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
 	// elevation_shaderRead value from gradient map
@@ -317,7 +317,6 @@ void TrainView::draw_gradient_map() {
 	
 	glDisable(GL_STENCIL_TEST);
 
-
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
@@ -325,6 +324,7 @@ void TrainView::draw_gradient_map() {
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
+
 void TrainView::draw_jacobi() {
 	// render
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -1087,12 +1087,12 @@ void TrainView::drawStuff(bool doingShadows)
 				nullptr, nullptr, nullptr,
 				"../src/Shaders/heightmap.fs");
 	}
-	if (!this->test_shader) {
-		this->test_shader = new
+	if (!this->overlay_shader) {
+		this->overlay_shader = new
 			Shader(
-				"../src/Shaders/test.vs",
+				"../src/Shaders/overlay_shader.vs",
 				nullptr, nullptr, nullptr,
-				"../src/Shaders/test.fs");
+				"../src/Shaders/overlay_shader.fs");
 	}
 	if (!this->jacobi_shader) {
 		this->jacobi_shader = new
@@ -1140,7 +1140,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glEnableVertexAttribArray(1);
 
 	Rasterization_ElevationMap();
-	draw_gradient_map();
+	Rasterization_GradientMap();
 	run();
 
 	// Code below are using for visulization
@@ -1259,8 +1259,9 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteFramebuffers(1, &framebuffer);
 	glDeleteTextures(1, &textureElevetionMap);
 	glDeleteRenderbuffers(1, &rboElevetionMap);
-	glDeleteTextures(1, &textureColorbuffer1);
-	glDeleteRenderbuffers(1, &rbo1);
+	glDeleteTextures(1, &textureGradientMap);
+	glDeleteRenderbuffers(1, &rboGradientMap);
+
 	glDeleteTextures(1, &textureColorbuffer2);
 	glDeleteRenderbuffers(1, &rbo2);
 	glDeleteTextures(1, &textureColorbuffer3);

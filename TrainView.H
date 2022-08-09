@@ -81,7 +81,7 @@ class TrainView : public Fl_Gl_Window
 		void doPick();
 		void fill_gradient(float*);
 		void Rasterization_ElevationMap();
-		void draw_gradient_map();
+		void Rasterization_GradientMap();
 		void draw_jacobi();
 		void jacobi_texture();
 		void run();
@@ -109,7 +109,7 @@ class TrainView : public Fl_Gl_Window
 		Shader* gradientnorm_shader = nullptr;
 		Shader* heightmap_shader = nullptr;
 		Shader* heightmap_shader1 = nullptr;
-		Shader* test_shader = nullptr;
+		Shader* overlay_shader = nullptr;
 		Shader* jacobi_shader = nullptr;
 
 		Texture2D* mountain_texture = nullptr;
@@ -121,8 +121,9 @@ class TrainView : public Fl_Gl_Window
 		unsigned int framebuffer;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
-		unsigned int textureColorbuffer1;
-		unsigned int rbo1;
+		unsigned int textureGradientMap;
+		unsigned int rboGradientMap;
+
 		unsigned int textureColorbuffer3;
 		unsigned int rbo2;
 		unsigned int textureColorbuffer4;
