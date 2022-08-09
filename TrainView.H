@@ -80,7 +80,7 @@ class TrainView : public Fl_Gl_Window
 		// pick a point (for when the mouse goes down)
 		void doPick();
 		void fill_gradient(float*);
-		void draw_elevation_map();
+		void Rasterization_ElevationMap();
 		void draw_gradient_map();
 		void draw_jacobi();
 		void jacobi_texture();

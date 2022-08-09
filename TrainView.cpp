@@ -143,7 +143,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		elevation_data.push_back(0.5);
 	}
 }
-void TrainView::draw_elevation_map() {
+void TrainView::Rasterization_ElevationMap() {
 	glGenFramebuffers(1, &this->framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
@@ -169,12 +169,11 @@ void TrainView::draw_elevation_map() {
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	
 	/*VAO*/
-	unsigned int VBO[1], VAO[1];
-    glGenVertexArrays(1, VAO);
-    glGenBuffers(1, VBO);
-    //Curve-
-    glBindVertexArray(VAO[0]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	GLuint VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -195,7 +194,7 @@ void TrainView::draw_elevation_map() {
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-200, 200, -200, 200, 500, -200);
+	glOrtho(-200, 200, -200, 200, 65535, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -206,7 +205,7 @@ void TrainView::draw_elevation_map() {
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
 
 	// Read color from texture
@@ -222,8 +221,8 @@ void TrainView::draw_elevation_map() {
 	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glDeleteVertexArrays(1, VAO);
-	glDeleteBuffers(1, VBO);
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
 
 }
 void TrainView::draw_gradient_map() {
@@ -282,10 +281,11 @@ void TrainView::draw_gradient_map() {
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-200, 200, -200, 200, 1000, -200);
+	glOrtho(-200, 200, -200, 200, 65535, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
+
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
@@ -1139,7 +1139,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	draw_elevation_map();
+	Rasterization_ElevationMap();
 	draw_gradient_map();
 	run();
 
