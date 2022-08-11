@@ -101,6 +101,18 @@ void iterationCB(Fl_Widget*, TrainWindow* tw)
 	tw->damageMe();
 }
 
+void canvasHeightCB(Fl_Widget*, TrainWindow* tw)
+{
+	tw->trainView->CanvasHeight = tw->canvasHeight->value()/2;
+	tw->damageMe();
+}
+
+void canvasWidthCB(Fl_Widget*, TrainWindow* tw)
+{
+	tw->trainView->CanvasWidth = tw->canvasWidth->value()/2;
+	tw->damageMe();
+}
+
 //***************************************************************************
 //
 // * Callback that adds a new point to the spline

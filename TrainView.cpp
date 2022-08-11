@@ -195,7 +195,7 @@ void TrainView::Rasterization_ElevationMap() {
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-200, 200, -200, 200, 65535, -200);
+	glOrtho(-CanvasWidth, CanvasWidth, -CanvasHeight, CanvasHeight, 65535, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -281,7 +281,7 @@ void TrainView::Rasterization_GradientMap() {
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-200, 200, -200, 200, 65535, -200);
+	glOrtho(-CanvasWidth, CanvasWidth, -CanvasHeight, CanvasHeight, 65535, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -750,6 +750,7 @@ setProjection()
 
 void TrainView::drawStuff(bool doingShadows)
 {
+
 	gradient_data.clear();
 	elevation_data.clear();
 	for (int i = 0; i < Curves.size(); i++) {

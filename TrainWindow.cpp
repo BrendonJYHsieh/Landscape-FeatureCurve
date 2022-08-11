@@ -170,7 +170,7 @@ TrainWindow(const int x, const int y)
 		theta->type(FL_HORIZONTAL);
 		theta->callback((Fl_Callback*)thetaCB, this);
 
-		pty += 50;
+		pty += 30;
 		b = new Fl_Value_Slider(655, pty, 140, 20, "b");
 		b->range(0, 200);
 		b->value(10);
@@ -178,7 +178,7 @@ TrainWindow(const int x, const int y)
 		b->type(FL_HORIZONTAL);
 		b->callback((Fl_Callback*)bCB, this);
 
-		pty += 50;
+		pty += 30;
 		phi = new Fl_Value_Slider(655, pty, 140, 20, "Phi");
 		phi->range(0, 90);
 		phi->value(0);
@@ -186,13 +186,28 @@ TrainWindow(const int x, const int y)
 		phi->type(FL_HORIZONTAL);
 		phi->callback((Fl_Callback*)phiCB, this);
 
-		pty += 50;
+		pty += 30;
 		iteration = new Fl_Value_Slider(655, pty, 140, 20, "Iter");
 		iteration->range(1, 500);
 		iteration->value(30);
 		iteration->align(FL_ALIGN_LEFT);
 		iteration->type(FL_HORIZONTAL);
 		iteration->callback((Fl_Callback*)iterationCB, this);
+
+		pty += 30;
+		canvasHeight = new Fl_Value_Slider(655, pty, 140, 20, "CanvasHeight");
+		canvasHeight->range(400, 4000);
+		canvasHeight->value(400);
+		canvasHeight->align(FL_ALIGN_LEFT);
+		canvasHeight->type(FL_HORIZONTAL);
+		canvasHeight->callback((Fl_Callback*)canvasHeightCB, this);
+		pty += 30;
+		canvasWidth = new Fl_Value_Slider(655, pty, 140, 20, "CanvasWidth");
+		canvasWidth->range(400, 4000);
+		canvasWidth->value(400);
+		canvasWidth->align(FL_ALIGN_LEFT);
+		canvasWidth->type(FL_HORIZONTAL);
+		canvasWidth->callback((Fl_Callback*)canvasWidthCB, this);
 		// // reset the points
 		// resetButton = new Fl_Button(735,pty,60,20,"Reset");
 		// resetButton->callback((Fl_Callback*)resetCB,this);

@@ -91,6 +91,8 @@ class TrainWindow : public Fl_Double_Window {
 		Fl_Value_Slider* theta;
 		Fl_Value_Slider* phi;
 		Fl_Value_Slider* iteration;
+		Fl_Value_Slider* canvasHeight;
+		Fl_Value_Slider* canvasWidth;
 
 
 		// are we animating the train?

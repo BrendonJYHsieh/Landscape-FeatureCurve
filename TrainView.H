@@ -143,6 +143,9 @@ class TrainView : public Fl_Gl_Window
 		int gridsize = 512;
 		int coarsestSize = gridsize / 4;
 		int grid1_size = gridsize / 2;
+
+		int CanvasHeight = 1000;
+		int CanvasWidth = 1000;
 		
 		bool output_switch = false;
 
