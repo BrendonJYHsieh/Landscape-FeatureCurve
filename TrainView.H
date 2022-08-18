@@ -120,8 +120,17 @@ class TrainView : public Fl_Gl_Window
 		Texture2D* background_texture = nullptr;
 
 		unsigned int framebuffer;
+		/// <summary>
+		/// Elevation
+		/// </summary>
+		unsigned int framebufferElevetionMap=-1;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
+		GLuint vaoElevetionMap[1];
+		GLuint vboElevetionMap[1];
+		/// <summary>
+		/// Gradient
+		/// </summary>
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
 
