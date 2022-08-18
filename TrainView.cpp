@@ -741,41 +741,7 @@ void TrainView::draw()
 
 	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, blueLight);
-
-
-
-	//*********************************************************************
-	// now draw the ground plane
-	//*********************************************************************
-	// set to opengl fixed pipeline(use opengl 1.x draw function)
-	glUseProgram(0);
-
-	setupFloor();
-	glDisable(GL_LIGHTING);
-	//drawFloor(200,200);
-
-
-	//*********************************************************************
-	// now draw the object and we need to do it twice
-	// once for real, and then once for shadows
-	//*********************************************************************
-	glEnable(GL_LIGHTING);
-	setupObjects();
-	
 	drawStuff();
-	
-	glPointSize(5);
-	glBegin(GL_POINTS);
-	glColor3ub(0, 255, 0);
-	glVertex3f(100, 5, 0);
-	glVertex3f(-100, 0, 0);
-	glEnd();
-	// this time drawing is for shadows (except for top view)
-	if (!tw->topCam->value()) {
-		//setupShadows();
-		drawStuff(true);
-		unsetupShadows();
-	}
 }
 
 //************************************************************************
