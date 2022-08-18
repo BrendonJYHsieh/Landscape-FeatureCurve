@@ -174,10 +174,6 @@ void TrainView::Rasterization_ElevationMap() {
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
 
-	// Read color from texture
-	glPixelStorei(GL_PACK_ALIGNMENT, 4);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, coarsestSize, coarsestSize, GL_RGBA, GL_FLOAT, ImageBuffer);
 
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -190,35 +186,11 @@ void TrainView::Rasterization_ElevationMap() {
 	glDeleteBuffers(1, VBO);
 }
 void TrainView::Rasterization_GradientMap() {
-	glGenFramebuffers(1, &framebufferGradientMap);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
-	// create a color attachment texture
-	glGenTextures(1, &textureGradientMap);
-	glActiveTexture(GL_TEXTURE9);
-	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureGradientMap, 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &rboGradientMap);
-	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboGradientMap); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
 	/*VAO*/
 	unsigned int VBO[1], VAO[1];
 	glGenVertexArrays(1, VAO);
 	glGenBuffers(1, VBO);
-
 	//Curve
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
@@ -230,6 +202,7 @@ void TrainView::Rasterization_GradientMap() {
 
 	// render
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
+	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 
@@ -315,7 +288,6 @@ void TrainView::Rasterization_GradientMap() {
 	for (int ii = 0; ii < iteration; ii++) {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
-
 	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
@@ -339,7 +311,7 @@ void TrainView::jacobi_texture() {
 	glGenTextures(1, &final_texture);
 	glActiveTexture(GL_TEXTURE20);
 	glBindTexture(GL_TEXTURE_2D, final_texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, ImageBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -371,6 +343,7 @@ void TrainView::jacobi_texture() {
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 20);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 4);
+	glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resoultion"), coarsestSize);
 	glBindVertexArray(final_vao[0]);
 	for (int ii = 0; ii < iteration; ii++) {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -382,84 +355,10 @@ void TrainView::jacobi_texture() {
 }
 
 void TrainView::run() {
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	/* Mentioned in 5.2 
 	Multigrid implementation
 	*/
-
-	// 128 x 128
-	grid0 = new float[coarsestSize * coarsestSize * 4];
-	elevation_grid0 = new float[coarsestSize * coarsestSize * 4];
-	gradient_grid0 = new float[coarsestSize * coarsestSize * 4];
-
-	memcpy(elevation_grid0, ImageBuffer, coarsestSize * coarsestSize * 4 * sizeof(float));
-	memcpy(gradient_grid0, ImageBuffer1, coarsestSize * coarsestSize * 4 * sizeof(float));
-
-	glGenTextures(1, &textureColorbuffer7);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer7);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, gradient_grid0);
-
 	jacobi_texture();
-
-
-	memcpy(grid0, HeightMapBuffer, coarsestSize * coarsestSize * 4 * sizeof(float));
-
-	/* Mentioned in 4.1 Figure 9.
-	To fill gradient's hole caused by gradient intersection
-	*/
-
-	// Upsampling from 128 x 128 to 256 x 256
-	grid1 = new float[grid1_size * grid1_size * 4];
-	//scale(grid0, coarsestSize, grid1);
-	elevation_grid1 = new float[grid1_size * grid1_size * 4];
-	//scale(elevation_grid0, coarsestSize, elevation_grid1);
-	gradient_grid1 = new float[grid1_size * grid1_size * 4];
-	//scale(gradient_grid0, coarsestSize, gradient_grid1);
-
-	//jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration/3*2);
-
-	// 512 x 512
-	grid = new float[gridsize * gridsize * 4];
-	//scale(grid1, grid1_size, grid);
-
-	elevation_grid = new float[gridsize * gridsize * 4];
-	//scale(elevation_grid1, grid1_size, elevation_grid);
-
-	gradient_grid = new float[gridsize * gridsize * 4];
-	//scale(gradient_grid1, grid1_size, gradient_grid);
-	//jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration/3);
-
-	// Normalize color
-	for (int i = 0; i < gridsize * gridsize * 4; i++) {
-		grid[i] /= 255.0;
-	}
-
-	glGenTextures(1, &textureColorbuffer2);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);	
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, grid);
-
-	glGenTextures(1, &textureColorbuffer5);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer5);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, gradient_grid);
 }
 //************************************************************************
 //
@@ -594,6 +493,7 @@ void TrainView::draw()
 	if (gladLoadGL())
 	{
 		if(framebufferElevetionMap == -1) {
+			std::cout << "test" << endl;
 			glGenFramebuffers(1, &framebufferElevetionMap);
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 			// create a color attachment texture
@@ -619,7 +519,29 @@ void TrainView::draw()
 				cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 		}
 		if (framebufferGradientMap == -1) {
+			glGenFramebuffers(1, &framebufferGradientMap);
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
+			// create a color attachment texture
+			glGenTextures(1, &textureGradientMap);
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, textureGradientMap);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureGradientMap, 0);
+			// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+			glGenRenderbuffers(1, &rboGradientMap);
+			glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboGradientMap); // now actually attach it
+			// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 		};
 		if (!this->diffuse_shader) {
 			this->diffuse_shader = new
@@ -747,33 +669,7 @@ void TrainView::draw()
 	//*********************************************************************
 	// set to opengl fixed pipeline(use opengl 1.x draw function)
 	glUseProgram(0);
-
-	setupFloor();
-	glDisable(GL_LIGHTING);
-	//drawFloor(200,200);
-
-
-	//*********************************************************************
-	// now draw the object and we need to do it twice
-	// once for real, and then once for shadows
-	//*********************************************************************
-	glEnable(GL_LIGHTING);
-	setupObjects();
-	
 	drawStuff();
-	
-	glPointSize(5);
-	glBegin(GL_POINTS);
-	glColor3ub(0, 255, 0);
-	glVertex3f(100, 5, 0);
-	glVertex3f(-100, 0, 0);
-	glEnd();
-	// this time drawing is for shadows (except for top view)
-	if (!tw->topCam->value()) {
-		//setupShadows();
-		drawStuff(true);
-		unsetupShadows();
-	}
 }
 
 //************************************************************************
@@ -1121,7 +1017,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glEnableVertexAttribArray(1);
 
 	Rasterization_ElevationMap();
-	Rasterization_GradientMap();
+	//Rasterization_GradientMap();
 	run();
 
 	// Code below are using for visulization
@@ -1221,7 +1117,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
 	mountain_texture->bind(5);
-	wave_model->meshes[0].textures[0].id = textureColorbuffer2;
+	wave_model->meshes[0].textures[0].id = final_texture;
 	wave_model->Draw(*heightmap_shader);
 
 	//Curve
@@ -1237,35 +1133,13 @@ void TrainView::drawStuff(bool doingShadows)
 
 	glDeleteVertexArrays(3, VAO);
 	glDeleteBuffers(3, VBO);
+	/**/
+
 	glDeleteFramebuffers(1, &framebuffer);
-	glDeleteTextures(1, &textureColorbuffer2);
-	glDeleteRenderbuffers(1, &rbo2);
-	glDeleteTextures(1, &textureColorbuffer3);
-	glDeleteRenderbuffers(1, &rbo3);
-	glDeleteTextures(1, &textureColorbuffer4);
-	glDeleteTextures(1, &textureColorbuffer5);
-	glDeleteTextures(1, &textureColorbuffer6);
-	glDeleteTextures(1, &textureColorbuffer7);
-	glDeleteTextures(1, &textureColorbuffer8);
-	glDeleteRenderbuffers(1, &rbo4);
-	// final
 	glDeleteTextures(1, &final_texture);
 	glDeleteRenderbuffers(1, &final_rbo);
 	glDeleteVertexArrays(1, final_vao);
 	glDeleteBuffers(1, final_vbo);
-
-	delete grid0;
-	delete grid1;
-	delete grid;
-
-	delete elevation_grid0;
-	delete elevation_grid1;
-	delete elevation_grid;
-
-	delete gradient_grid0;
-	delete gradient_grid1;
-	delete gradient_grid;
-
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {

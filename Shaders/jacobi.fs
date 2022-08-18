@@ -6,6 +6,8 @@ in vec2 pos;
 uniform sampler2D F;
 uniform sampler2D E;
 uniform sampler2D G;
+uniform float Resolution;
+
 
 float sign(float n){
     if (n > 0) {
@@ -27,7 +29,7 @@ void main()
     float FL=0,FN=0,FI=0;
     vec2 p=0.5*(vec2(1.0,1.0)+pos);
 
-    float sum=0.0,resolution=1.0/128.0;
+    float sum=0.0,offset=1.0/Resolution;
 
     vec4 F_pixel = texture2D(F, p);
     vec4 E_pixel = texture2D(E, p);
@@ -41,7 +43,7 @@ void main()
         a = E_pixel.a;
         b = 1.0 - a;
     }
-    FL = (texture2D(F, vec2(p.x-resolution,p.y-resolution)).r + texture2D(F, vec2(p.x-resolution,p.y+resolution)).r + texture2D(F, vec2(p.x+resolution,p.y-resolution)).r + texture2D(F, vec2(p.x+resolution,p.y+resolution)).r)/4.0;
+    FL = (texture2D(F, vec2(p.x-offset,p.y-offset)).r + texture2D(F, vec2(p.x-offset,p.y+offset)).r + texture2D(F, vec2(p.x+offset,p.y-offset)).r + texture2D(F, vec2(p.x+offset,p.y+offset)).r)/4.0;
     nx = G_pixel.r * G_pixel.b;
     ny = G_pixel.g * G_pixel.b;
 

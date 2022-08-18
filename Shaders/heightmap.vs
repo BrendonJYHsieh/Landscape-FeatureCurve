@@ -15,7 +15,7 @@ void main()
 {
     TexCoords = texture_coordinate;
     vec3 height_map = position;
-    height_map.y = height_map.y + (texture(texture_d,texture_coordinate).r)*255.0f;
+    height_map.y = height_map.y + (texture(texture_d,texture_coordinate).r);
 	gl_Position =  projection * view * model * vec4(height_map, 1.0f);
     ourColor = texture(texture_d,texture_coordinate).rgba;
     
