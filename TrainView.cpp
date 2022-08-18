@@ -35,34 +35,26 @@ Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 	q0.z  = pow(1-t,3) * p1.z + 3*t * pow(1-t,2) * p2.z + 3*t*t*(1-t)* p3.z + t*t*t *p4.z;
 	return q0;
 }
-Pnt3f Intersect(Pnt3f A, Pnt3f B,float length) {
+
+Pnt3f Intersect(Pnt3f A, Pnt3f B, float length, bool reverse) {
+	if (reverse) {
+		length *= -1;
+	}
 	Pnt3f C;
 	float m = (B.z - A.z) / (B.x - A.x);
 	float _m = -1 / m;
 	float bb = (_m * B.x) - B.z;
-	float a = _m , b = -1, c = bb;
-	float d = m, e = -1, f = -length * sqrt(m*m+1) + (m * B.x - B.z);
+	float a = _m, b = -1, c = bb;
+	float d = m, e = -1, f = length * sqrt(m * m + 1) + (m * B.x - B.z);
 
 	float det = -_m + m;
 	C.x = (c * e - b * f) / det;
 	C.y = B.y;
 	C.z = (-d * c + a * f) / det;
-	return C;
-}
-Pnt3f _Intersect(Pnt3f A, Pnt3f B,float length) {
-	Pnt3f C;
-	float m = (B.z - A.z) / (B.x - A.x);
-	float _m = -1 / m;
-	float bb = (_m * B.x) - B.z;
-	float a = _m , b = -1, c = bb;
-	float d = m, e = -1, f = length*sqrt(m*m+1) + (m * B.x - B.z);
 
-	float det = -_m + m;
-	C.x = (c * e - b * f) / det;
-	C.y = B.y;
-	C.z = (-d * c + a * f) / det;
 	return C;
 }
+
 glm::vec3 Rotate(glm::vec3 n, glm::vec3 v, float degree) {
 	float theta = glm::radians(degree);
 	n = glm::normalize(n);
@@ -629,7 +621,64 @@ void TrainView::draw()
 	//initialized glad
 	if (gladLoadGL())
 	{
-		//initiailize VAO, VBO, Shader...
+		if (!this->diffuse_shader) {
+			this->diffuse_shader = new
+				Shader(
+					"../src/Shaders/diffuse.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/diffuse.fs");
+		}
+
+		if (!this->elevation_shader) {
+			this->elevation_shader = new
+				Shader(
+					"../src/Shaders/elevation.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/elevation.fs");
+		}
+
+		if (!this->gradient_shader) {
+			this->gradient_shader = new
+				Shader(
+					"../src/Shaders/gradient.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/gradient.fs");
+		}
+
+		if (!this->screen_shader) {
+			this->screen_shader = new
+				Shader(
+					"../src/Shaders/screen.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/screen.fs");
+		}
+		if (!this->heightmap_shader) {
+			this->heightmap_shader = new
+				Shader(
+					"../src/Shaders/heightmap.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/heightmap.fs");
+		}
+		if (!this->overlay_shader) {
+			this->overlay_shader = new
+				Shader(
+					"../src/Shaders/overlay_shader.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/overlay_shader.fs");
+		}
+		if (!this->jacobi_shader) {
+			this->jacobi_shader = new
+				Shader(
+					"../src/Shaders/jacobi.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/jacobi.fs");
+		}
+		if (!wave_model) {
+			wave_model = new Model("../wave/wave.obj");
+		}
+		if (!mountain_texture) {
+			mountain_texture = new Texture2D("../wave/mountain.png");
+		}
 	}
 	else
 		throw std::runtime_error("Could not initialize GLAD!");
@@ -814,22 +863,13 @@ void TrainView::drawStuff(bool doingShadows)
 			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],q2,q3,q4,q5,q6,q7;
 			
 			// Point in right of feature curve
-			if (q0.x < q1.x) {
-				q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				q3 = Intersect(q1, q0, r_init + r_interporate * j);
-				q4 = q2;
-				q5 = q3;
-				q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate*(j+1));
-				q7 = Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
-			}
-			else {
-				q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
-				q4 = q2;
-				q5 = q3;
-				q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1));
-				q7 = _Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j);
-			}
+			q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1), q0.x < q1.x);
+			q3 = Intersect(q1, q0, r_init + r_interporate * j, q0.x < q1.x);
+			q4 = q2;
+			q5 = q3;
+			q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1), q0.x < q1.x);
+			q7 = Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j, q0.x < q1.x);
+
 			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x,0.0, q3.z - q2.z));
 
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
@@ -936,22 +976,13 @@ void TrainView::drawStuff(bool doingShadows)
 
 
 			// Point in left of feature curve
-			if (q0.x < q1.x) {
-				q2 = _Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				q3 = _Intersect(q1, q0, r_init + r_interporate * j);
-				q4 = q2;
-				q5 = q3;
-				q6 = _Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
-				q7 = _Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
-			}
-			else {
-				q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1));
-				q3 = Intersect(q1, q0, r_init + r_interporate * j);
-				q4 = q2;
-				q5 = q3;
-				q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1));
-				q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j);
-			}
+			q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1), q0.x > q1.x);
+			q3 = Intersect(q1, q0, r_init + r_interporate * j, q0.x > q1.x);
+			q4 = q2;
+			q5 = q3;
+			q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1), q0.x > q1.x);
+			q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j, q0.x > q1.x);
+
 
 			Axis = glm::normalize(glm::vec3(q3.x - q2.x,0, q3.z - q2.z));
 
@@ -1058,56 +1089,7 @@ void TrainView::drawStuff(bool doingShadows)
 		}
 	}
 
-	if (!this->elevation_shader) {
-			this->elevation_shader = new
-				Shader(
-					"../src/Shaders/elevation.vs",
-					nullptr, nullptr, nullptr,
-					"../src/Shaders/elevation.fs");
-	}
-
-	if (!this->gradient_shader) {
-		this->gradient_shader = new
-			Shader(
-				"../src/Shaders/gradient.vs",
-				nullptr, nullptr, nullptr,
-				"../src/Shaders/gradient.fs");
-	}
-
-	if (!this->screen_shader) {
-		this->screen_shader = new
-			Shader(
-				"../src/Shaders/screen.vs",
-				nullptr, nullptr, nullptr,
-				"../src/Shaders/screen.fs");
-	}
-	if (!this->heightmap_shader) {
-		this->heightmap_shader = new
-			Shader(
-				"../src/Shaders/heightmap.vs",
-				nullptr, nullptr, nullptr,
-				"../src/Shaders/heightmap.fs");
-	}
-	if (!this->overlay_shader) {
-		this->overlay_shader = new
-			Shader(
-				"../src/Shaders/overlay_shader.vs",
-				nullptr, nullptr, nullptr,
-				"../src/Shaders/overlay_shader.fs");
-	}
-	if (!this->jacobi_shader) {
-		this->jacobi_shader = new
-			Shader(
-				"../src/Shaders/jacobi.vs",
-				nullptr, nullptr, nullptr,
-				"../src/Shaders/jacobi.fs");
-	}
-	if (!wave_model) {
-		wave_model = new Model("../wave/wave.obj");
-	}
-	if (!mountain_texture) {
-		mountain_texture = new Texture2D("../wave/mountain.png");
-	}
+	
 
 	float vertices[] = {
     // positions                          // texture coords

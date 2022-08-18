@@ -110,6 +110,7 @@ class TrainView : public Fl_Gl_Window
 		Shader* heightmap_shader = nullptr;
 		Shader* heightmap_shader1 = nullptr;
 		Shader* overlay_shader = nullptr;
+		Shader* diffuse_shader = nullptr;
 		Shader* jacobi_shader = nullptr;
 
 		Texture2D* mountain_texture = nullptr;
