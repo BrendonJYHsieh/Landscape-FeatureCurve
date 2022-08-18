@@ -306,19 +306,12 @@ void TrainView::Rasterization_GradientMap() {
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, coarsestSize, coarsestSize, GL_RGBA, GL_FLOAT, ImageBuffer1);
-	
 	glDisable(GL_STENCIL_TEST);
 
-	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
 
-	glDeleteVertexArrays(1, VAO);
-	glDeleteBuffers(1, VBO);
-}
 
-void TrainView::jacobi_texture() {
 
+	/* diffuse gradientMap */
 	float vertices[] = {
 		// positions           // texture coords
 		1.0f,  1.0f, 0.0f,
@@ -328,13 +321,56 @@ void TrainView::jacobi_texture() {
 	   -1.0f, -1.0f, 0.0f,
 	   -1.0f,  1.0f, 0.0f
 	};
-	
+	glGenRenderbuffers(1, &final_rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, final_rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, final_rbo); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	/*VAO*/
+	glGenVertexArrays(1, final_vao);
+	glGenBuffers(1, final_vbo);
+	glBindVertexArray(final_vao[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, final_vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// render
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	diffuse_shader->Use();
+	glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 9);
+	//glUniform1i(glGetUniformLocation(diffuse_shader->Program, "E"), 10);
+	glBindVertexArray(final_vao[0]);
+	for (int ii = 0; ii < iteration; ii++) {
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+
+
+
+	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
+	glDeleteVertexArrays(1, VAO);
+	glDeleteBuffers(1, VBO);
+}
+
+void TrainView::jacobi_texture() {
+	float vertices[] = {
+		// positions           // texture coords
+		1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f
+	};
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
 	glGenTextures(1, &final_texture);
 	glActiveTexture(GL_TEXTURE20);
 	glBindTexture(GL_TEXTURE_2D, final_texture);
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, ImageBuffer);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -351,11 +387,9 @@ void TrainView::jacobi_texture() {
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-
 	/*VAO*/
 	glGenVertexArrays(1, final_vao);
 	glGenBuffers(1, final_vbo);
-	//Curve-
 	glBindVertexArray(final_vao[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, final_vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -370,7 +404,6 @@ void TrainView::jacobi_texture() {
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 4);
 	glBindVertexArray(final_vao[0]);
-
 	for (int ii = 0; ii < iteration; ii++) {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -413,7 +446,7 @@ void TrainView::run() {
 	memcpy(elevation_grid0, ImageBuffer, coarsestSize * coarsestSize * 4 * sizeof(float));
 	memcpy(gradient_grid0, ImageBuffer1, coarsestSize * coarsestSize * 4 * sizeof(float));
 
-	gradient_diffuse(gradient_grid0, coarsestSize, 200);
+	//gradient_diffuse(gradient_grid0, coarsestSize, 200);
 	
 	glGenTextures(1, &textureColorbuffer7);
 	glActiveTexture(GL_TEXTURE4);
@@ -736,7 +769,39 @@ void TrainView::draw()
 
 	glLightfv(GL_LIGHT2, GL_POSITION, lightPosition3);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, blueLight);
+
+	//*********************************************************************
+	// now draw the ground plane
+	//*********************************************************************
+	// set to opengl fixed pipeline(use opengl 1.x draw function)
+	glUseProgram(0);
+
+	setupFloor();
+	glDisable(GL_LIGHTING);
+	//drawFloor(200,200);
+
+
+	//*********************************************************************
+	// now draw the object and we need to do it twice
+	// once for real, and then once for shadows
+	//*********************************************************************
+	glEnable(GL_LIGHTING);
+	setupObjects();
+	
 	drawStuff();
+	
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glColor3ub(0, 255, 0);
+	glVertex3f(100, 5, 0);
+	glVertex3f(-100, 0, 0);
+	glEnd();
+	// this time drawing is for shadows (except for top view)
+	if (!tw->topCam->value()) {
+		//setupShadows();
+		drawStuff(true);
+		unsetupShadows();
+	}
 }
 
 //************************************************************************
