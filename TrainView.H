@@ -126,11 +126,10 @@ class TrainView : public Fl_Gl_Window
 		unsigned int framebufferElevetionMap=-1;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
-		GLuint vaoElevetionMap[1];
-		GLuint vboElevetionMap[1];
 		/// <summary>
 		/// Gradient
 		/// </summary>
+		unsigned int framebufferGradientMap = -1;
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
 
@@ -150,12 +149,12 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureColorbuffer8;
 
 		int iteration = 20;
-		int gridsize = 512;
+		int gridsize = 2048;
 		int coarsestSize = gridsize / 4;
 		int grid1_size = gridsize / 2;
 
-		int CanvasHeight = 1000;
-		int CanvasWidth = 1000;
+		int CanvasHeight = 400;
+		int CanvasWidth = 400;
 		
 		bool output_switch = false;
 

@@ -137,17 +137,20 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 }
 
 void TrainView::Rasterization_ElevationMap() {
-
 	/*VAO*/
-	glGenVertexArrays(1, vaoElevetionMap);
-	glGenBuffers(1, vboElevetionMap);
-	glBindVertexArray(vaoElevetionMap[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
+	unsigned int VBO[1], VAO[1];
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
+	glBindVertexArray(VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
+	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
 	glEnable(GL_DEPTH_TEST); 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -168,11 +171,11 @@ void TrainView::Rasterization_ElevationMap() {
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
 
-	glBindVertexArray(vaoElevetionMap[0]);
+	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
 
 	// Read color from texture
-	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, coarsestSize, coarsestSize, GL_RGBA, GL_FLOAT, ImageBuffer);
 
@@ -183,13 +186,12 @@ void TrainView::Rasterization_ElevationMap() {
 	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glDeleteVertexArrays(1, vaoElevetionMap);
-	glDeleteBuffers(1, vboElevetionMap);
-
+	glDeleteVertexArrays(1, VAO);
+	glDeleteBuffers(1, VBO);
 }
 void TrainView::Rasterization_GradientMap() {
-	glGenFramebuffers(1, &this->framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
+	glGenFramebuffers(1, &framebufferGradientMap);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	// create a color attachment texture
 	glGenTextures(1, &textureGradientMap);
 	glActiveTexture(GL_TEXTURE9);
@@ -227,7 +229,7 @@ void TrainView::Rasterization_GradientMap() {
 	glEnableVertexAttribArray(1);
 
 	// render
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 
@@ -278,8 +280,6 @@ void TrainView::Rasterization_GradientMap() {
 	glDisable(GL_STENCIL_TEST);
 
 
-
-
 	/* diffuse gradientMap */
 	float vertices[] = {
 		// positions           // texture coords
@@ -306,9 +306,10 @@ void TrainView::Rasterization_GradientMap() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// render
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	diffuse_shader->Use();
 	glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 9);
+	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "Resolution"), coarsestSize);
 	//glUniform1i(glGetUniformLocation(diffuse_shader->Program, "E"), 10);
 	glBindVertexArray(final_vao[0]);
 	for (int ii = 0; ii < iteration; ii++) {
@@ -332,6 +333,7 @@ void TrainView::jacobi_texture() {
 	   -1.0f, -1.0f, 0.0f,
 	   -1.0f,  1.0f, 0.0f
 	};
+	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, this->framebuffer);
 	// create a color attachment texture
 	glGenTextures(1, &final_texture);
@@ -379,24 +381,6 @@ void TrainView::jacobi_texture() {
 	glReadPixels(0, 0, coarsestSize, coarsestSize, GL_RGBA, GL_FLOAT, HeightMapBuffer);
 }
 
-void TrainView::gradient_diffuse(float* G, int size,int iteration) {
-	for (int k = 0; k < iteration; k++) {
-		for (int i = 1; i < size - 1; i++) {
-			for (int j = 1; j < size - 1; j++) {
-				if (G[(size * 4) * j + 4 * i + 3] == 0.5) {
-					G[(size * 4) * j + 4 * i] = (G[(size * 4) * (j - 1) + 4 * (i)] + G[(size * 4) * (j + 1) + 4 * (i)] + G[(size * 4) * (j)+4 * (i - 1)] + G[(size * 4) * (j)+4 * (i + 1)]) / 4.0f;
-					G[(size * 4) * j + 4 * i + 1] = (G[(size * 4) * (j - 1) + 4 * (i)+1] + G[(size * 4) * (j + 1) + 4 * (i)+1] + G[(size * 4) * (j)+4 * (i - 1) + 1] + G[(size * 4) * (j)+4 * (i + 1) + 1]) / 4.0f;
-					float length = sqrtf(G[(size * 4) * j + 4 * i] * G[(size * 4) * j + 4 * i] + G[(size * 4) * j + 4 * i + 1] * G[(size * 4) * j + 4 * i + 1]);
-					if (length != 0) {
-						G[(size * 4) * j + 4 * i] /= length;
-						G[(size * 4) * j + 4 * i + 1] /=length;
-					}
-					G[(size * 4) * j + 4 * i + 2] = (G[(size * 4) * (j - 1) + 4 * (i)+2] + G[(size * 4) * (j + 1) + 4 * (i)+2] + G[(size * 4) * (j)+4 * (i - 1) + 2] + G[(size * 4) * (j)+4 * (i + 1) + 2]) / 4.0f;
-				}
-			}
-		}
-	}
-}
 void TrainView::run() {
 	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	/* Mentioned in 5.2 
@@ -433,25 +417,23 @@ void TrainView::run() {
 
 	// Upsampling from 128 x 128 to 256 x 256
 	grid1 = new float[grid1_size * grid1_size * 4];
-	scale(grid0, coarsestSize, grid1);
+	//scale(grid0, coarsestSize, grid1);
 	elevation_grid1 = new float[grid1_size * grid1_size * 4];
-	scale(elevation_grid0, coarsestSize, elevation_grid1);
+	//scale(elevation_grid0, coarsestSize, elevation_grid1);
 	gradient_grid1 = new float[grid1_size * grid1_size * 4];
-	scale(gradient_grid0, coarsestSize, gradient_grid1);
+	//scale(gradient_grid0, coarsestSize, gradient_grid1);
 
-	//gradient_diffuse(gradient_grid1, grid1_size, iteration * 2);
 	//jacobi(grid1, elevation_grid1, gradient_grid1, grid1_size, iteration/3*2);
 
 	// 512 x 512
 	grid = new float[gridsize * gridsize * 4];
-	scale(grid1, grid1_size, grid);
+	//scale(grid1, grid1_size, grid);
 
 	elevation_grid = new float[gridsize * gridsize * 4];
-	scale(elevation_grid1, grid1_size, elevation_grid);
+	//scale(elevation_grid1, grid1_size, elevation_grid);
 
 	gradient_grid = new float[gridsize * gridsize * 4];
-	scale(gradient_grid1, grid1_size, gradient_grid);
-	//gradient_diffuse(gradient_grid, gridsize, iteration * 1);
+	//scale(gradient_grid1, grid1_size, gradient_grid);
 	//jacobi(grid, elevation_grid, gradient_grid, gridsize, iteration/3);
 
 	// Normalize color
@@ -463,12 +445,11 @@ void TrainView::run() {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer2);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);	
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, grid);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, grid);
 
 	glGenTextures(1, &textureColorbuffer5);
 	glActiveTexture(GL_TEXTURE3);
@@ -478,7 +459,7 @@ void TrainView::run() {
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, gradient_grid);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, gridsize, gridsize, 0, GL_RGBA, GL_FLOAT, gradient_grid);
 }
 //************************************************************************
 //
@@ -612,16 +593,7 @@ void TrainView::draw()
 	//initialized glad
 	if (gladLoadGL())
 	{
-		if(framebufferElevetionMap != -1) {
-
-		}
-		if (!this->diffuse_shader) {
-			this->diffuse_shader = new
-				Shader(
-					"../src/Shaders/diffuse.vs",
-					nullptr, nullptr, nullptr,
-					"../src/Shaders/diffuse.fs");
-
+		if(framebufferElevetionMap == -1) {
 			glGenFramebuffers(1, &framebufferElevetionMap);
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 			// create a color attachment texture
@@ -645,6 +617,16 @@ void TrainView::draw()
 			// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 				cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+		}
+		if (framebufferGradientMap == -1) {
+
+		};
+		if (!this->diffuse_shader) {
+			this->diffuse_shader = new
+				Shader(
+					"../src/Shaders/diffuse.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/diffuse.fs");
 		}
 
 		if (!this->elevation_shader) {
@@ -1221,7 +1203,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 2);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 10);
 
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -1256,11 +1238,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteVertexArrays(3, VAO);
 	glDeleteBuffers(3, VBO);
 	glDeleteFramebuffers(1, &framebuffer);
-	glDeleteTextures(1, &textureElevetionMap);
-	glDeleteRenderbuffers(1, &rboElevetionMap);
-	glDeleteTextures(1, &textureGradientMap);
-	glDeleteRenderbuffers(1, &rboGradientMap);
-
 	glDeleteTextures(1, &textureColorbuffer2);
 	glDeleteRenderbuffers(1, &rbo2);
 	glDeleteTextures(1, &textureColorbuffer3);
