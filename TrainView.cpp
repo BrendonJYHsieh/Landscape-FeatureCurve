@@ -317,26 +317,6 @@ void TrainView::Rasterization_GradientMap() {
 	glDeleteBuffers(1, VBO);
 }
 
-void TrainView::draw_jacobi() {
-	// render
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-	jacobi_shader->Use();
-	glm::mat4 model = glm::mat4(1.0f);
-
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 20);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 4);
-
-	glBindVertexArray(final_vao[0]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	// Read color from texture
-	glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	glReadBuffer(GL_FRONT);
-	glReadPixels(0, 0, coarsestSize, coarsestSize, GL_RGBA, GL_FLOAT, HeightMapBuffer);
-}
-
 void TrainView::jacobi_texture() {
 
 	float vertices[] = {
@@ -382,6 +362,22 @@ void TrainView::jacobi_texture() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	// render
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	jacobi_shader->Use();
+	glm::mat4 model = glm::mat4(1.0f);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 20);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 4);
+	glBindVertexArray(final_vao[0]);
+
+	for (int ii = 0; ii < iteration; ii++) {
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+	// Read color from texture
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, coarsestSize, coarsestSize, GL_RGBA, GL_FLOAT, HeightMapBuffer);
 }
 
 void TrainView::gradient_diffuse(float* G, int size,int iteration) {
@@ -431,9 +427,8 @@ void TrainView::run() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, gradient_grid0);
 
 	jacobi_texture();
-	for (int ii = 0; ii < iteration; ii++) {
-		draw_jacobi();
-	}
+
+
 	memcpy(grid0, HeightMapBuffer, coarsestSize * coarsestSize * 4 * sizeof(float));
 
 	/* Mentioned in 4.1 Figure 9.
