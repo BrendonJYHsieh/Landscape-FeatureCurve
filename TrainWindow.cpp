@@ -60,7 +60,7 @@ TrainWindow(const int x, const int y)
 		widgets = new Fl_Group(600,5,190,590);
 		widgets->begin();
 
-		// runButton = new Fl_Button(605,pty,60,20,"Run");
+		 runButton = new Fl_Button(60005,pty,60,20,"Run");
 		// togglify(runButton);
 
 		// Fl_Button* fb = new Fl_Button(700,pty,25,20,"@>>");
@@ -121,6 +121,7 @@ TrainWindow(const int x, const int y)
 		ac->callback((Fl_Callback*)addCurve,this);
 		Fl_Button* dc = new Fl_Button(690,pty,100,30,"Delete Curve");
 		dc->callback((Fl_Callback*)deleteCurve,this);
+
 
 		pty+=50;
 		segment = new Fl_Value_Slider(655,pty,140,20,"Segment");
