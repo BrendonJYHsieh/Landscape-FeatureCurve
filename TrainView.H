@@ -81,6 +81,7 @@ class TrainView : public Fl_Gl_Window
 		void doPick();
 		void Rasterization_ElevationMap();
 		void Rasterization_GradientMap();
+		void Diffuse_GradientMap();
 		void jacobi_texture();
 
 		void push_gradient_data(Pnt3f);
@@ -125,6 +126,12 @@ class TrainView : public Fl_Gl_Window
 		unsigned int framebufferGradientMap = -1;
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
+		/// <summary>
+		/// Diffuse Gradient
+		/// </summary>
+		unsigned int framebufferDiffuse[2];
+		unsigned int textureDiffuse[2];
+		unsigned int rboDiffuse[2];
 
 		unsigned int final_texture;
 		unsigned int final_rbo;
