@@ -140,7 +140,7 @@ void TrainView::Rasterization_ElevationMap() {
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-CanvasWidth, CanvasWidth, -CanvasHeight, CanvasHeight, 65535, -200);
+	glOrtho(-CanvasWidth/2, CanvasWidth/2, -CanvasHeight/2, CanvasHeight/2, 65535, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -214,7 +214,7 @@ void TrainView::Rasterization_GradientMap() {
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-CanvasWidth, CanvasWidth, -CanvasHeight, CanvasHeight, 65535, -200);
+	glOrtho(-CanvasWidth/2, CanvasWidth/2, -CanvasHeight/2, CanvasHeight/2, 65535, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
@@ -333,13 +333,12 @@ void TrainView::jacobi_texture() {
 	glm::mat4 model = glm::mat4(1.0f);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 20);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 4);
-	glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resoultion"), coarsestSize);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 9);
+	glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), coarsestSize);
 	glBindVertexArray(VAO[0]);
 	for (int ii = 0; ii < iteration; ii++) {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
-
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
@@ -472,7 +471,6 @@ int TrainView::handle(int event)
 //========================================================================
 void TrainView::draw()
 {
-
 	//initialized glad
 	if (gladLoadGL())
 	{
@@ -850,8 +848,6 @@ void TrainView::drawStuff(bool doingShadows)
 			p4 = q4;
 			p6 = q6;
 
-
-
 			// Point in left of feature curve
 			q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1), q0.x > q1.x);
 			q3 = Intersect(q1, q0, r_init + r_interporate * j, q0.x > q1.x);
@@ -1154,6 +1150,7 @@ void TrainView::drawStuff(bool doingShadows)
 			glEnd();
 		}
 	}
+
 }
 
 void TrainView::

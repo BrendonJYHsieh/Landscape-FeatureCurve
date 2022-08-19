@@ -11,10 +11,10 @@ uniform float Resolution;
 
 float sign(float n){
     if (n > 0) {
-		return 1.0/128.0;
+		return 1.0/Resolution;
 	}
 	else if (n < 0) {
-		return -1.0/128.0;
+		return -1.0/Resolution;
 	}
 	else {
 		return 0.0;

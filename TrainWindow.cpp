@@ -60,7 +60,7 @@ TrainWindow(const int x, const int y)
 		widgets = new Fl_Group(600,5,190,590);
 		widgets->begin();
 
-		runButton = new Fl_Button(60005,pty,60,20,"Run");
+		//runButton = new Fl_Button(60005,pty,60,20,"Run");
 		// togglify(runButton);
 
 		// Fl_Button* fb = new Fl_Button(700,pty,25,20,"@>>");
@@ -193,14 +193,14 @@ TrainWindow(const int x, const int y)
 
 		pty += 30;
 		canvasHeight = new Fl_Value_Slider(655, pty, 140, 20, "CanvasHeight");
-		canvasHeight->range(400, 4000);
+		canvasHeight->range(200, 4000);
 		canvasHeight->value(400);
 		canvasHeight->align(FL_ALIGN_LEFT);
 		canvasHeight->type(FL_HORIZONTAL);
 		canvasHeight->callback((Fl_Callback*)canvasHeightCB, this);
 		pty += 30;
 		canvasWidth = new Fl_Value_Slider(655, pty, 140, 20, "CanvasWidth");
-		canvasWidth->range(400, 4000);
+		canvasWidth->range(200, 4000);
 		canvasWidth->value(400);
 		canvasWidth->align(FL_ALIGN_LEFT);
 		canvasWidth->type(FL_HORIZONTAL);
