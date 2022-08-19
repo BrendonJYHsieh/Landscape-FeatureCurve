@@ -126,17 +126,10 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
 
-		unsigned int textureColorbuffer3;
-		unsigned int rbo2;
-		unsigned int textureColorbuffer4;
-		unsigned int rbo3;
-		unsigned int textureColorbuffer6;
-		unsigned int rbo4;
 		unsigned int final_texture;
 		unsigned int final_rbo;
 		unsigned int final_vao[1];
 		unsigned int final_vbo[1];
-
 
 		unsigned int textureColorbuffer7;
 		unsigned int textureColorbuffer8;
@@ -149,29 +142,9 @@ class TrainView : public Fl_Gl_Window
 		int CanvasHeight = 400;
 		int CanvasWidth = 400;
 		
-		bool output_switch = false;
-
-
 		vector<float> gradient_data;
 		vector<float> elevation_data;
 
-		unsigned int textureColorbuffer2;
-		unsigned int textureColorbuffer5;
-		float* grid0;
-		float* grid1;
-		float* grid;
-
-		float* elevation_grid0;
-		float* elevation_grid1;
-		float* elevation_grid;
-
-		float* gradient_grid0;
-		float* gradient_grid1;
-		float* gradient_grid;
-
-		float* gradientnorm_grid0;
-		float* gradientnorm_grid1;
-		float* gradientnorm_grid;
 
 		glm::mat4 view;
 		glm::mat4 projection;

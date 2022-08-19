@@ -243,12 +243,6 @@ void saveCB(Fl_Widget*, TrainWindow* tw)
 // 	tw->damageMe();
 // }
 
-void Output(Fl_Widget*, TrainWindow* tw)
-//===========================================================================
-{
-	tw->trainView->output_switch = true;;
-	tw->damageMe();
-}
 
 void addCurve(Fl_Widget*, TrainWindow* tw)
 //===========================================================================
