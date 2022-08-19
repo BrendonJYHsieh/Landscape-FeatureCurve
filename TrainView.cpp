@@ -71,29 +71,7 @@ glm::vec3 Pnt3_to_Vec3(Pnt3f a) {
 Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
-int TrainView::sign(float n) {
-	if (n > 0) {
-		return 1;
-	}
-	else if (n < 0) {
-		return -1;
-	}
-	else {
-		return 0;
-	}
-}
 
-void TrainView::scale(float* image,int image_size,float* result) {
-	int tmep_size = image_size * 2;
-	for (int i = 0; i < tmep_size; i++) {
-		for (int j = 0; j < tmep_size; j++) {
-			result[(tmep_size * 4) * j + 4 * i] = image[(image_size * 4) * (j / 2) + 4 * (i / 2)];
-			result[(tmep_size * 4) * j + 4 * i + 1] = image[(image_size * 4) * (j / 2) + 4 * (i / 2) + 1];
-			result[(tmep_size * 4) * j + 4 * i + 2] = image[(image_size * 4) * (j / 2) + 4 * (i / 2) + 2];
-			result[(tmep_size * 4) * j + 4 * i + 3] =image[(image_size * 4) * (j / 2) + 4 * (i / 2) + 3];
-		}
-	}
-}
 void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.x);
 	gradient_data.push_back(q0.y);
@@ -366,12 +344,6 @@ void TrainView::jacobi_texture() {
 	glDeleteBuffers(1, VBO);
 }
 
-void TrainView::run() {
-	/* Mentioned in 5.2 
-	Multigrid implementation
-	*/
-	jacobi_texture();
-}
 //************************************************************************
 //
 // * Constructor to set up the GL window
@@ -1029,7 +1001,7 @@ void TrainView::drawStuff(bool doingShadows)
 
 	Rasterization_ElevationMap();
 	Rasterization_GradientMap();
-	run();
+	jacobi_texture();
 
 	// Code below are using for visulization
 
