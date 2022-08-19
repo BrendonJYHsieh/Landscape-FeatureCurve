@@ -43,11 +43,21 @@ void main()
         a = E_pixel.a;
         b = 1.0 - a;
     }
-    FL = (texture2D(F, vec2(p.x-offset,p.y-offset)).r + texture2D(F, vec2(p.x-offset,p.y+offset)).r + texture2D(F, vec2(p.x+offset,p.y-offset)).r + texture2D(F, vec2(p.x+offset,p.y+offset)).r)/4.0;
-    nx = G_pixel.r * G_pixel.b;
-    ny = G_pixel.g * G_pixel.b;
 
-    FN = nx * nx * texture2D(F, vec2(p.x-sign(nx),p.y)).r + ny * ny * texture2D(F, vec2(p.x,p.y-sign(ny))).r;
+    vec4 A = texture2D(F, vec2(p.x-offset,p.y-offset));
+    vec4 B = texture2D(F, vec2(p.x-offset,p.y+offset));
+    vec4 C = texture2D(F, vec2(p.x+offset,p.y-offset));
+    vec4 D = texture2D(F, vec2(p.x+offset,p.y+offset));
+
+    float Gradient = sqrt(((A.r-B.r)*(A.r-B.r) + (C.r-D.r)*(C.r-D.r))*G_pixel.b*G_pixel.b);
+    //float Gradient=0;
+
+    FL = (A+B+C+D).r/4.0;
+   
+    nx = G_pixel.r;
+    ny = G_pixel.g;
+
+    FN = (nx * nx * texture2D(F, vec2(p.x-sign(nx),p.y)).r + ny * ny * texture2D(F, vec2(p.x,p.y-sign(ny))).r) * G_pixel.b;
 
     FI = E_pixel.r;
 

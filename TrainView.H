@@ -82,7 +82,8 @@ class TrainView : public Fl_Gl_Window
 		void Rasterization_ElevationMap();
 		void Rasterization_GradientMap();
 		void Diffuse_GradientMap();
-		void jacobi_texture();
+		void Fill_Cross();
+		void jacobi();
 
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f, int Area);
@@ -100,6 +101,7 @@ class TrainView : public Fl_Gl_Window
 		Shader* background_shader = nullptr;
 		Shader* screen_shader = nullptr;
 		Shader* gradient_shader = nullptr;
+		Shader* gradientcross_shader = nullptr;
 		Shader* gradientnorm_shader = nullptr;
 		Shader* heightmap_shader = nullptr;
 		Shader* heightmap_shader1 = nullptr;
@@ -133,13 +135,19 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureDiffuse[2];
 		unsigned int rboDiffuse[2];
 
-		unsigned int final_texture;
-		unsigned int final_rbo;
-		unsigned int final_vao[1];
-		unsigned int final_vbo[1];
+		/// <summary>
+		/// Jacobi Gradient
+		/// </summary>
+		unsigned int framebufferJacobi[2];
+		unsigned int textureJacobi[2];
+		unsigned int rboJacobi[2];
 
-		unsigned int textureColorbuffer7;
-		unsigned int textureColorbuffer8;
+		/// <summary>
+		/// Gradient Cross
+		/// </summary>
+		unsigned int framebufferCross = -1;
+		unsigned int textureCross;
+		unsigned int rboCross;
 
 		int iteration = 20;
 		int gridsize = 2048;
@@ -151,7 +159,6 @@ class TrainView : public Fl_Gl_Window
 		
 		vector<float> gradient_data;
 		vector<float> elevation_data;
-
 
 		glm::mat4 view;
 		glm::mat4 projection;

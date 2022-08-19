@@ -101,7 +101,7 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	//Point is for gradient constraint
 	else {
 		elevation_data.push_back(q0.x);
-		elevation_data.push_back(q0.y);
+		elevation_data.push_back(0.0);
 		elevation_data.push_back(q0.z);
 		/* Mentioned in 5.1 and 5.2
 		The last alpha component of the texture is used to indicate which constraints
@@ -251,7 +251,9 @@ void TrainView::Rasterization_GradientMap() {
 	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
+	Fill_Cross();
 }
+
 
 void TrainView::Diffuse_GradientMap() {
 
@@ -264,7 +266,6 @@ void TrainView::Diffuse_GradientMap() {
 	   -1.0f, -1.0f, 0.0f,
 	   -1.0f,  1.0f, 0.0f
 	};
-
 	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	glGenFramebuffers(2, framebufferDiffuse);
@@ -282,7 +283,7 @@ void TrainView::Diffuse_GradientMap() {
 
 
 	//First Texture
-	glActiveTexture(GL_TEXTURE25);
+	glActiveTexture(GL_TEXTURE21);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -302,7 +303,7 @@ void TrainView::Diffuse_GradientMap() {
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
 	//Second Texture
-	glActiveTexture(GL_TEXTURE26);
+	glActiveTexture(GL_TEXTURE22);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -324,30 +325,166 @@ void TrainView::Diffuse_GradientMap() {
 	diffuse_shader->Use();
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "Resolution"), coarsestSize);
 	glBindVertexArray(VAO[0]);
-
-
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
-			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 9);
+			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 11);
 		}
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
-			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 26);
+			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 22);
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
-			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 25);
+			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 21);
 		}
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
-
 }
 
-void TrainView::jacobi_texture() {
+void TrainView::Fill_Cross() {
+	float vertices[] = {
+		// positions           // texture coords
+		1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f
+	};
+	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	glGenFramebuffers(1, &framebufferCross);
+	glGenTextures(1, &textureCross);
+	glGenRenderbuffers(1, &rboCross);
+
+	unsigned int VBO[1], VAO[1];
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
+	glBindVertexArray(VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	//First Texture
+	glActiveTexture(GL_TEXTURE11);
+	glBindTexture(GL_TEXTURE_2D, textureCross);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferCross);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureCross, 0);
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glBindRenderbuffer(GL_RENDERBUFFER, rboCross);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboCross); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+
+	glBindVertexArray(VAO[0]);
+	gradientcross_shader->Use();
+	glUniform1f(glGetUniformLocation(gradientcross_shader->Program, "Resolution"), coarsestSize);
+	glUniform1i(glGetUniformLocation(gradientcross_shader->Program, "ElevationMap"), 10);
+	glUniform1i(glGetUniformLocation(gradientcross_shader->Program, "GradientMap"), 9);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+};
+
+void TrainView::jacobi() {
+	float vertices[] = {
+		// positions           // texture coords
+		1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+	   -1.0f, -1.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f
+	};
+	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	glGenFramebuffers(2, framebufferJacobi);
+	glGenTextures(2, textureJacobi);
+	glGenRenderbuffers(2, rboJacobi);
+
+	unsigned int VBO[1], VAO[1];
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
+	glBindVertexArray(VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	//First Texture
+	glActiveTexture(GL_TEXTURE23);
+	glBindTexture(GL_TEXTURE_2D, textureJacobi[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[0], 0);
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[0]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[0]); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+
+	//Second Texture
+	glActiveTexture(GL_TEXTURE24);
+	glBindTexture(GL_TEXTURE_2D, textureJacobi[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[1]);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[1], 0);
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[1]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[1]); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+
+
+	jacobi_shader->Use();
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), coarsestSize);
+	glBindVertexArray(VAO[0]);
+	for (int ii = 0; ii < iteration; ii++) {
+		if (ii == 0) {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 10);
+		}
+		else if (ii % 2 == 0) {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 24);
+		}
+		else {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[1]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 23);
+		}
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+	glDeleteVertexArrays(1, VAO);
+	glDeleteBuffers(1, VBO);
 
 }
 
@@ -513,6 +650,14 @@ void TrainView::draw()
 					"../src/Shaders/diffuse.vs",
 					nullptr, nullptr, nullptr,
 					"../src/Shaders/diffuse.fs");
+		}
+
+		if (!this->gradientcross_shader) {
+			this->gradientcross_shader = new
+				Shader(
+					"../src/Shaders/cross.vs",
+					nullptr, nullptr, nullptr,
+					"../src/Shaders/cross.fs");
 		}
 
 		if (!this->elevation_shader) {
@@ -741,10 +886,11 @@ void TrainView::drawStuff(bool doingShadows)
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			q0.normal = glm::vec3(0.0, 0.0, 1.0);
-			q1.normal = glm::vec3(0.0, 0.0, 1.0);
-			q2.normal = glm::vec3(0.0, 0.0, 1.0);
-			q3.normal = glm::vec3(0.0, 0.0, 1.0);
+			q0.normal = glm::vec3(0.0, 0.0, 0.0);
+			q1.normal = glm::vec3(0.0, 0.0, 0.0);
+			q2.normal = glm::vec3(0.0, 0.0, 0.0);
+			q3.normal = glm::vec3(0.0, 0.0, 0.0);
+
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
 			q5.normal = glm::vec3((n.x), (n.y), 1.0);
@@ -848,15 +994,13 @@ void TrainView::drawStuff(bool doingShadows)
 			n = glm::normalize(glm::vec2(normal.x, normal.z));
 			_n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
-			//cout << "second:" << n.x << " " << n.y << endl;
-
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
 
-			q0.normal = glm::vec3(0.0, 0.0, 1.0);
-			q1.normal = glm::vec3(0.0, 0.0, 1.0);
-			q2.normal = glm::vec3(0.0, 0.0, 1.0);
-			q3.normal = glm::vec3(0.0, 0.0, 1.0);
+			q0.normal = glm::vec3(0.0, 0.0, 0.0);
+			q1.normal = glm::vec3(0.0, 0.0, 0.0);
+			q2.normal = glm::vec3(0.0, 0.0, 0.0);
+			q3.normal = glm::vec3(0.0, 0.0, 0.0);
 
 			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
 			q5.normal = glm::vec3((n.x), (n.y), 1.0);
@@ -981,7 +1125,7 @@ void TrainView::drawStuff(bool doingShadows)
 	Rasterization_ElevationMap();
 	Rasterization_GradientMap();
 	Diffuse_GradientMap();
-	//jacobi_texture();
+	jacobi();
 
 	// Code below are using for visulization
 
@@ -1035,7 +1179,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 25);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 21);
 
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -1061,11 +1205,10 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 20);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 23);
 
 	glBindVertexArray(VAO[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-
 
 	heightmap_shader->Use();
 	//Ground of Height Map
@@ -1073,13 +1216,12 @@ void TrainView::drawStuff(bool doingShadows)
 	transss = glm::translate(transss, glm::vec3(0, 0,400));
 	transss = glm::scale(transss, glm::vec3(100, 1.0f, 100));
 
-
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
 	mountain_texture->bind(5);
-	wave_model->meshes[0].textures[0].id = final_texture;
+	wave_model->meshes[0].textures[0].id = textureJacobi[0];
 	wave_model->Draw(*heightmap_shader);
 
 	//Curve
@@ -1100,14 +1242,20 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(1, &textureGradientMap);
 	glDeleteRenderbuffers(1, &rboGradientMap);
 
+	glDeleteFramebuffers(1, &framebufferCross);
+	glDeleteTextures(1, &textureCross);
+	glDeleteRenderbuffers(1, &rboCross);
+
 	glDeleteFramebuffers(2, framebufferDiffuse);
 	glDeleteTextures(2, textureDiffuse);
 	glDeleteRenderbuffers(2, rboDiffuse);
 
+	glDeleteFramebuffers(2, framebufferJacobi);
+	glDeleteTextures(2, textureJacobi);
+	glDeleteRenderbuffers(2, rboJacobi);
+
 
 	glDeleteFramebuffers(1, &framebuffer);
-	glDeleteTextures(1, &final_texture);
-	glDeleteRenderbuffers(1, &final_rbo);
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {
