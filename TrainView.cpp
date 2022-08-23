@@ -253,7 +253,6 @@ void TrainView::Rasterization_GradientMap() {
 	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
-	Fill_Cross();
 }
 
 
@@ -330,7 +329,7 @@ void TrainView::Diffuse_GradientMap() {
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
-			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 11);
+			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 9);
 		}
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
@@ -346,59 +345,6 @@ void TrainView::Diffuse_GradientMap() {
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
-
-void TrainView::Fill_Cross() {
-	float vertices[] = {
-		// positions           // texture coords
-		1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f
-	};
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	glGenFramebuffers(1, &framebufferCross);
-	glGenTextures(1, &textureCross);
-	glGenRenderbuffers(1, &rboCross);
-
-	unsigned int VBO[1], VAO[1];
-	glGenVertexArrays(1, VAO);
-	glGenBuffers(1, VBO);
-	glBindVertexArray(VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	//First Texture
-	glActiveTexture(GL_TEXTURE11);
-	glBindTexture(GL_TEXTURE_2D, textureCross);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferCross);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureCross, 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glBindRenderbuffer(GL_RENDERBUFFER, rboCross);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboCross); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-
-	glBindVertexArray(VAO[0]);
-	gradientcross_shader->Use();
-	glUniform1f(glGetUniformLocation(gradientcross_shader->Program, "Resolution"), coarsestSize);
-	glUniform1i(glGetUniformLocation(gradientcross_shader->Program, "ElevationMap"), 10);
-	glUniform1i(glGetUniformLocation(gradientcross_shader->Program, "GradientMap"), 9);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-};
 
 void TrainView::jacobi() {
 	float vertices[] = {
@@ -1248,10 +1194,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteFramebuffers(1, &framebufferGradientMap);
 	glDeleteTextures(1, &textureGradientMap);
 	glDeleteRenderbuffers(1, &rboGradientMap);
-
-	glDeleteFramebuffers(1, &framebufferCross);
-	glDeleteTextures(1, &textureCross);
-	glDeleteRenderbuffers(1, &rboCross);
 
 	glDeleteFramebuffers(2, framebufferDiffuse);
 	glDeleteTextures(2, textureDiffuse);

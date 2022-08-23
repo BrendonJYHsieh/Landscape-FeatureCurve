@@ -29,7 +29,7 @@ void main()
     float FL=0,FN=0,FI=0;
     vec2 p=0.5*(vec2(1.0,1.0)+pos);
 
-    float sum=0.0,offset=1.0/Resolution;
+    float offset=1.0/Resolution;
 
     vec4 F_pixel = texture2D(F, p);
     vec4 E_pixel = texture2D(E, p);
@@ -48,9 +48,6 @@ void main()
     vec4 B = texture2D(F, vec2(p.x-offset,p.y+offset));
     vec4 C = texture2D(F, vec2(p.x+offset,p.y-offset));
     vec4 D = texture2D(F, vec2(p.x+offset,p.y+offset));
-
-    float Gradient = sqrt(((A.r-B.r)*(A.r-B.r) + (C.r-D.r)*(C.r-D.r))*G_pixel.b*G_pixel.b);
-    //float Gradient=0;
 
     FL = (A+B+C+D).r/4.0;
    

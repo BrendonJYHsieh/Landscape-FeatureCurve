@@ -10,7 +10,6 @@ void main()
     vec2 p=0.5*(vec2(1.0,1.0)+pos);
     vec4 pixel = texture2D(GradientMap, p);
     float offset=1.0/Resolution;
-
     if(pixel.a==0.5){
         vec4 A = texture2D(GradientMap, vec2(p.x-offset,p.y-offset));
         vec4 B = texture2D(GradientMap, vec2(p.x-offset,p.y+offset));
@@ -22,11 +21,6 @@ void main()
             //FragColor = vec4(0.0,0.0,sum.b,pixel.a);
             FragColor = vec4(sum.rg/length,sum.b,pixel.a);
         }
-        else{
-            //FragColor = vec4(0.0,0.0,sum.b,pixel.a);
-            FragColor = vec4(sum.rgb,pixel.a);
-        }
-
     }
     else{
         FragColor = pixel;
