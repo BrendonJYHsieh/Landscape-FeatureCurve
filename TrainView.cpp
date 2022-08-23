@@ -623,14 +623,6 @@ void TrainView::draw()
 					nullptr, nullptr, nullptr,
 					"../src/Shaders/gradient.fs");
 		}
-
-		if (!this->screen_shader) {
-			this->screen_shader = new
-				Shader(
-					"../src/Shaders/screen.vs",
-					nullptr, nullptr, nullptr,
-					"../src/Shaders/screen.fs");
-		}
 		if (!this->heightmap_shader) {
 			this->heightmap_shader = new
 				Shader(
@@ -929,12 +921,10 @@ void TrainView::drawStuff(bool doingShadows)
 
 			Axis = glm::normalize(glm::vec3(q3.x - q2.x,q3.y-q2.y, q3.z - q2.z));
 
-
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
-
 
 			q0.normal = glm::vec3(0.0, 0.0, 0.0);
 			q1.normal = glm::vec3(0.0, 0.0, 0.0);
@@ -1108,59 +1098,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	screen_shader->Use();
-	//Ground of Elevation
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::translate(trans, glm::vec3(200, 0, 0));
-	trans = glm::scale(trans, glm::vec3(100, 0, 100));
-	
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 10);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	//Ground of Gradient
-	glm::mat4 transs = glm::mat4(1.0f);
-	transs = glm::translate(transs, glm::vec3(-200, 1, 0));
-	transs = glm::scale(transs, glm::vec3(100, 1, 100));
-
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 21);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	//Ground of gradient
-	glm::mat4 trans_gradient= glm::mat4(1.0f);
-	trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 0, 200));
-	trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 1, 100));
-
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 3);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	//grid
-	glm::mat4 trans_height = glm::mat4(1.0f);
-	trans_height = glm::translate(trans_height, glm::vec3(-200, 0, -200));
-	trans_height = glm::scale(trans_height, glm::vec3(100, 1, 100));
-
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 23);
-
-	glBindVertexArray(VAO[1]);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-
 	heightmap_shader->Use();
 	//Ground of Height Map
 	glm::mat4 transss = glm::mat4(1.0f);
@@ -1173,6 +1110,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
 	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), minHeight);
 	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
+	glBindVertexArray(VAO[1]);
 	mountain_texture->bind(5);
 	wave_model->meshes[0].textures[0].id = textureJacobi[0];
 	wave_model->Draw(*heightmap_shader);
