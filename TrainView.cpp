@@ -124,7 +124,6 @@ void TrainView::SetCamera() {
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 }
-
 void TrainView::Rasterization_ElevationMap() {
 	/*VAO*/
 	unsigned int VBO[1], VAO[1];
@@ -140,7 +139,6 @@ void TrainView::Rasterization_ElevationMap() {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
-	glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
 
 	glEnable(GL_DEPTH_TEST); 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //Elsewhere
@@ -248,16 +246,6 @@ void TrainView::Rasterization_GradientMap() {
 
 void TrainView::Diffuse_GradientMap() {
 
-	float vertices[] = {
-		// positions           // texture coords
-		1.0f,  1.0f,
-		1.0f, -1.0f,
-	   -1.0f,  1.0f,
-		1.0f, -1.0f,
-	   -1.0f, -1.0f,
-	   -1.0f,  1.0f};
-	
-
 	glGenFramebuffers(2, framebufferDiffuse);
 	glGenTextures(2, textureDiffuse);
 	glGenRenderbuffers(2, rboDiffuse);
@@ -270,7 +258,6 @@ void TrainView::Diffuse_GradientMap() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-
 
 	//First Texture
 	glActiveTexture(GL_TEXTURE21);
@@ -556,7 +543,7 @@ void TrainView::draw()
 	//initialized glad
 	if (gladLoadGL())
 	{
-		if (framebufferElevetionMap==-1) {
+		if (framebufferElevetionMap==0) {
 			glGenFramebuffers(1, &framebufferElevetionMap);
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 			// create a color attachment texture
@@ -579,6 +566,9 @@ void TrainView::draw()
 			// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 				cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+		}
+		if (framebufferDiffuse[0]==0) {
+
 		}
 		if (!this->diffuse_shader) {
 			this->diffuse_shader = new

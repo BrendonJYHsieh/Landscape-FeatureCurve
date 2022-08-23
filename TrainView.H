@@ -116,22 +116,32 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Elevation
 		/// </summary>
-		unsigned int framebufferElevetionMap=-1;
+		unsigned int framebufferElevetionMap=0;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
 		/// <summary>
 		/// Gradient
 		/// </summary>
-		unsigned int framebufferGradientMap = -1;
+		unsigned int framebufferGradientMap =0;
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
 		/// <summary>
 		/// Diffuse Gradient
 		/// </summary>
-		unsigned int framebufferDiffuse[2];
+		unsigned int framebufferDiffuse[2] = {0};
 		unsigned int textureDiffuse[2];
 		unsigned int rboDiffuse[2];
+		unsigned int vaoDiffuse[1];
+		unsigned int vboDiffuse[1];
 
+		float vertices[12] = {
+			// positions           // texture coords
+			1.0f,  1.0f,
+			1.0f, -1.0f,
+		   -1.0f,  1.0f,
+			1.0f, -1.0f,
+		   -1.0f, -1.0f,
+		   -1.0f,  1.0f };
 		/// <summary>
 		/// Jacobi Gradient
 		/// </summary>
