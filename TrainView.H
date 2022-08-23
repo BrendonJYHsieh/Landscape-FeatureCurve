@@ -98,16 +98,13 @@ class TrainView : public Fl_Gl_Window
 		int 			SelectedNode;
 
 		Shader* elevation_shader = nullptr;
-		Shader* background_shader = nullptr;
-		Shader* screen_shader = nullptr;
 		Shader* gradient_shader = nullptr;
-		Shader* gradientcross_shader = nullptr;
-		Shader* gradientnorm_shader = nullptr;
 		Shader* heightmap_shader = nullptr;
-		Shader* heightmap_shader1 = nullptr;
 		Shader* overlay_shader = nullptr;
 		Shader* diffuse_shader = nullptr;
 		Shader* jacobi_shader = nullptr;
+
+		float borderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 		Texture2D* mountain_texture = nullptr;
 
