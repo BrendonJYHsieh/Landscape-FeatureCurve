@@ -246,7 +246,6 @@ void TrainView::Rasterization_GradientMap() {
 
 void TrainView::Diffuse_GradientMap() {
 
-
 	//First Texture
 	glActiveTexture(GL_TEXTURE21);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[0]);
@@ -286,16 +285,15 @@ void TrainView::Diffuse_GradientMap() {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
-
 	diffuse_shader->Use();
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "Resolution"), coarsestSize);
 	glBindVertexArray(vaoDiffuse[0]);
-	for (int ii = 0; ii < iteration; ii++) {
-		if (ii == 0) {
+	for (int i = 0; i < iteration; i++) {
+		if (i == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
 			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 9);
 		}
-		else if (ii % 2 == 0) {
+		else if (i % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
 			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 22);
 		}
@@ -303,7 +301,6 @@ void TrainView::Diffuse_GradientMap() {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
 			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 21);
 		}
-
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 }
