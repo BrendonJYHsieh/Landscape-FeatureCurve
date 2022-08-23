@@ -57,7 +57,7 @@ void main()
     nx = G_pixel.r;
     ny = G_pixel.g;
 
-    FN = (nx * nx * texture2D(F, vec2(p.x-sign(nx),p.y)).r + ny * ny * texture2D(F, vec2(p.x,p.y-sign(ny))).r) * G_pixel.b;
+    FN = (nx * nx * texture2D(F, vec2(p.x-sign(nx),p.y)).r + ny * ny * texture2D(F, vec2(p.x,p.y-sign(ny))).r) + G_pixel.b;
 
     FI = E_pixel.r;
 

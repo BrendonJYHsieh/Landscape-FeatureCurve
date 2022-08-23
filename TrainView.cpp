@@ -81,6 +81,7 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.normal.x); // nx
 	gradient_data.push_back(q0.normal.y); // ny
 	gradient_data.push_back(q0.normal.z); // gradient norm
+	//cout << q0.normal.y << endl;
 	//cout << "nx:" << q0.normal.x << " ny:" << q0.normal.y << endl;
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
@@ -164,6 +165,7 @@ void TrainView::Rasterization_ElevationMap() {
 	glDeleteBuffers(1, VBO);
 }
 void TrainView::Rasterization_GradientMap() {
+
 	glGenFramebuffers(1, &framebufferGradientMap);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	// create a color attachment texture
@@ -802,7 +804,6 @@ setProjection()
 
 void TrainView::drawStuff(bool doingShadows)
 {
-
 	gradient_data.clear();
 	elevation_data.clear();
 	for (int i = 0; i < Curves.size(); i++) {
@@ -881,21 +882,45 @@ void TrainView::drawStuff(bool doingShadows)
 			glm::vec2 n = glm::normalize(glm::vec2(normal.x, normal.z));
 			glm::vec2 _n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
-			//cout << "first:" << n.x << " " << n.y << endl;
+			////cout << "first:" << n.x << " " << n.y << endl;
+
+			//q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			//q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
+
+			//q0.normal = glm::vec3(0.0, 0.0, 0.0);
+			//q1.normal = glm::vec3(0.0, 0.0, 0.0);
+			//q2.normal = glm::vec3(0.0, 0.0, 0.0);
+			//q3.normal = glm::vec3(0.0, 0.0, 0.0);
+
+
+			//q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
+			//q5.normal = glm::vec3((n.x), (n.y), 1.0);
+			//q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(phi_init + phi_interporate * (j + 1))));
+			//q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(phi_init + phi_interporate * (j))));
 
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
+			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
+			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
+
+			n = glm::normalize(glm::vec2(normal.x, normal.z));
+			_n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
 			q0.normal = glm::vec3(0.0, 0.0, 0.0);
 			q1.normal = glm::vec3(0.0, 0.0, 0.0);
 			q2.normal = glm::vec3(0.0, 0.0, 0.0);
 			q3.normal = glm::vec3(0.0, 0.0, 0.0);
 
-
+			/*
 			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
 			q5.normal = glm::vec3((n.x), (n.y), 1.0);
-			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(phi_init + phi_interporate * (j + 1))));
-			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(phi_init + phi_interporate * (j))));
+			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(theta_init + theta_interporate * (j + 1))));
+			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(theta_init + theta_interporate * (j))));
+			/*/
+			q4.normal = _normal;
+			q5.normal = normal;
+			q6.normal = _normal;
+			q7.normal = normal;
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -986,26 +1011,34 @@ void TrainView::drawStuff(bool doingShadows)
 			q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j, q0.x > q1.x);
 
 
-			Axis = glm::normalize(glm::vec3(q3.x - q2.x,0, q3.z - q2.z));
+			Axis = glm::normalize(glm::vec3(q3.x - q2.x,q3.y-q2.y, q3.z - q2.z));
 
+
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
 			n = glm::normalize(glm::vec2(normal.x, normal.z));
 			_n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
-
 			q0.normal = glm::vec3(0.0, 0.0, 0.0);
 			q1.normal = glm::vec3(0.0, 0.0, 0.0);
 			q2.normal = glm::vec3(0.0, 0.0, 0.0);
 			q3.normal = glm::vec3(0.0, 0.0, 0.0);
 
+			/*
 			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
 			q5.normal = glm::vec3((n.x), (n.y), 1.0);
 			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(theta_init + theta_interporate * (j + 1))));
 			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(theta_init + theta_interporate * (j))));
+			/*/
+			q4.normal = _normal;
+			q5.normal = normal;
+			q6.normal = _normal;
+			q7.normal = normal;
+			//*/
+
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -1089,7 +1122,18 @@ void TrainView::drawStuff(bool doingShadows)
 		}
 	}
 
-	
+	float maxHeight = -9999999999;
+	float minHeight = 99999999999;
+	for (int i = 0; i < elevation_data.size() / 4;++i) {
+		float temp;
+		temp = elevation_data[i * 4 + 1];
+		if (temp < minHeight) {
+			minHeight = temp;
+		}
+		if (temp > maxHeight) {
+			maxHeight = temp;
+		}
+	}
 
 	float vertices[] = {
     // positions                          // texture coords
@@ -1219,6 +1263,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
+	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
+	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), minHeight);
 	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
 	mountain_texture->bind(5);
 	wave_model->meshes[0].textures[0].id = textureJacobi[0];
