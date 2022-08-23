@@ -81,8 +81,6 @@ void TrainView::push_gradient_data(Pnt3f q0) {
 	gradient_data.push_back(q0.normal.x); // nx
 	gradient_data.push_back(q0.normal.y); // ny
 	gradient_data.push_back(q0.normal.z); // gradient norm
-	//cout << q0.normal.y << endl;
-	//cout << "nx:" << q0.normal.x << " ny:" << q0.normal.y << endl;
 }
 void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	//Area == 0 means that the point is for elevation constraint
@@ -115,6 +113,18 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 	}
 }
 
+void TrainView::SetCamera() {
+	glViewport(0, 0, coarsestSize, coarsestSize);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-CanvasWidth / 2, CanvasWidth / 2, -CanvasHeight / 2, CanvasHeight / 2, 65535, -200);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glRotatef(-90, 1, 0, 0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+}
+
 void TrainView::Rasterization_ElevationMap() {
 	/*VAO*/
 	unsigned int VBO[1], VAO[1];
@@ -133,20 +143,11 @@ void TrainView::Rasterization_ElevationMap() {
 	glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
 
 	glEnable(GL_DEPTH_TEST); 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //Elsewhere
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//Curve
 	elevation_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
-	glViewport(0, 0, coarsestSize, coarsestSize);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-CanvasWidth/2, CanvasWidth/2, -CanvasHeight/2, CanvasHeight/2, 65535, -200);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(-90, 1, 0, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
@@ -216,17 +217,6 @@ void TrainView::Rasterization_GradientMap() {
 	//Curve
 	gradient_shader->Use();
 	glm::mat4 model = glm::mat4(1.0f);
-
-	glViewport(0, 0, coarsestSize, coarsestSize);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(-CanvasWidth/2, CanvasWidth/2, -CanvasHeight/2, CanvasHeight/2, 65535, -200);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(-90, 1, 0, 0);
-
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
@@ -574,7 +564,6 @@ void TrainView::draw()
 			glGenTextures(1, &textureElevetionMap);
 			glActiveTexture(GL_TEXTURE10);
 			glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
-
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -1063,6 +1052,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
+	SetCamera();
 	Rasterization_ElevationMap();
 	Rasterization_GradientMap();
 	Diffuse_GradientMap();

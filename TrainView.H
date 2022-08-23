@@ -82,7 +82,7 @@ class TrainView : public Fl_Gl_Window
 		void Rasterization_ElevationMap();
 		void Rasterization_GradientMap();
 		void Diffuse_GradientMap();
-		void Fill_Cross();
+		void SetCamera();
 		void jacobi();
 
 		void push_gradient_data(Pnt3f);
