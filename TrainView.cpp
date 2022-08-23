@@ -876,47 +876,18 @@ void TrainView::drawStuff(bool doingShadows)
 
 			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x,0.0, q3.z - q2.z));
 
-			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
-			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
-
-			glm::vec2 n = glm::normalize(glm::vec2(normal.x, normal.z));
-			glm::vec2 _n = glm::normalize(glm::vec2(_normal.x, _normal.z));
-
-			////cout << "first:" << n.x << " " << n.y << endl;
-
-			//q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			//q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
-
-			//q0.normal = glm::vec3(0.0, 0.0, 0.0);
-			//q1.normal = glm::vec3(0.0, 0.0, 0.0);
-			//q2.normal = glm::vec3(0.0, 0.0, 0.0);
-			//q3.normal = glm::vec3(0.0, 0.0, 0.0);
 
 
-			//q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
-			//q5.normal = glm::vec3((n.x), (n.y), 1.0);
-			//q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(phi_init + phi_interporate * (j + 1))));
-			//q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(phi_init + phi_interporate * (j))));
 
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
-			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
-			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
-
-			n = glm::normalize(glm::vec2(normal.x, normal.z));
-			_n = glm::normalize(glm::vec2(_normal.x, _normal.z));
+			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
+			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
 			q0.normal = glm::vec3(0.0, 0.0, 0.0);
 			q1.normal = glm::vec3(0.0, 0.0, 0.0);
 			q2.normal = glm::vec3(0.0, 0.0, 0.0);
 			q3.normal = glm::vec3(0.0, 0.0, 0.0);
-
-			/*
-			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
-			q5.normal = glm::vec3((n.x), (n.y), 1.0);
-			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(theta_init + theta_interporate * (j + 1))));
-			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(theta_init + theta_interporate * (j))));
-			/*/
 			q4.normal = _normal;
 			q5.normal = normal;
 			q6.normal = _normal;
@@ -929,7 +900,6 @@ void TrainView::drawStuff(bool doingShadows)
 			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0).
 			Furthermore q6, q7 are the points in the end of the quadrangle.
 			*/
-
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
@@ -1019,20 +989,11 @@ void TrainView::drawStuff(bool doingShadows)
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
-			n = glm::normalize(glm::vec2(normal.x, normal.z));
-			_n = glm::normalize(glm::vec2(_normal.x, _normal.z));
 
 			q0.normal = glm::vec3(0.0, 0.0, 0.0);
 			q1.normal = glm::vec3(0.0, 0.0, 0.0);
 			q2.normal = glm::vec3(0.0, 0.0, 0.0);
 			q3.normal = glm::vec3(0.0, 0.0, 0.0);
-
-			/*
-			q4.normal = glm::vec3((_n.x), (_n.y), 1.0);
-			q5.normal = glm::vec3((n.x), (n.y), 1.0);
-			q6.normal = glm::vec3((_n.x), (_n.y), sin(glm::radians(theta_init + theta_interporate * (j + 1))));
-			q7.normal = glm::vec3((n.x), (n.y), sin(glm::radians(theta_init + theta_interporate * (j))));
-			/*/
 			q4.normal = _normal;
 			q5.normal = normal;
 			q6.normal = _normal;
