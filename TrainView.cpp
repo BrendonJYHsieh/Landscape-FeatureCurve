@@ -246,18 +246,6 @@ void TrainView::Rasterization_GradientMap() {
 
 void TrainView::Diffuse_GradientMap() {
 
-	glGenFramebuffers(2, framebufferDiffuse);
-	glGenTextures(2, textureDiffuse);
-	glGenRenderbuffers(2, rboDiffuse);
-
-	unsigned int VBO[1], VAO[1];
-	glGenVertexArrays(1, VAO);
-	glGenBuffers(1, VBO);
-	glBindVertexArray(VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
 
 	//First Texture
 	glActiveTexture(GL_TEXTURE21);
@@ -301,7 +289,7 @@ void TrainView::Diffuse_GradientMap() {
 
 	diffuse_shader->Use();
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "Resolution"), coarsestSize);
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(vaoDiffuse[0]);
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
@@ -318,8 +306,6 @@ void TrainView::Diffuse_GradientMap() {
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
-	glDeleteVertexArrays(1, VAO);
-	glDeleteBuffers(1, VBO);
 }
 
 void TrainView::jacobi() {
@@ -568,7 +554,17 @@ void TrainView::draw()
 				cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 		}
 		if (framebufferDiffuse[0]==0) {
+			glGenFramebuffers(2, framebufferDiffuse);
+			glGenTextures(2, textureDiffuse);
+			glGenRenderbuffers(2, rboDiffuse);
 
+			glGenVertexArrays(1, vaoDiffuse);
+			glGenBuffers(1, vboDiffuse);
+			glBindVertexArray(vaoDiffuse[0]);
+			glBindBuffer(GL_ARRAY_BUFFER, vboDiffuse[0]);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
 		}
 		if (!this->diffuse_shader) {
 			this->diffuse_shader = new
