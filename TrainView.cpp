@@ -153,12 +153,6 @@ void TrainView::Rasterization_ElevationMap() {
 
 	glBindVertexArray(VAO[0]);
 	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
-	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-	// clear all relevant buffers
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
-	glClear(GL_COLOR_BUFFER_BIT);
 
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
@@ -166,9 +160,11 @@ void TrainView::Rasterization_ElevationMap() {
 void TrainView::Rasterization_GradientMap() {
 
 	glGenFramebuffers(1, &framebufferGradientMap);
+	glGenTextures(1, &textureGradientMap);
+	glGenRenderbuffers(1, &rboGradientMap);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	// create a color attachment texture
-	glGenTextures(1, &textureGradientMap);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
 
@@ -181,7 +177,6 @@ void TrainView::Rasterization_GradientMap() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureGradientMap, 0);
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glGenRenderbuffers(1, &rboGradientMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboGradientMap); // now actually attach it
@@ -236,16 +231,10 @@ void TrainView::Rasterization_GradientMap() {
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 	glDisable(GL_STENCIL_TEST);
 
-	// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
 	glDeleteVertexArrays(1, VAO);
 	glDeleteBuffers(1, VBO);
 }
-
-
 void TrainView::Diffuse_GradientMap() {
-
 	//First Texture
 	glActiveTexture(GL_TEXTURE21);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[0]);
@@ -288,6 +277,7 @@ void TrainView::Diffuse_GradientMap() {
 	diffuse_shader->Use();
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "Resolution"), coarsestSize);
 	glBindVertexArray(vaoDiffuse[0]);
+
 	for (int i = 0; i < iteration; i++) {
 		if (i == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
@@ -306,29 +296,10 @@ void TrainView::Diffuse_GradientMap() {
 }
 
 void TrainView::jacobi() {
-	float vertices[] = {
-		// positions           // texture coords
-		1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f
-	};
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	glGenFramebuffers(2, framebufferJacobi);
 	glGenTextures(2, textureJacobi);
 	glGenRenderbuffers(2, rboJacobi);
-
-	unsigned int VBO[1], VAO[1];
-	glGenVertexArrays(1, VAO);
-	glGenBuffers(1, VBO);
-	glBindVertexArray(VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
 
 	//First Texture
 	glActiveTexture(GL_TEXTURE23);
@@ -374,7 +345,7 @@ void TrainView::jacobi() {
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
 	glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), coarsestSize);
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(vaoDiffuse[0]);
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
@@ -390,9 +361,6 @@ void TrainView::jacobi() {
 		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
-	glDeleteVertexArrays(1, VAO);
-	glDeleteBuffers(1, VBO);
-
 }
 
 //************************************************************************
