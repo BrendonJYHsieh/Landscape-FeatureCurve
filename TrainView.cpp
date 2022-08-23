@@ -176,7 +176,6 @@ void TrainView::Rasterization_GradientMap() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -258,17 +257,6 @@ void TrainView::Rasterization_GradientMap() {
 
 void TrainView::Diffuse_GradientMap() {
 
-	float vertices[] = {
-		// positions           // texture coords
-		1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f
-	};
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
 	glGenFramebuffers(2, framebufferDiffuse);
 	glGenTextures(2, textureDiffuse);
 	glGenRenderbuffers(2, rboDiffuse);
@@ -279,9 +267,8 @@ void TrainView::Diffuse_GradientMap() {
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-
 
 	//First Texture
 	glActiveTexture(GL_TEXTURE21);
@@ -322,7 +309,6 @@ void TrainView::Diffuse_GradientMap() {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
-
 	diffuse_shader->Use();
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "Resolution"), coarsestSize);
 	glBindVertexArray(VAO[0]);
@@ -348,16 +334,6 @@ void TrainView::Diffuse_GradientMap() {
 
 
 void TrainView::jacobi() {
-	float vertices[] = {
-		// positions           // texture coords
-		1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f,
-		1.0f, -1.0f, 0.0f,
-	   -1.0f, -1.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f
-	};
-	float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	glGenFramebuffers(2, framebufferJacobi);
 	glGenTextures(2, textureJacobi);
@@ -369,7 +345,7 @@ void TrainView::jacobi() {
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
 	//First Texture
@@ -599,14 +575,6 @@ void TrainView::draw()
 					"../src/Shaders/diffuse.vs",
 					nullptr, nullptr, nullptr,
 					"../src/Shaders/diffuse.fs");
-		}
-
-		if (!this->gradientcross_shader) {
-			this->gradientcross_shader = new
-				Shader(
-					"../src/Shaders/cross.vs",
-					nullptr, nullptr, nullptr,
-					"../src/Shaders/cross.fs");
 		}
 
 		if (!this->elevation_shader) {

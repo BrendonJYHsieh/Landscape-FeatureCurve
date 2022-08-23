@@ -87,6 +87,7 @@ class TrainView : public Fl_Gl_Window
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f, int Area);
 	public:
+
 		ArcBallCam		arcball;			// keep an ArcBall for the UI
 		int				selectedCube = -1;  // simple - just remember which cube is selected
 
@@ -95,6 +96,16 @@ class TrainView : public Fl_Gl_Window
 		vector<Curve>   Curves;
 		int 			SelectedCurve;
 		int 			SelectedNode;
+
+		float vertices[12] = {
+			// positions           // texture coords
+			1.0f,  1.0f, 
+			1.0f, -1.0f, 
+		   -1.0f,  1.0f, 
+			1.0f, -1.0f, 
+		   -1.0f, -1.0f, 
+		   -1.0f,  1.0f, 		};
+		float borderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 		Shader* elevation_shader = nullptr;
 		Shader* background_shader = nullptr;
