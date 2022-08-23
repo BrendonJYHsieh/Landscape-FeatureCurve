@@ -82,7 +82,6 @@ class TrainView : public Fl_Gl_Window
 		void Rasterization_ElevationMap();
 		void Rasterization_GradientMap();
 		void Diffuse_GradientMap();
-		void SetCamera();
 		void jacobi();
 
 		void push_gradient_data(Pnt3f);
@@ -98,13 +97,16 @@ class TrainView : public Fl_Gl_Window
 		int 			SelectedNode;
 
 		Shader* elevation_shader = nullptr;
+		Shader* background_shader = nullptr;
+		Shader* screen_shader = nullptr;
 		Shader* gradient_shader = nullptr;
+		Shader* gradientcross_shader = nullptr;
+		Shader* gradientnorm_shader = nullptr;
 		Shader* heightmap_shader = nullptr;
+		Shader* heightmap_shader1 = nullptr;
 		Shader* overlay_shader = nullptr;
 		Shader* diffuse_shader = nullptr;
 		Shader* jacobi_shader = nullptr;
-
-		float borderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 		Texture2D* mountain_texture = nullptr;
 
@@ -116,38 +118,35 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Elevation
 		/// </summary>
-		unsigned int framebufferElevetionMap=0;
+		unsigned int framebufferElevetionMap=-1;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
 		/// <summary>
 		/// Gradient
 		/// </summary>
-		unsigned int framebufferGradientMap =0;
+		unsigned int framebufferGradientMap = -1;
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
 		/// <summary>
 		/// Diffuse Gradient
 		/// </summary>
-		unsigned int framebufferDiffuse[2] = {0};
+		unsigned int framebufferDiffuse[2];
 		unsigned int textureDiffuse[2];
 		unsigned int rboDiffuse[2];
-		unsigned int vaoDiffuse[1];
-		unsigned int vboDiffuse[1];
 
-		float vertices[12] = {
-			// positions           // texture coords
-			1.0f,  1.0f,
-			1.0f, -1.0f,
-		   -1.0f,  1.0f,
-			1.0f, -1.0f,
-		   -1.0f, -1.0f,
-		   -1.0f,  1.0f };
 		/// <summary>
 		/// Jacobi Gradient
 		/// </summary>
 		unsigned int framebufferJacobi[2];
 		unsigned int textureJacobi[2];
 		unsigned int rboJacobi[2];
+
+		/// <summary>
+		/// Gradient Cross
+		/// </summary>
+		unsigned int framebufferCross = -1;
+		unsigned int textureCross;
+		unsigned int rboCross;
 
 		int iteration = 20;
 		int gridsize = 2048;
