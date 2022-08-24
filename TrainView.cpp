@@ -179,12 +179,11 @@ void TrainView::Rasterization_GradientMap() {
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
 	/*VAO*/
-	unsigned int VBO[1], VAO[1];
-	glGenVertexArrays(1, VAO);
-	glGenBuffers(1, VBO);
+	glGenVertexArrays(1, vaoGradientMap);
+	glGenBuffers(1, vboGradientMap);
 	//Curve
-	glBindVertexArray(VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glBindVertexArray(vaoGradientMap[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vboGradientMap[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -194,7 +193,7 @@ void TrainView::Rasterization_GradientMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
-	glBindVertexArray(VAO[0]);
+	glBindVertexArray(vaoGradientMap[0]);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
@@ -223,8 +222,8 @@ void TrainView::Rasterization_GradientMap() {
 	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
 
 	glDisable(GL_STENCIL_TEST);
-	glDeleteVertexArrays(1, VAO);
-	glDeleteBuffers(1, VBO);
+	glDeleteVertexArrays(1, vaoGradientMap);
+	glDeleteBuffers(1, vboGradientMap);
 }
 
 void TrainView::Diffuse_GradientMap() {

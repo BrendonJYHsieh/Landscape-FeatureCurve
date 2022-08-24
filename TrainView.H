@@ -138,6 +138,8 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Gradient
 		/// </summary>
+		unsigned int vaoGradientMap[1];
+		unsigned int vboGradientMap[1];
 		unsigned int framebufferGradientMap = -1;
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
