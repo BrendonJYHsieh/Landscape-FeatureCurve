@@ -84,9 +84,7 @@ class TrainView : public Fl_Gl_Window
 		void Diffuse_GradientMap();
 		void jacobi();
 
-
-		void push_gradient_data(Pnt3f);
-		void push_elevation_data(Pnt3f, int Area);
+		void push_vertexDatas(Pnt3f, int Area);
 	public:
 
 		ArcBallCam		arcball;			// keep an ArcBall for the UI
@@ -172,8 +170,7 @@ class TrainView : public Fl_Gl_Window
 		int CanvasHeight = 400;
 		int CanvasWidth = 400;
 		
-		vector<float> gradient_data;
-		vector<float> elevation_data;
+		vector<float> vertexDatas;
 
 		glm::mat4 view;
 		glm::mat4 projection;

@@ -71,24 +71,13 @@ glm::vec3 Pnt3_to_Vec3(Pnt3f a) {
 Pnt3f Vec3_to_Pnt3(glm::vec3 a) {
 	return Pnt3f(a.x, a.y, a.z);
 }
-void TrainView::push_gradient_data(Pnt3f q0) {
-	gradient_data.push_back(q0.x);
-	gradient_data.push_back(q0.y);
-	gradient_data.push_back(q0.z);
-	// Mentioned in 5.1 
-	// n = (nx, ny)
-	gradient_data.push_back(q0.normal.x); // nx
-	gradient_data.push_back(q0.normal.y); // ny
-	gradient_data.push_back(q0.normal.z); // gradient norm
-	//cout << q0.normal.y << endl;
-	//cout << "nx:" << q0.normal.x << " ny:" << q0.normal.y << endl;
-}
-void TrainView::push_elevation_data(Pnt3f q0,int Area) {
+
+void TrainView::push_vertexDatas(Pnt3f q0,int Area) {
 	//Area == 0 means that the point is for elevation constraint
 	if (Area == 0) {
-		elevation_data.push_back(q0.x);
-		elevation_data.push_back(q0.y);
-		elevation_data.push_back(q0.z);
+		vertexDatas.push_back(q0.x);
+		vertexDatas.push_back(q0.y);
+		vertexDatas.push_back(q0.z);
 		/* Mentioned in 5.1 and 5.2
 		The last alpha component of the texture is used to indicate which constraints
 		have been set on the different areas.
@@ -96,13 +85,13 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		alpha = 0.5 -> gradient constrain
 		alpha = 1.0 -> elsewhere
 		*/
-		elevation_data.push_back(0.0); 
+		vertexDatas.push_back(0.0); 
 	}
 	//Point is for gradient constraint
 	else {
-		elevation_data.push_back(q0.x);
-		elevation_data.push_back(0.0);
-		elevation_data.push_back(q0.z);
+		vertexDatas.push_back(q0.x);
+		vertexDatas.push_back(q0.y);
+		vertexDatas.push_back(q0.z);
 		/* Mentioned in 5.1 and 5.2
 		The last alpha component of the texture is used to indicate which constraints
 		have been set on the different areas.
@@ -110,8 +99,11 @@ void TrainView::push_elevation_data(Pnt3f q0,int Area) {
 		alpha = 0.5 -> gradient constrain
 		alpha = 1.0 -> elsewhere
 		*/
-		elevation_data.push_back(0.5);
+		vertexDatas.push_back(0.5);
 	}
+	vertexDatas.push_back(q0.normal.x); // nx
+	vertexDatas.push_back(q0.normal.y); // ny
+	vertexDatas.push_back(q0.normal.z); // gradient norm
 }
 void TrainView::SetCamera() {
 	glViewport(0, 0, coarsestSize, coarsestSize);
@@ -130,9 +122,11 @@ void TrainView::Rasterization_ElevationMap() {
 	glGenBuffers(1, vboElevetionMap);
 	glBindVertexArray(vaoElevetionMap[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * elevation_data.size(), &elevation_data[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
@@ -148,10 +142,7 @@ void TrainView::Rasterization_ElevationMap() {
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 
 	glBindVertexArray(vaoElevetionMap[0]);
-	glDrawArrays(GL_TRIANGLES, 0, elevation_data.size());
-
-	glDeleteVertexArrays(1, vaoElevetionMap);
-	glDeleteBuffers(1, vboElevetionMap);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size());
 }
 void TrainView::Rasterization_GradientMap() {
 
@@ -178,22 +169,22 @@ void TrainView::Rasterization_GradientMap() {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
-	/*VAO*/
-	glGenVertexArrays(1, vaoGradientMap);
-	glGenBuffers(1, vboGradientMap);
-	//Curve
-	glBindVertexArray(vaoGradientMap[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboGradientMap[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	///*VAO*/
+	//glGenVertexArrays(1, vaoGradientMap);
+	//glGenBuffers(1, vboGradientMap);
+	////Curve
+	//glBindVertexArray(vaoGradientMap[0]);
+	//glBindBuffer(GL_ARRAY_BUFFER, vboGradientMap[0]);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
-	glBindVertexArray(vaoGradientMap[0]);
+	//glBindVertexArray(vaoGradientMap[0]);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
@@ -204,13 +195,16 @@ void TrainView::Rasterization_GradientMap() {
 	//Curve
 	gradient_shader->Use();
 
+	glBindVertexArray(vaoElevetionMap[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
+
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
 	glStencilMask(0xFF);
-	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
 	// clean curve intersection part
 	overlay_shader->Use();
@@ -219,11 +213,11 @@ void TrainView::Rasterization_GradientMap() {
 	glDisable(GL_DEPTH_TEST);
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7 * 3);
+
+
 
 	glDisable(GL_STENCIL_TEST);
-	glDeleteVertexArrays(1, vaoGradientMap);
-	glDeleteBuffers(1, vboGradientMap);
 }
 
 void TrainView::Diffuse_GradientMap() {
@@ -690,8 +684,7 @@ setProjection()
 
 void TrainView::drawStuff(bool doingShadows)
 {
-	gradient_data.clear();
-	elevation_data.clear();
+	vertexDatas.clear();
 	for (int i = 0; i < Curves.size(); i++) {
 		float t = 0;
 		float divide = tw->segment->value();
@@ -789,70 +782,38 @@ void TrainView::drawStuff(bool doingShadows)
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
-			push_elevation_data(q0,0);
-			push_elevation_data(q1,0);
-			push_elevation_data(q2,0);
+			push_vertexDatas(q0,0);
+			push_vertexDatas(q1,0);
+			push_vertexDatas(q2,0);
 			//q2,q3,q0
-			push_elevation_data(q2,0);
-			push_elevation_data(q3,0);
-			push_elevation_data(q0,0);
+			push_vertexDatas(q2,0);
+			push_vertexDatas(q3,0);
+			push_vertexDatas(q0,0);
 			//q2,q4,q3
-			push_elevation_data(q4,1);
-			push_elevation_data(q6,1);
-			push_elevation_data(q5,1);
+			push_vertexDatas(q4,1);
+			push_vertexDatas(q6,1);
+			push_vertexDatas(q5,1);
 			//q4,q5,q3
-			push_elevation_data(q6,1);
-			push_elevation_data(q7,1);
-			push_elevation_data(q5,1);
+			push_vertexDatas(q6,1);
+			push_vertexDatas(q7,1);
+			push_vertexDatas(q5,1);
 
 			// In order to fill the hole caused by quadrangle
 			if (j > 0) {
 				//q0,q3,p2
-				push_elevation_data(q0,0);
-				push_elevation_data(q3,0);
-				push_elevation_data(p2,0);
+				push_vertexDatas(q0,0);
+				push_vertexDatas(q3,0);
+				push_vertexDatas(p2,0);
 				//q0,q3,p2
-				push_elevation_data(p4,1);
-				push_elevation_data(q5,1);
-				push_elevation_data(q7,1);
+				push_vertexDatas(p4,1);
+				push_vertexDatas(q5,1);
+				push_vertexDatas(q7,1);
 				//q0,q3,p2
-				push_elevation_data(q7,1);
-				push_elevation_data(p6,1);
-				push_elevation_data(p4,1);
+				push_vertexDatas(q7,1);
+				push_vertexDatas(p6,1);
+				push_vertexDatas(p4,1);
 			}
 
-			/*Gradient Vertex*/
-			//q0,q1,q2
-			push_gradient_data(q0);
-			push_gradient_data(q1);
-			push_gradient_data(q2);
-			//q2,q3,q0
-			push_gradient_data(q2);
-			push_gradient_data(q3);
-			push_gradient_data(q0);
-			//q2,q4,q3
-			push_gradient_data(q4);
-			push_gradient_data(q6);
-			push_gradient_data(q5);
-			//q4,q5,q3
-			push_gradient_data(q6);
-			push_gradient_data(q7);
-			push_gradient_data(q5);
-			//Fill holes
-			if (j > 0) {
-				//q0,q3,p2
-				push_gradient_data(q0);
-				push_gradient_data(q3);
-				push_gradient_data(p2);
-				//q0,q3,p2
-				push_gradient_data(p4);
-				push_gradient_data(q5);
-				push_gradient_data(q7);
-				//q0,q3,p2
-				push_gradient_data(q7);
-				push_gradient_data(p6);
-				push_gradient_data(p4);
-			}
 			/*Previous Points*/
 			p2 = q2;
 			p4 = q4;
@@ -898,71 +859,38 @@ void TrainView::drawStuff(bool doingShadows)
 
 			/*Elevation Vertex*/
 			//q0,q1,q2
-			push_elevation_data(q0, 0);
-			push_elevation_data(q1, 0);
-			push_elevation_data(q2, 0);
+			push_vertexDatas(q0, 0);
+			push_vertexDatas(q1, 0);
+			push_vertexDatas(q2, 0);
 			//q2,q3,q0
-			push_elevation_data(q2, 0);
-			push_elevation_data(q3, 0);
-			push_elevation_data(q0, 0);
+			push_vertexDatas(q2, 0);
+			push_vertexDatas(q3, 0);
+			push_vertexDatas(q0, 0);
 			//q2,q4,q3
-			push_elevation_data(q4, 1);
-			push_elevation_data(q6, 1);
-			push_elevation_data(q5, 1);
+			push_vertexDatas(q4, 1);
+			push_vertexDatas(q6, 1);
+			push_vertexDatas(q5, 1);
 			//q4,q5,q3
-			push_elevation_data(q6, 1);
-			push_elevation_data(q7, 1);
-			push_elevation_data(q5, 1);
+			push_vertexDatas(q6, 1);
+			push_vertexDatas(q7, 1);
+			push_vertexDatas(q5, 1);
 
 			//Fill holes
 			if (j > 0) {
 				//q0,q3,p2
-				push_elevation_data(q0, 0);
-				push_elevation_data(q3, 0);
-				push_elevation_data(_p2, 0);
+				push_vertexDatas(q0, 0);
+				push_vertexDatas(q3, 0);
+				push_vertexDatas(_p2, 0);
 				//q0,q3,p2
-				push_elevation_data(_p4, 1);
-				push_elevation_data(q5, 1);
-				push_elevation_data(q7, 1);
+				push_vertexDatas(_p4, 1);
+				push_vertexDatas(q5, 1);
+				push_vertexDatas(q7, 1);
 				//q0,q3,p2
-				push_elevation_data(q7, 1);
-				push_elevation_data(_p6, 1);
-				push_elevation_data(_p4, 1);
+				push_vertexDatas(q7, 1);
+				push_vertexDatas(_p6, 1);
+				push_vertexDatas(_p4, 1);
 			}
 
-			/*Gradient Vertex*/
-			//q0,q1,q2
-			push_gradient_data(q0);
-			push_gradient_data(q1);
-			push_gradient_data(q2);
-			//q2,q3,q0
-			push_gradient_data(q2);
-			push_gradient_data(q3);
-			push_gradient_data(q0);
-			//q2,q4,q3
-			push_gradient_data(q4);
-			push_gradient_data(q6);
-			push_gradient_data(q5);
-			//q4,q5,q3
-			push_gradient_data(q6);
-			push_gradient_data(q7);
-			push_gradient_data(q5);
-
-			// In order to fill the hole caused by quadrangle
-			if (j > 0) {
-				//q0,q3,p2
-				push_gradient_data(q0);
-				push_gradient_data(q3);
-				push_gradient_data(_p2);
-				//q0,q3,p2
-				push_gradient_data(_p4);
-				push_gradient_data(q5);
-				push_gradient_data(q7);
-				//q0,q3,p2
-				push_gradient_data(q7);
-				push_gradient_data(_p6);
-				push_gradient_data(_p4);
-			}
 			_p2 = q2;
 			_p4 = q4;
 			_p6 = q6;
@@ -971,9 +899,9 @@ void TrainView::drawStuff(bool doingShadows)
 
 	float maxHeight = -9999999999;
 	float minHeight = 99999999999;
-	for (int i = 0; i < elevation_data.size() / 4;++i) {
+	for (int i = 0; i < vertexDatas.size() / 7;++i) {
 		float temp;
-		temp = elevation_data[i * 4 + 1];
+		temp = vertexDatas[i * 7 + 1];
 		if (temp < minHeight) {
 			minHeight = temp;
 		}
@@ -999,7 +927,7 @@ void TrainView::drawStuff(bool doingShadows)
     //Curve
     glBindVertexArray(VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size()/7*3, &vertexDatas[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -1119,17 +1047,20 @@ void TrainView::drawStuff(bool doingShadows)
 
 	//Curve
 	gradient_shader->Use();
-	glm::mat4 model = glm::mat4(1.0f);
-
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "model"), 1, GL_FALSE, &model[0][0]);
-
-	glBindVertexArray(VAO[0]);
-	glDrawArrays(GL_TRIANGLES, 0, gradient_data.size());
+	glBindVertexArray(vaoElevetionMap[0]);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
 	glDeleteVertexArrays(3, VAO);
 	glDeleteBuffers(3, VBO);
+
+	glDeleteVertexArrays(1, vaoElevetionMap);
+	glDeleteBuffers(1, vboElevetionMap);
+
+	glDeleteFramebuffers(2, framebufferDiffuse);
+	glDeleteTextures(2, textureDiffuse);
+	glDeleteRenderbuffers(2, rboDiffuse);
 
 	glDeleteFramebuffers(1, &framebufferGradientMap);
 	glDeleteTextures(1, &textureGradientMap);
@@ -1138,10 +1069,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteFramebuffers(1, &framebufferCross);
 	glDeleteTextures(1, &textureCross);
 	glDeleteRenderbuffers(1, &rboCross);
-
-	glDeleteFramebuffers(2, framebufferDiffuse);
-	glDeleteTextures(2, textureDiffuse);
-	glDeleteRenderbuffers(2, rboDiffuse);
 
 	glDeleteFramebuffers(2, framebufferJacobi);
 	glDeleteTextures(2, textureJacobi);
