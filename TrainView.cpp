@@ -721,7 +721,7 @@ void TrainView::drawStuff(bool doingShadows)
 			q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1), q0.x < q1.x);
 			q7 = Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j, q0.x < q1.x);
 
-			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x,0.0, q3.z - q2.z));
+			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z));
 
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
