@@ -73,7 +73,7 @@ class TrainView : public Fl_Gl_Window
 		// setup the projection - assuming that the projection stack has been
 		// cleared for you
 		void setProjection();
-
+		void SetCamera();
 		// Reset the Arc ball control
 		void resetArcball();
 
@@ -83,6 +83,7 @@ class TrainView : public Fl_Gl_Window
 		void Rasterization_GradientMap();
 		void Diffuse_GradientMap();
 		void jacobi();
+
 
 		void push_gradient_data(Pnt3f);
 		void push_elevation_data(Pnt3f, int Area);
@@ -129,6 +130,8 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Elevation
 		/// </summary>
+		unsigned int vaoElevetionMap[1];
+		unsigned int vboElevetionMap[1];
 		unsigned int framebufferElevetionMap=-1;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
