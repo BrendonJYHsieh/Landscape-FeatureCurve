@@ -5,14 +5,16 @@ in vec3 ourColor;
 void main()
 {
     vec3 color = ourColor.rgb;
+    vec2 n = vec2(0);
+
     float length = sqrt(ourColor.x * ourColor.x + ourColor.z * ourColor.z);
     if (length == 0){
         color.y = 0;
     }
     else{
+        color = normalize(color);
         color.y = color.y / length;
+        n = normalize(color.xz);
     }
-    //color.y = abs(color.y);
-    FragColor = vec4(color.xz,color.y, 1.0f);
-    //FragColor = vec4(0.0, 0.0,color.y, 1.0f);
+    FragColor = vec4(n,color.y, 1.0f);
 }

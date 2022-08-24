@@ -19,8 +19,7 @@ void main()
         vec4 sum = (A+B+C+D)/4.0;
         float length = sqrt(sum.r*sum.r+sum.g*sum.g);
         if(length!=0){
-            //FragColor = vec4(0.0,0.0,sum.b,pixel.a);
-            FragColor = vec4(sum.rg/length,sum.b,pixel.a);
+            FragColor = vec4(normalize(sum.rg),sum.b,pixel.a);
         }
         else{
             FragColor = pixel;
