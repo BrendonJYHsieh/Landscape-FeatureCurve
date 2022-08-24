@@ -971,8 +971,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
-	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), minHeight);
-	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), 24);
+	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), 0);
+	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), 23);
 	wave_model->Draw(*heightmap_shader);
 
 	//Curve
