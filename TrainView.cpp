@@ -168,18 +168,6 @@ void TrainView::Rasterization_GradientMap() {
 	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-
-	///*VAO*/
-	//glGenVertexArrays(1, vaoGradientMap);
-	//glGenBuffers(1, vboGradientMap);
-	////Curve
-	//glBindVertexArray(vaoGradientMap[0]);
-	//glBindBuffer(GL_ARRAY_BUFFER, vboGradientMap[0]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * gradient_data.size(), &gradient_data[0], GL_DYNAMIC_DRAW);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
@@ -194,6 +182,7 @@ void TrainView::Rasterization_GradientMap() {
 
 	//Curve
 	gradient_shader->Use();
+	SetCamera();
 
 	glBindVertexArray(vaoElevetionMap[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
@@ -214,8 +203,6 @@ void TrainView::Rasterization_GradientMap() {
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7 * 3);
-
-
 
 	glDisable(GL_STENCIL_TEST);
 }
@@ -573,9 +560,6 @@ void TrainView::draw()
 		if (!wave_model) {
 			wave_model = new Model("../wave/wave.obj");
 		}
-		if (!mountain_texture) {
-			mountain_texture = new Texture2D("../wave/mountain.png");
-		}
 	}
 	else
 		throw std::runtime_error("Could not initialize GLAD!");
@@ -888,6 +872,9 @@ void TrainView::drawStuff(bool doingShadows)
 			maxHeight = temp;
 		}
 	}
+	if (minHeight < 0) {
+		minHeight = 0;
+	}
 
 	Rasterization_ElevationMap();
 	Rasterization_GradientMap();
@@ -985,9 +972,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
 	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), minHeight);
-	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "Texture"), 5);
-	mountain_texture->bind(5);
-	wave_model->meshes[0].textures[0].id = textureJacobi[0];
+	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), 24);
 	wave_model->Draw(*heightmap_shader);
 
 	//Curve

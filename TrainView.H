@@ -127,7 +127,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int framebuffer;
 
 
-		unsigned int vao2D[1];
+		unsigned int vao2D[1] = {0};
 		unsigned int vbo2D[1];
 		/// <summary>
 		/// Elevation

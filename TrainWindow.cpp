@@ -60,8 +60,8 @@ TrainWindow(const int x, const int y)
 		widgets = new Fl_Group(600,5,190,590);
 		widgets->begin();
 
-		//runButton = new Fl_Button(60005,pty,60,20,"Run");
-		// togglify(runButton);
+		runButton = new Fl_Button(60005,pty,60,20,"Run");
+		togglify(runButton, 1);
 
 		// Fl_Button* fb = new Fl_Button(700,pty,25,20,"@>>");
 		// fb->callback((Fl_Callback*)forwCB,this);
