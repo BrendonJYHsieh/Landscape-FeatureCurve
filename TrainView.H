@@ -125,6 +125,10 @@ class TrainView : public Fl_Gl_Window
 		Texture2D* background_texture = nullptr;
 
 		unsigned int framebuffer;
+
+
+		unsigned int vao2D[1];
+		unsigned int vbo2D[1];
 		/// <summary>
 		/// Elevation
 		/// </summary>
