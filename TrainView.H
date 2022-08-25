@@ -155,9 +155,9 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Jacobi Gradient
 		/// </summary>
-		unsigned int framebufferJacobi[2];
-		unsigned int textureJacobi[2];
-		unsigned int rboJacobi[2];
+		unsigned int framebufferJacobi[4];
+		unsigned int textureJacobi[4];
+		unsigned int rboJacobi[4];
 
 		/// <summary>
 		/// Gradient Cross
@@ -167,9 +167,9 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rboCross;
 
 		int iteration = 20;
-		int gridsize = 2048;
-		int coarsestSize = gridsize / 4;
-		int grid1_size = gridsize / 2;
+		int finestSize = 2048;
+		int coarsestSize = finestSize / 4;
+		int middleSize = finestSize / 2;
 
 		int CanvasHeight = 400;
 		int CanvasWidth = 400;

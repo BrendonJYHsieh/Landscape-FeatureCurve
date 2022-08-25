@@ -7,6 +7,8 @@ uniform sampler2D F;
 uniform sampler2D E;
 uniform sampler2D G;
 uniform float Resolution;
+uniform bool init;
+
 
 
 float sign(float n){
@@ -54,8 +56,16 @@ void main()
 
     FL = (A+B+C+D).r/4.0;
    
-    nx = G_pixel.r;
-    ny = G_pixel.g;
+    float length = sqrt(G_pixel.r*G_pixel.r+G_pixel.g*G_pixel.g);
+
+    if(length!=0){
+        nx = G_pixel.r/length;
+        ny = G_pixel.g/length;
+    }
+    else{
+        nx = G_pixel.r;
+        ny = G_pixel.g;
+    }
 
     FN = (nx * nx * texture2D(F, vec2(p.x-sign(nx),p.y)).r + ny * ny * texture2D(F, vec2(p.x,p.y-sign(ny))).r) + G_pixel.b;
 
@@ -66,6 +76,11 @@ void main()
     if(f<0){
         f=0;
     }
+    if(Resolution==0){
+        FragColor = F_pixel;
+    }
+    else{
+        FragColor = vec4(f,0.0,0.0,0.0);
+    }
 
-    FragColor = vec4(f,0.0,0.0,0.0);
 }
