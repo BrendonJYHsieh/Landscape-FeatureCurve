@@ -144,30 +144,40 @@ void TrainView::initElevationMap() {
 	/*VAO*/
 	glGenVertexArrays(1, vaoElevetionMap);
 	glGenBuffers(1, vboElevetionMap);
+	glBindVertexArray(vaoElevetionMap[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	// Binding to default buffer
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	cout << vertexDatas.size() << endl;
 }
 
 void TrainView::Rasterization_ElevationMap() {
 
-
-
 	glBindVertexArray(vaoElevetionMap[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
 
+
+	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertexDatas.size(), &vertexDatas[0]);
+
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
+
+	
+
+	
+
+	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
+	//glEnableVertexAttribArray(1);
+
 	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertexDatas.size(), &vertexDatas[0]);
-
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertexDatas.size(), &vertexDatas[0]);
-
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
@@ -185,6 +195,8 @@ void TrainView::Rasterization_ElevationMap() {
 
 	glBindVertexArray(vaoElevetionMap[0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size());
+
+	//glDrawElementsInstanced(GL_TRIANGLES, vertexDatas.size(), GL_UNSIGNED_INT, 0, vertexDatas.size());
 }
 void TrainView::Rasterization_GradientMap() {
 
