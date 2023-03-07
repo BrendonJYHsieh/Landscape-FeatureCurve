@@ -79,6 +79,7 @@ class TrainView : public Fl_Gl_Window
 
 		// pick a point (for when the mouse goes down)
 		void doPick();
+		void initElevationMap();
 		void Rasterization_ElevationMap();
 		void Rasterization_GradientMap();
 		void Diffuse_GradientMap();

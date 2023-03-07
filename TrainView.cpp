@@ -116,17 +116,59 @@ void TrainView::SetCamera() {
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 }
-void TrainView::Rasterization_ElevationMap() {
+
+void TrainView::initElevationMap() {
+	glGenFramebuffers(1, &framebufferElevetionMap);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
+	// create a color attachment texture
+	glGenTextures(1, &textureElevetionMap);
+	glActiveTexture(GL_TEXTURE10);
+	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureElevetionMap, 0);
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glGenRenderbuffers(1, &rboElevetionMap);
+	glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); // now actually attach it
+	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	
 	/*VAO*/
 	glGenVertexArrays(1, vaoElevetionMap);
 	glGenBuffers(1, vboElevetionMap);
-	glBindVertexArray(vaoElevetionMap[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+}
+
+void TrainView::Rasterization_ElevationMap() {
+
+
+
+	glBindVertexArray(vaoElevetionMap[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
+	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertexDatas.size(), &vertexDatas[0]);
+
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertexDatas.size(), &vertexDatas[0]);
+
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
@@ -614,28 +656,7 @@ void TrainView::draw()
 	if (gladLoadGL())
 	{
 		if (framebufferElevetionMap==-1) {
-			glGenFramebuffers(1, &framebufferElevetionMap);
-			glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
-			// create a color attachment texture
-			glGenTextures(1, &textureElevetionMap);
-			glActiveTexture(GL_TEXTURE10);
-			glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
-
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureElevetionMap, 0);
-			// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-			glGenRenderbuffers(1, &rboElevetionMap);
-			glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); // now actually attach it
-			// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-				cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+			initElevationMap();
 		}
 		if (!this->diffuse_shader) {
 			this->diffuse_shader = new
@@ -1117,8 +1138,8 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteVertexArrays(1, vao2D);
 	glDeleteBuffers(1, vbo2D);
 
-	glDeleteVertexArrays(1, vaoElevetionMap);
-	glDeleteBuffers(1, vboElevetionMap);
+	//glDeleteVertexArrays(1, vaoElevetionMap);
+	//glDeleteBuffers(1, vboElevetionMap);
 
 	glDeleteFramebuffers(2, framebufferDiffuse);
 	glDeleteTextures(2, textureDiffuse);
