@@ -118,13 +118,14 @@ void TrainView::SetCamera() {
 }
 
 void TrainView::initElevationMap() {
+	// Generate a FB
 	glGenFramebuffers(1, &framebufferElevetionMap);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
-	// create a color attachment texture
+
+	// Create a color attachment texture, and bind to the FB
 	glGenTextures(1, &textureElevetionMap);
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
-
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -132,16 +133,13 @@ void TrainView::initElevationMap() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureElevetionMap, 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+
+	// Create a renderbuffer object for depth and stencil attachment, and bind to framebuffer
 	glGenRenderbuffers(1, &rboElevetionMap);
-	glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); // 因為這行所以刪掉 glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
 	
-	/*VAO*/
+	// Set VAO
 	glGenVertexArrays(1, vaoElevetionMap);
 	glGenBuffers(1, vboElevetionMap);
 	glBindVertexArray(vaoElevetionMap[0]);
@@ -152,51 +150,40 @@ void TrainView::initElevationMap() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	// Binding to default buffer
+	// Bind to default buffer
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	cout << vertexDatas.size() << endl;
 }
 
 void TrainView::Rasterization_ElevationMap() {
+	// Initialize if need, and clear the buffer
+	if (framebufferElevetionMap == -1) {
+		initElevationMap();
+	}
 
-	glBindVertexArray(vaoElevetionMap[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
-
-
-	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertexDatas.size(), &vertexDatas[0]);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
-
-	
-
-	
-
-	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(4 * sizeof(float)));
-	//glEnableVertexAttribArray(1);
-
-	//glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertexDatas.size(), &vertexDatas[0]);
-
-
+	// Bind the FB 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
 
-	glEnable(GL_DEPTH_TEST); 
+	// Bind the VAO
+	glBindVertexArray(vaoElevetionMap[0]); 
+	glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
+
+	// Clear buffer
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//Curve
+
+	// Bind shader
 	elevation_shader->Use();
+
+	// Set camera
 	SetCamera();
 
+	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-
-	glBindVertexArray(vaoElevetionMap[0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size());
-
-	//glDrawElementsInstanced(GL_TRIANGLES, vertexDatas.size(), GL_UNSIGNED_INT, 0, vertexDatas.size());
 }
 void TrainView::Rasterization_GradientMap() {
 
@@ -667,9 +654,6 @@ void TrainView::draw()
 	//initialized glad
 	if (gladLoadGL())
 	{
-		if (framebufferElevetionMap==-1) {
-			initElevationMap();
-		}
 		if (!this->diffuse_shader) {
 			this->diffuse_shader = new
 				Shader(
