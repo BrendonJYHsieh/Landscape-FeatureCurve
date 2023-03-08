@@ -141,10 +141,10 @@ void TrainView::initElevationMap() {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); 
 	
 	// Set the VAO
-	glGenVertexArrays(1, vaoGradientMap);
-	glGenBuffers(1, vboGradientMap);
-	glBindVertexArray(vaoGradientMap[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboGradientMap[0]);
+	glGenVertexArrays(1, vaoRasterization);
+	glGenBuffers(1, vboRasterization);
+	glBindVertexArray(vaoRasterization[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -165,8 +165,8 @@ void TrainView::Rasterization_ElevationMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 
 	// Bind the VAO
-	glBindVertexArray(vaoGradientMap[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboGradientMap[0]);
+	glBindVertexArray(vaoRasterization[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
 
 	// Clear buffer
@@ -187,7 +187,7 @@ void TrainView::Rasterization_ElevationMap() {
 
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glBindVertexArray(0); //加了就畫不出來??
+	glBindVertexArray(0); //加了就畫不出來??
 	glUseProgram(0);
 }
 
@@ -237,7 +237,7 @@ void TrainView::Rasterization_GradientMap() {
 	SetCamera();
 
 	// Bind the VAO
-	glBindVertexArray(vaoElevetionMap[0]);
+	glBindVertexArray(vaoRasterization[0]);
 	//glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
 	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
 
@@ -1142,7 +1142,7 @@ void TrainView::drawStuff(bool doingShadows)
 	gradient_shader->Use();
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glBindVertexArray(vaoElevetionMap[0]);
+	glBindVertexArray(vboRasterization[0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
 	glDeleteVertexArrays(1, vao2D);

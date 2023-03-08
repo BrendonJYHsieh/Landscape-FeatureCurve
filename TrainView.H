@@ -131,19 +131,18 @@ class TrainView : public Fl_Gl_Window
 
 		unsigned int vao2D[1] = {0};
 		unsigned int vbo2D[1];
+		unsigned int vaoRasterization[1];
+		unsigned int vboRasterization[1];
+
 		/// <summary>
 		/// Elevation
 		/// </summary>
-		unsigned int vaoElevetionMap[1];
-		unsigned int vboElevetionMap[1];
 		unsigned int framebufferElevetionMap=-1;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
 		/// <summary>
 		/// Gradient
 		/// </summary>
-		unsigned int vaoGradientMap[1];
-		unsigned int vboGradientMap[1];
 		unsigned int framebufferGradientMap = -1;
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
