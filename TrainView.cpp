@@ -184,18 +184,21 @@ void TrainView::Rasterization_ElevationMap() {
 	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size());
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
+	glDisable(GL_DEPTH_TEST);
 }
 
 void TrainView::initGradientMap() {
+	// Generate a FB
 	glGenFramebuffers(1, &framebufferGradientMap);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
-	// create a color attachment texture
+
+	// Create a color attachment texture, and bind to the FB
 	glGenTextures(1, &textureGradientMap);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
@@ -206,7 +209,8 @@ void TrainView::initGradientMap() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureGradientMap, 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+
+	// Create a renderbuffer object for depth and stencil attachment, and bind it to the FB
 	glGenRenderbuffers(1, &rboGradientMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
@@ -223,8 +227,6 @@ void TrainView::Rasterization_GradientMap() {
 	if (framebufferGradientMap == -1) {
 		initGradientMap();
 	}
-
-	//initGradientMap();
 
 	// Bind the FB 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
@@ -254,19 +256,22 @@ void TrainView::Rasterization_GradientMap() {
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
 	glStencilMask(0xFF);
-	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
 	// Render (0.0,0.0,0.0, 0.5) in the graident intersected area
 	overlay_shader->Use();
 	glStencilFunc(GL_LESS, 1, 0xFF);
 	glStencilMask(0x00);
-	glDisable(GL_DEPTH_TEST);
+
+	
+;
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7 * 3);
 
+	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_STENCIL_TEST);
-
+	
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
@@ -1103,7 +1108,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 21);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 9);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
