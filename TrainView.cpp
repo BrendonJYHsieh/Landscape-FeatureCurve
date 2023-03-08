@@ -153,10 +153,11 @@ void TrainView::initElevationMap() {
 
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void TrainView::Rasterization_ElevationMap() {
-	// Initialize if need, and clear the buffer
+	// Initialize if need
 	if (framebufferElevetionMap == -1) {
 		initElevationMap();
 	}
@@ -187,7 +188,7 @@ void TrainView::Rasterization_ElevationMap() {
 
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindVertexArray(0); //加了就畫不出來??
+	glBindVertexArray(0);
 	glUseProgram(0);
 }
 
@@ -212,44 +213,50 @@ void TrainView::initGradientMap() {
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboGradientMap); // now actually attach it
 
 	// Bind to the default FB
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void TrainView::Rasterization_GradientMap() {
 
-	// Initialize if need, and clear the buffer
-	//if (framebufferGradientMap == -1) {
-	//	initGradientMap();
-	//}
+	// Initialize if need
+	if (framebufferGradientMap == -1) {
+		initGradientMap();
+	}
 
-	initGradientMap();
+	//initGradientMap();
 
+	// Bind the FB 
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_STENCIL_TEST);
-	// make sure we clear the framebuffer's content
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	//Curve
-	gradient_shader->Use();
-	SetCamera();
 
 	// Bind the VAO
 	glBindVertexArray(vaoRasterization[0]);
-	//glBindBuffer(GL_ARRAY_BUFFER, vboElevetionMap[0]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
+	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
 
+	// Clear buffer
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	// Bind shader
+	gradient_shader->Use();
+
+	// Set camera
+	SetCamera();
+
+	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 
+	// Render the gradient map and record the stencil
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
 	glStencilMask(0xFF);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
+	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
-	// clean curve intersection part
+	// Render (0.0,0.0,0.0, 0.5) in the graident intersected area
 	overlay_shader->Use();
 	glStencilFunc(GL_LESS, 1, 0xFF);
 	glStencilMask(0x00);
@@ -1155,9 +1162,9 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(2, textureDiffuse);
 	glDeleteRenderbuffers(2, rboDiffuse);
 
-	glDeleteFramebuffers(1, &framebufferGradientMap);
-	glDeleteTextures(1, &textureGradientMap);
-	glDeleteRenderbuffers(1, &rboGradientMap);
+	//glDeleteFramebuffers(1, &framebufferGradientMap);
+	//glDeleteTextures(1, &textureGradientMap);
+	//glDeleteRenderbuffers(1, &rboGradientMap);
 
 	glDeleteFramebuffers(1, &framebufferCross);
 	glDeleteTextures(1, &textureCross);
