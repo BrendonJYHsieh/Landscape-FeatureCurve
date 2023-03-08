@@ -184,7 +184,7 @@ void TrainView::Rasterization_ElevationMap() {
 	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/14);
 
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -263,18 +263,16 @@ void TrainView::Rasterization_GradientMap() {
 	glStencilFunc(GL_LESS, 1, 0xFF);
 	glStencilMask(0x00);
 
-	
-;
+	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7 * 3);
 
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_STENCIL_TEST);
-	
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_STENCIL_TEST);
 }
 
 void TrainView::Diffuse_GradientMap() {
