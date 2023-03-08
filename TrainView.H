@@ -81,6 +81,7 @@ class TrainView : public Fl_Gl_Window
 		void doPick();
 		void initElevationMap();
 		void Rasterization_ElevationMap();
+		void initGradientMap();
 		void Rasterization_GradientMap();
 		void Diffuse_GradientMap();
 		void jacobi();
