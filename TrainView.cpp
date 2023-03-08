@@ -184,7 +184,7 @@ void TrainView::Rasterization_ElevationMap() {
 	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/14);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7);
 
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -236,7 +236,7 @@ void TrainView::Rasterization_GradientMap() {
 	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
 
-	// Clear buffer
+	// Enable and clear buffer
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -256,7 +256,7 @@ void TrainView::Rasterization_GradientMap() {
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
 	glStencilMask(0xFF);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7);
 
 	// Render (0.0,0.0,0.0, 0.5) in the graident intersected area
 	overlay_shader->Use();
@@ -266,7 +266,7 @@ void TrainView::Rasterization_GradientMap() {
 	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7 * 3);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
 
 	// Bind to the default FB
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -12,11 +12,14 @@ void main()
     float offset=1.0/Resolution;
 
     if(pixel.a==0.5){
-        vec4 A = texture2D(GradientMap, vec2(p.x-offset,p.y-offset));
-        vec4 B = texture2D(GradientMap, vec2(p.x-offset,p.y+offset));
-        vec4 C = texture2D(GradientMap, vec2(p.x+offset,p.y-offset));
-        vec4 D = texture2D(GradientMap, vec2(p.x+offset,p.y+offset));
-        vec4 sum = (A+B+C+D)/4.0;
+        
+        vec4 left = texture2D(GradientMap, vec2(p.x-offset,p.y));
+        vec4 right = texture2D(GradientMap, vec2(p.x+offset,p.y));
+        vec4 top  = texture2D(GradientMap, vec2(p.x,p.y+offset));
+        vec4 bottom = texture2D(GradientMap, vec2(p.x,p.y-offset));
+        vec4 center = texture2D(GradientMap, vec2(p.x,p.y));
+
+        vec4 sum = center*4 - (left+right+top+bottom);
         float length = sqrt(sum.r*sum.r+sum.g*sum.g);
         if(length!=0){
             FragColor = vec4(normalize(sum.rg),sum.b,pixel.a);
