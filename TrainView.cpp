@@ -240,6 +240,7 @@ void TrainView::Rasterization_GradientMap() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glStencilMask(0xFF); // enable writing to the stencil buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	// Bind shader
@@ -255,13 +256,14 @@ void TrainView::Rasterization_GradientMap() {
 	// Render the gradient map and record the stencil
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
-	glStencilMask(0xFF);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7);
+	glStencilMask(0x00); // each bit ends up as 0 in the stencil buffer (disabling writes)
 
 	// Render (0.0,0.0,0.0, 0.5) in the graident intersected area
 	overlay_shader->Use();
 	glStencilFunc(GL_LESS, 1, 0xFF);
-	glStencilMask(0x00);
+
+
 
 	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
