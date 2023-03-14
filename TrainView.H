@@ -65,19 +65,13 @@ class TrainView : public Fl_Gl_Window
 		virtual int handle(int);
 		virtual void draw();
 
-		// all of the actual drawing happens in this routine
-		// it has to be encapsulated, since we draw differently if
-		// we're drawing shadows (no colors, for example)
+
 		void drawStuff(bool doingShadows=false);
 
-		// setup the projection - assuming that the projection stack has been
-		// cleared for you
 		void setProjection();
 		void SetCamera();
 		// Reset the Arc ball control
 		void resetArcball();
-
-		// pick a point (for when the mouse goes down)
 		void doPick();
 		void initElevationMap();
 		void Rasterization_ElevationMap();

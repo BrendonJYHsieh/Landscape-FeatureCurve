@@ -262,8 +262,7 @@ void TrainView::Rasterization_GradientMap() {
 	// Render (0.0,0.0,0.0, 0.5) in the graident intersected area
 	overlay_shader->Use();
 	glStencilFunc(GL_LESS, 1, 0xFF);
-
-
+	glDisable(GL_DEPTH_TEST);
 
 	// Set variable
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);

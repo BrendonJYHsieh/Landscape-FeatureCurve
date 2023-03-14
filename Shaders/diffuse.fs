@@ -19,6 +19,8 @@ void main()
         vec4 bottom = texture2D(GradientMap, vec2(p.x,p.y-offset));
         vec4 center = texture2D(GradientMap, vec2(p.x,p.y));
 
+        //vec4 sum = (left+right+top+bottom)/4;
+        
         vec4 sum = center*4 - (left+right+top+bottom);
         float length = sqrt(sum.r*sum.r+sum.g*sum.g);
         if(length!=0){
