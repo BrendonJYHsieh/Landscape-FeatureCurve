@@ -158,7 +158,7 @@ void TrainView::initElevationMap() {
 
 void TrainView::Rasterization_ElevationMap() {
 	// Initialize if need
-	if (framebufferElevetionMap == -1) {
+	if (framebufferElevetionMap == 0) {
 		initElevationMap();
 	}
 
@@ -224,7 +224,7 @@ void TrainView::initGradientMap() {
 void TrainView::Rasterization_GradientMap() {
 
 	// Initialize if need
-	if (framebufferGradientMap == -1) {
+	if (framebufferGradientMap == 0) {
 		initGradientMap();
 	}
 

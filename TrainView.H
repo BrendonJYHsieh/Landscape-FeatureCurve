@@ -77,8 +77,11 @@ class TrainView : public Fl_Gl_Window
 		void Rasterization_ElevationMap();
 		void initGradientMap();
 		void Rasterization_GradientMap();
+		void initGradientMapDiffuse();
 		void Diffuse_GradientMap();
 		void jacobi();
+
+
 
 		void push_vertexDatas(Pnt3f, int Area);
 	public:
@@ -100,6 +103,7 @@ class TrainView : public Fl_Gl_Window
 			1.0f, -1.0f, 
 		   -1.0f, -1.0f, 
 		   -1.0f,  1.0f, 		};
+
 		float borderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 		Shader* elevation_shader = nullptr;
@@ -131,19 +135,19 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Elevation
 		/// </summary>
-		unsigned int framebufferElevetionMap=-1;
+		unsigned int framebufferElevetionMap=0;
 		unsigned int textureElevetionMap;
 		unsigned int rboElevetionMap;
 		/// <summary>
 		/// Gradient
 		/// </summary>
-		unsigned int framebufferGradientMap = -1;
+		unsigned int framebufferGradientMap =0;
 		unsigned int textureGradientMap;
 		unsigned int rboGradientMap;
 		/// <summary>
 		/// Diffuse Gradient
 		/// </summary>
-		unsigned int framebufferDiffuse[2];
+		GLuint framebufferDiffuse[2] = { 0 };
 		unsigned int textureDiffuse[2];
 		unsigned int rboDiffuse[2];
 
