@@ -500,29 +500,29 @@ void TrainView::Jacobi() {
 	}
 
 	///* Middle */
-	//glViewport(0, 0, middleSize, middleSize);
-	//jacobi_shader->Use();
-	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
-	//glBindVertexArray(vao2D[0]);
-	//for (int ii = 0; ii < iteration*2/3; ii++) {
-	//	if (ii == 0) {
-	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 23);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
-	//	}
-	//	else if (ii % 2 == 0) {
-	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 26);
-	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
-	//	}
-	//	else {
-	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
-	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
-	//	}
-	//	glDrawArrays(GL_TRIANGLES, 0, 6);
-	//}
+	glViewport(0, 0, middleSize, middleSize);
+	jacobi_shader->Use();
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	glBindVertexArray(vao2D[0]);
+	for (int ii = 0; ii < iteration*2/3; ii++) {
+		if (ii == 0) {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 23);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
+		}
+		else if (ii % 2 == 0) {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 26);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
+		}
+		else {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
+		}
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
 
 	//glViewport(0, 0, finestSize, finestSize);
 	//jacobi_shader->Use();
@@ -1090,8 +1090,9 @@ void TrainView::drawStuff(bool doingShadows)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	glEnable(GL_DEPTH_TEST);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(0, 0, .3f, 0);	
+	glEnable(GL_DEPTH);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	screen_shader->Use();
 	glBindVertexArray(vao2D[0]);
@@ -1165,13 +1166,6 @@ void TrainView::drawStuff(bool doingShadows)
 	//glBindVertexArray(vboRasterization[0]);
 	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
-	//glDeleteVertexArrays(1, vao2D);
-	//glDeleteBuffers(1, vbo2D);
-
-	//glDeleteFramebuffers(2, framebufferDiffuse);
-	//glDeleteTextures(2, textureDiffuse);
-	//glDeleteRenderbuffers(2, rboDiffuse);
-
 	glDeleteFramebuffers(1, &framebufferCross);
 	glDeleteTextures(1, &textureCross);
 	glDeleteRenderbuffers(1, &rboCross);
@@ -1180,8 +1174,6 @@ void TrainView::drawStuff(bool doingShadows)
 	//glDeleteTextures(6, textureJacobi);
 	//glDeleteRenderbuffers(6, rboJacobi);
 
-
-	//glDeleteFramebuffers(1, &framebuffer);
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {
