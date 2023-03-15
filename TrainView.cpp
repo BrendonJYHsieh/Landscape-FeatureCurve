@@ -1107,7 +1107,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 9);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 21);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1150,11 +1150,11 @@ void TrainView::drawStuff(bool doingShadows)
 	wave_model->Draw(*heightmap_shader);
 
 	//Curve
-	gradient_shader->Use();
-	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glBindVertexArray(vboRasterization[0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
+	//gradient_shader->Use();
+	//glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glBindVertexArray(vboRasterization[0]);
+	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
 	glDeleteVertexArrays(1, vao2D);
 	glDeleteBuffers(1, vbo2D);
