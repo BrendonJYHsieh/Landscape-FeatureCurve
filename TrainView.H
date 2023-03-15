@@ -78,7 +78,6 @@ class TrainView : public Fl_Gl_Window
 		void initGradientMap();
 		void Rasterization_GradientMap();
 		void initGradientMapDiffuse();
-		void initTest();
 		void Diffuse_GradientMap();
 		void jacobi();
 
@@ -128,7 +127,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int framebuffer;
 
 
-		unsigned int vao2D[1] = {0};
+		unsigned int vao2D[1];
 		unsigned int vbo2D[1];
 		unsigned int vaoRasterization[1];
 		unsigned int vboRasterization[1];

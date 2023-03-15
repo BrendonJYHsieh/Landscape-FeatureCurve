@@ -194,7 +194,7 @@ void TrainView::Rasterization_ElevationMap() {
 }
 
 void TrainView::initGradientMap() {
-	// Generate a FB
+	// Generate and bind a FB
 	glGenFramebuffers(1, &framebufferGradientMap);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 
@@ -276,21 +276,14 @@ void TrainView::Rasterization_GradientMap() {
 	glDisable(GL_STENCIL_TEST);
 }
 
-void TrainView::Diffuse_GradientMap() {
-
+void TrainView::initGradientMapDiffuse() {
+	// Generate FB, Texture and RenderBuffer
 	glGenFramebuffers(2, framebufferDiffuse);
 	glGenTextures(2, textureDiffuse);
 	glGenRenderbuffers(2, rboDiffuse);
 
-	glGenVertexArrays(1, vao2D);
-	glGenBuffers(1, vbo2D);
-	glBindVertexArray(vao2D[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	//First Texture
+	// Bind texture to FB1
+	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[0]);
 	glActiveTexture(GL_TEXTURE21);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -300,14 +293,12 @@ void TrainView::Diffuse_GradientMap() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
-
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[0], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[0]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]); // now actually attach it
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]); 
 
-	//Second Texture
+	// Bind texture to FB2
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
 	glActiveTexture(GL_TEXTURE22);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -316,19 +307,34 @@ void TrainView::Diffuse_GradientMap() {
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[1], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[1]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[1]); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 
+	// Set the VAO
+	glGenVertexArrays(1, vao2D);
+	glGenBuffers(1, vbo2D);
+	glBindVertexArray(vao2D[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2D[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+}
+
+void TrainView::Diffuse_GradientMap() {
+
+	// Initialize if need
+	if (framebufferDiffuse[0] == 0) {
+		initGradientMapDiffuse();
+	}
+
+	// Bind shader
 	diffuse_shader->Use();
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "Resolution"), coarsestSize);
 	glBindVertexArray(vao2D[0]);
+
+	// Use the two FBs render by turns to diffuse the gradientMap  
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
@@ -342,7 +348,6 @@ void TrainView::Diffuse_GradientMap() {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
 			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 21);
 		}
-
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 }
@@ -1053,7 +1058,7 @@ void TrainView::drawStuff(bool doingShadows)
 	Rasterization_ElevationMap();
 	Rasterization_GradientMap();
 	Diffuse_GradientMap();
-	jacobi();
+	//jacobi();
 
 	// Code below are using for visulization
 
@@ -1156,19 +1161,12 @@ void TrainView::drawStuff(bool doingShadows)
 	//glBindVertexArray(vboRasterization[0]);
 	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
-	glDeleteVertexArrays(1, vao2D);
-	glDeleteBuffers(1, vbo2D);
+	//glDeleteVertexArrays(1, vao2D);
+	//glDeleteBuffers(1, vbo2D);
 
-	//glDeleteVertexArrays(1, vaoElevetionMap);
-	//glDeleteBuffers(1, vboElevetionMap);
-
-	glDeleteFramebuffers(2, framebufferDiffuse);
-	glDeleteTextures(2, textureDiffuse);
-	glDeleteRenderbuffers(2, rboDiffuse);
-
-	//glDeleteFramebuffers(1, &framebufferGradientMap);
-	//glDeleteTextures(1, &textureGradientMap);
-	//glDeleteRenderbuffers(1, &rboGradientMap);
+	//glDeleteFramebuffers(2, framebufferDiffuse);
+	//glDeleteTextures(2, textureDiffuse);
+	//glDeleteRenderbuffers(2, rboDiffuse);
 
 	glDeleteFramebuffers(1, &framebufferCross);
 	glDeleteTextures(1, &textureCross);
