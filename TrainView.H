@@ -79,7 +79,8 @@ class TrainView : public Fl_Gl_Window
 		void Rasterization_GradientMap();
 		void initGradientMapDiffuse();
 		void Diffuse_GradientMap();
-		void jacobi();
+		void initJacobi();
+		void Jacobi();
 
 
 

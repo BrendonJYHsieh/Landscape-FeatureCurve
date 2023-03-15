@@ -186,7 +186,7 @@ void TrainView::Rasterization_ElevationMap() {
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7);
 
-	// Bind to the default FB
+	// Render is finished, then bind to the default FB and initialize
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -269,7 +269,7 @@ void TrainView::Rasterization_GradientMap() {
 	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
 
-	// Bind to the default FB
+	// Render is finished, then bind to the default FB and initialize
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
 	glDisable(GL_DEPTH_TEST);
@@ -277,7 +277,7 @@ void TrainView::Rasterization_GradientMap() {
 }
 
 void TrainView::initGradientMapDiffuse() {
-	// Generate FB, Texture and RenderBuffer
+	// Generate FBs, Textures and RenderBuffers
 	glGenFramebuffers(2, framebufferDiffuse);
 	glGenTextures(2, textureDiffuse);
 	glGenRenderbuffers(2, rboDiffuse);
@@ -350,16 +350,24 @@ void TrainView::Diffuse_GradientMap() {
 		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
+
+	// Render is finished, then bind to the default FB and initialize
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+	glDisable(GL_DEPTH_TEST);
 }
 
+void TrainView::initJacobi() {
 
-void TrainView::jacobi() {
-
+	// Generate FBs, Textures and RenderBuffers
 	glGenFramebuffers(6, framebufferJacobi);
 	glGenTextures(6, textureJacobi);
 	glGenRenderbuffers(6, rboJacobi);
 
-	//First Texture
+	// Bind to the FB1
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
+	// Bind the Texture to FB1
 	glActiveTexture(GL_TEXTURE23);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -368,18 +376,15 @@ void TrainView::jacobi() {
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
-
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[0], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	// Bind to the RBO1
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[0]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[0]); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[0]);
 
-	//Second Texture
+	// Bind to the FB2
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[1]);
+	// Bind the Texture to the FB2
 	glActiveTexture(GL_TEXTURE24);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestSize, coarsestSize, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -388,23 +393,96 @@ void TrainView::jacobi() {
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[1]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[1], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	// Bind to the RBO2
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[1]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[1]); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestSize, coarsestSize);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[1]);
+
+	// Bind to the FB3
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
+	// Bind the Texture to the FB3
+	glActiveTexture(GL_TEXTURE25);
+	glBindTexture(GL_TEXTURE_2D, textureJacobi[2]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleSize, middleSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[2], 0);
+	// Bind to the RBO3
+	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[2]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleSize, middleSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[2]); // now actually attach it
 
 
+	// Bind to the FB4
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
+	// Bind the Texture to the FB4
+	glActiveTexture(GL_TEXTURE26);
+	glBindTexture(GL_TEXTURE_2D, textureJacobi[3]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleSize, middleSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[3], 0);
+	// Bind to the RBO4
+	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[3]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleSize, middleSize);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[3]);
+
+	// Bind to the FB5
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
+	// Bind the Texture to the FB5
+	glActiveTexture(GL_TEXTURE27);
+	glBindTexture(GL_TEXTURE_2D, textureJacobi[4]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestSize, finestSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[4], 0);
+	// Bind to the RBO5
+	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[4]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestSize, finestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[4]); // now actually attach it
+
+
+	// Bind to the FB6
+	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
+	// Bind the Texture to the FB6
+	glActiveTexture(GL_TEXTURE28);
+	glBindTexture(GL_TEXTURE_2D, textureJacobi[5]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestSize, finestSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[5], 0);
+	// Bind to the RBO5
+	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[5]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestSize, finestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[5]); // now actually attach it
+}
+
+void TrainView::Jacobi() {
+	
+	if (framebufferJacobi[0] == 0) {
+		initJacobi();
+	}
+	
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	jacobi_shader->Use();
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
 	glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), coarsestSize);
 	glBindVertexArray(vao2D[0]);
+
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
@@ -421,136 +499,60 @@ void TrainView::jacobi() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	/* Middle */
+	///* Middle */
+	//glViewport(0, 0, middleSize, middleSize);
+	//jacobi_shader->Use();
+	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
+	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	//glBindVertexArray(vao2D[0]);
+	//for (int ii = 0; ii < iteration*2/3; ii++) {
+	//	if (ii == 0) {
+	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 23);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
+	//	}
+	//	else if (ii % 2 == 0) {
+	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 26);
+	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
+	//	}
+	//	else {
+	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
+	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
+	//	}
+	//	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//}
 
-	//First Texture
-	glActiveTexture(GL_TEXTURE25);
-	glBindTexture(GL_TEXTURE_2D, textureJacobi[2]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleSize, middleSize, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
+	//glViewport(0, 0, finestSize, finestSize);
+	//jacobi_shader->Use();
+	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
+	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	//glBindVertexArray(vao2D[0]);
+	//for (int ii = 0; ii < iteration / 3; ii++) {
+	//	if (ii == 0) {
+	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
+	//	}
+	//	else if (ii % 2 == 0) {
+	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 28);
+	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
+	//	}
+	//	else {
+	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
+	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 27);
+	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
+	//	}
+	//	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//}
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[2], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[2]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleSize, middleSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[2]); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-
-	//Second Texture
-	glActiveTexture(GL_TEXTURE26);
-	glBindTexture(GL_TEXTURE_2D, textureJacobi[3]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleSize, middleSize, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[3], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[3]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleSize, middleSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[3]); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-
-	glViewport(0, 0, middleSize, middleSize);
-	jacobi_shader->Use();
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
-	glBindVertexArray(vao2D[0]);
-	for (int ii = 0; ii < iteration*2/3; ii++) {
-		if (ii == 0) {
-			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 23);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
-		}
-		else if (ii % 2 == 0) {
-			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 26);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
-		}
-		else {
-			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), middleSize);
-		}
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
-
-
-	/* Finest */
-
-	//Finest Texture
-	glActiveTexture(GL_TEXTURE27);
-	glBindTexture(GL_TEXTURE_2D, textureJacobi[4]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestSize, finestSize, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[4], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[4]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestSize, finestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[4]); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-
-	//Second Texture
-	glActiveTexture(GL_TEXTURE28);
-	glBindTexture(GL_TEXTURE_2D, textureJacobi[5]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestSize, finestSize, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[5], 0);
-	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[5]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestSize, finestSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[5]); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-
-	glViewport(0, 0, finestSize, finestSize);
-	jacobi_shader->Use();
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
-	glBindVertexArray(vao2D[0]);
-	for (int ii = 0; ii < iteration / 3; ii++) {
-		if (ii == 0) {
-			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
-		}
-		else if (ii % 2 == 0) {
-			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 28);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
-		}
-		else {
-			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 27);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
-		}
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
+	// Render is finished, then bind to the default FB and initialize
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+	glDisable(GL_DEPTH_TEST);
 }
 
 //************************************************************************
@@ -1058,10 +1060,9 @@ void TrainView::drawStuff(bool doingShadows)
 	Rasterization_ElevationMap();
 	Rasterization_GradientMap();
 	Diffuse_GradientMap();
-	//jacobi();
+	Jacobi();
 
 	// Code below are using for visulization
-
 	float wi, he;
 	if ((static_cast<float>(w()) / static_cast<float>(h())) >= 1) {
 		wi = 100;
@@ -1084,13 +1085,16 @@ void TrainView::drawStuff(bool doingShadows)
 	setProjection();
 	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
+
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	screen_shader->Use();
+	glBindVertexArray(vao2D[0]);
 	//Ground of Elevation
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, glm::vec3(200, 0, 0));
@@ -1116,7 +1120,7 @@ void TrainView::drawStuff(bool doingShadows)
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	//Ground of gradient
+	// 左下
 	glm::mat4 trans_gradient= glm::mat4(1.0f);
 	trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 0, 200));
 	trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 1, 100));
@@ -1124,11 +1128,11 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 23);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 21);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	//grid
+	// 左上
 	glm::mat4 trans_height = glm::mat4(1.0f);
 	trans_height = glm::translate(trans_height, glm::vec3(-200, 0, -200));
 	trans_height = glm::scale(trans_height, glm::vec3(100, 1, 100));
@@ -1136,7 +1140,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 27);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 24);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1172,12 +1176,12 @@ void TrainView::drawStuff(bool doingShadows)
 	glDeleteTextures(1, &textureCross);
 	glDeleteRenderbuffers(1, &rboCross);
 
-	glDeleteFramebuffers(6, framebufferJacobi);
-	glDeleteTextures(6, textureJacobi);
-	glDeleteRenderbuffers(6, rboJacobi);
+	//glDeleteFramebuffers(6, framebufferJacobi);
+	//glDeleteTextures(6, textureJacobi);
+	//glDeleteRenderbuffers(6, rboJacobi);
 
 
-	glDeleteFramebuffers(1, &framebuffer);
+	//glDeleteFramebuffers(1, &framebuffer);
 	glUseProgram(0);
 
 	if (!tw->trainCam->value()) {
