@@ -476,6 +476,8 @@ void TrainView::Jacobi() {
 		initJacobi();
 	}
 	
+	/* coarsestSize */
+
 	glViewport(0, 0, coarsestSize, coarsestSize);
 	jacobi_shader->Use();
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
@@ -499,7 +501,8 @@ void TrainView::Jacobi() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	///* Middle */
+	/* middleSize */
+
 	glViewport(0, 0, middleSize, middleSize);
 	jacobi_shader->Use();
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
@@ -524,29 +527,31 @@ void TrainView::Jacobi() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	//glViewport(0, 0, finestSize, finestSize);
-	//jacobi_shader->Use();
-	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	//glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
-	//glBindVertexArray(vao2D[0]);
-	//for (int ii = 0; ii < iteration / 3; ii++) {
-	//	if (ii == 0) {
-	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
-	//	}
-	//	else if (ii % 2 == 0) {
-	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 28);
-	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
-	//	}
-	//	else {
-	//		glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
-	//		glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 27);
-	//		glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
-	//	}
-	//	glDrawArrays(GL_TRIANGLES, 0, 6);
-	//}
+	/* finestSize */
+
+	glViewport(0, 0, finestSize, finestSize);
+	jacobi_shader->Use();
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	glBindVertexArray(vao2D[0]);
+	for (int ii = 0; ii < iteration / 3; ii++) {
+		if (ii == 0) {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "Resolution"), 0);
+		}
+		else if (ii % 2 == 0) {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 28);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
+		}
+		else {
+			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 27);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "Resolution"), finestSize);
+		}
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
 
 	// Render is finished, then bind to the default FB and initialize
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -753,9 +758,7 @@ void TrainView::draw()
 
 	// we need to clear out the stencil buffer since we'll use
 	// it for shadows
-	glClearStencil(0);
-	glEnable(GL_DEPTH);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 
 	// Blayne prefers GL_DIFFUSE
@@ -888,10 +891,10 @@ void TrainView::drawStuff(bool doingShadows)
 		float theta_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].theta - Curves[i].arclength_points[0].theta) / (Curves[i].arclength_points.size() - 1);
 		
 		/* Mentioned in 3.1
-		To calcualte the point which is parallel with the feature curve 
+			To calcualte the point which is parallel with the feature curve 
 		*/
 		Pnt3f p2,_p2,p4,_p4, p6, _p6;
-		for (int j = 0; j < Curves[i].arclength_points.size()-2; j++) {
+		for (int j = 0; j < Curves[i].arclength_points.size()-1; j++) {
 			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],q2,q3,q4,q5,q6,q7;
 			
 			// Point in right of feature curve
@@ -919,11 +922,11 @@ void TrainView::drawStuff(bool doingShadows)
 			q7.normal = normal;
 
 			/* Mentioned in 4.1
-			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
-			the end of the quadrangle so as to avoid gradient discontinuities and artifacts
+				For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
+				the end of the quadrangle so as to avoid gradient discontinuities and artifacts
 
-			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0).
-			Furthermore q6, q7 are the points in the end of the quadrangle.
+				if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0).
+				Furthermore q6, q7 are the points in the end of the quadrangle.
 			*/
 
 			/*Elevation Vertex*/
@@ -973,15 +976,12 @@ void TrainView::drawStuff(bool doingShadows)
 			q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1), q0.x > q1.x);
 			q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j, q0.x > q1.x);
 
-
 			Axis = glm::normalize(glm::vec3(q3.x - q2.x,q3.y-q2.y, q3.z - q2.z));
-
 
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
-
 
 			q0.normal = glm::vec3(0.0, 0.0, 0.0);
 			q1.normal = glm::vec3(0.0, 0.0, 0.0);
@@ -991,8 +991,6 @@ void TrainView::drawStuff(bool doingShadows)
 			q5.normal = normal;
 			q6.normal = _normal;
 			q7.normal = normal;
-			//*/
-
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -1079,7 +1077,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-90, 1, 0, 0);
-
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	setProjection();
@@ -1089,9 +1086,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
 	glClearColor(0, 0, .3f, 0);	
-	glEnable(GL_DEPTH);
+	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	screen_shader->Use();
@@ -1166,13 +1162,9 @@ void TrainView::drawStuff(bool doingShadows)
 	//glBindVertexArray(vboRasterization[0]);
 	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7*3);
 
-	glDeleteFramebuffers(1, &framebufferCross);
-	glDeleteTextures(1, &textureCross);
-	glDeleteRenderbuffers(1, &rboCross);
-
-	//glDeleteFramebuffers(6, framebufferJacobi);
-	//glDeleteTextures(6, textureJacobi);
-	//glDeleteRenderbuffers(6, rboJacobi);
+	//glDeleteFramebuffers(1, &framebufferCross);
+	//glDeleteTextures(1, &textureCross);
+	//glDeleteRenderbuffers(1, &rboCross);
 
 	glUseProgram(0);
 

@@ -155,9 +155,9 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Jacobi Gradient
 		/// </summary>
-		unsigned int framebufferJacobi[4];
-		unsigned int textureJacobi[4];
-		unsigned int rboJacobi[4];
+		unsigned int framebufferJacobi[6] = {0};
+		unsigned int textureJacobi[6];
+		unsigned int rboJacobi[6];
 
 		/// <summary>
 		/// Gradient Cross
