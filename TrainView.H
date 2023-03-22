@@ -166,13 +166,24 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureCross;
 		unsigned int rboCross;
 
-		int iteration = 20;
-		int finestSize = 2048;
-		int coarsestSize = finestSize / 4;
-		int middleSize = finestSize / 2;
-
 		int CanvasHeight = 400;
 		int CanvasWidth = 400;
+
+		float coarsestWidthSize = CanvasWidth;
+		float coarsestHeightSize = CanvasHeight;
+
+		float middleWidthSize = coarsestWidthSize * 2;
+		float middleHeightSize = coarsestHeightSize * 2;
+
+		float finestWidthSize = middleWidthSize * 2;
+		float finestHeightSize = middleHeightSize * 2;
+
+		int iteration = 20;
+		//int finestSize = 2048;
+		//int coarsestSize = finestSize / 4;
+		//int middleSize = finestSize / 2;
+
+
 		
 		vector<float> vertexDatas;
 

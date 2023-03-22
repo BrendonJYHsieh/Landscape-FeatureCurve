@@ -6,12 +6,15 @@ in vec2 pos;
 uniform sampler2D F;
 uniform sampler2D E;
 uniform sampler2D G;
-uniform float Resolution;
+
+uniform float widthResolution;
+uniform float heightResolution;
+
 uniform bool init;
 
 
 
-float sign(float n){
+float sign(float n,float Resolution){
     if (n > 0) {
 		return 1.0/Resolution;
 	}
@@ -31,7 +34,7 @@ void main()
     float FL=0,FN=0,FI=0;
     vec2 p=0.5*(vec2(1.0,1.0)+pos);
 
-    float sum=0.0,offset=1.0/Resolution;
+    float sum=0.0;
 
     vec4 F_pixel = texture2D(F, p);
     vec4 E_pixel = texture2D(E, p);
@@ -46,10 +49,15 @@ void main()
         b = 1.0 - a;
     }
 
-    vec4 A = texture2D(F, vec2(p.x-offset,p.y-offset));
-    vec4 B = texture2D(F, vec2(p.x-offset,p.y+offset));
-    vec4 C = texture2D(F, vec2(p.x+offset,p.y-offset));
-    vec4 D = texture2D(F, vec2(p.x+offset,p.y+offset));
+    // vec4 A = texture2D(F, vec2(p.x ,p.y - (1.0/heightResolution)));
+    // vec4 B = texture2D(F, vec2(p.x ,p.y + (1.0/heightResolution)));
+    // vec4 C = texture2D(F, vec2(p.x + (1.0/widthResolution),p.y));
+    // vec4 D = texture2D(F, vec2(p.x - (1.0/widthResolution),p.y));
+
+    vec4 A = texture2D(F, vec2(p.x - (1.0/widthResolution),p.y - (1.0/heightResolution)));
+    vec4 B = texture2D(F, vec2(p.x - (1.0/widthResolution),p.y + (1.0/heightResolution)));
+    vec4 C = texture2D(F, vec2(p.x + (1.0/widthResolution),p.y - (1.0/heightResolution)));
+    vec4 D = texture2D(F, vec2(p.x + (1.0/widthResolution),p.y + (1.0/heightResolution)));
 
     float Gradient = sqrt(((A.r-B.r)*(A.r-B.r) + (C.r-D.r)*(C.r-D.r))*G_pixel.b*G_pixel.b);
     //float Gradient=0;
@@ -67,7 +75,7 @@ void main()
         ny = G_pixel.g;
     }
 
-    FN = (nx * nx * texture2D(F, vec2(p.x-sign(nx),p.y)).r + ny * ny * texture2D(F, vec2(p.x,p.y-sign(ny))).r) + G_pixel.b;
+    FN = (nx * nx * texture2D(F, vec2(p.x-sign(nx,widthResolution),p.y)).r + ny * ny * texture2D(F, vec2(p.x,p.y-sign(ny,heightResolution))).r) + G_pixel.b;
 
     FI = E_pixel.r;
 
@@ -76,7 +84,7 @@ void main()
     if(f<0){
         f=0;
     }
-    if(Resolution==0){
+    if(widthResolution==0 || heightResolution==0){
         FragColor = F_pixel;
     }
     else{
