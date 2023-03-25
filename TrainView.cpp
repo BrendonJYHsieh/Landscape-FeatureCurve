@@ -168,13 +168,13 @@ void TrainView::initElevationMap() {
 	glGenRenderbuffers(1, &rboElevetionMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); 
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); 
 	
 	// Set the VAO
-	glGenVertexArrays(1, vaoRasterization);
-	glGenBuffers(1, vboRasterization);
-	glBindVertexArray(vaoRasterization[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization[0]);
+	glGenVertexArrays(1, &vaoRasterization);
+	glBindVertexArray(vaoRasterization);
+	glGenBuffers(1, &vboRasterization);
+	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -196,8 +196,8 @@ void TrainView::Rasterization_ElevationMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 
 	// Bind the VAO
-	glBindVertexArray(vaoRasterization[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization[0]);
+	glBindVertexArray(vaoRasterization);
+	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
 
 	// Clear buffer
@@ -262,8 +262,8 @@ void TrainView::Rasterization_GradientMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferGradientMap);
 
 	// Bind the VAO
-	glBindVertexArray(vaoRasterization[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization[0]);
+	glBindVertexArray(vaoRasterization);
+	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
 
 	// Enable and clear buffer
@@ -325,7 +325,7 @@ void TrainView::initGradientMapDiffuse() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[0], 0);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]); 
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]);
 
 	// Bind texture to FB2
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
@@ -340,9 +340,18 @@ void TrainView::initGradientMapDiffuse() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[1], 0);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[1]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[1]); // now actually attach it
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[1]); // now actually attach it
+
+
 
 	// Set the VAO
+	float vertices[12] = {
+		1.0f,  1.0f,
+		1.0f, -1.0f,
+	   -1.0f,  1.0f,
+		1.0f, -1.0f,
+	   -1.0f, -1.0f,
+	   -1.0f,  1.0f, };
 	glGenVertexArrays(1, vao2D);
 	glGenBuffers(1, vbo2D);
 	glBindVertexArray(vao2D[0]);
@@ -412,7 +421,7 @@ void TrainView::initJacobi() {
 	// Bind to the RBO1
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[0]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[0]);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[0]);
 
 	// Bind to the FB2
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[1]);
@@ -429,7 +438,7 @@ void TrainView::initJacobi() {
 	// Bind to the RBO2
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[1]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[1]);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[1]);
 
 	// Bind to the FB3
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
@@ -446,7 +455,7 @@ void TrainView::initJacobi() {
 	// Bind to the RBO3
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[2]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleWidthSize, middleHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[2]); // now actually attach it
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[2]); // now actually attach it
 
 
 	// Bind to the FB4
@@ -464,7 +473,7 @@ void TrainView::initJacobi() {
 	// Bind to the RBO4
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[3]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleWidthSize, middleHeightSize);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[3]);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[3]);
 
 	// Bind to the FB5
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
@@ -481,7 +490,7 @@ void TrainView::initJacobi() {
 	// Bind to the RBO5
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[4]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestWidthSize, finestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[4]); // now actually attach it
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[4]); // now actually attach it
 
 
 	// Bind to the FB6
@@ -499,7 +508,7 @@ void TrainView::initJacobi() {
 	// Bind to the RBO5
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[5]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestWidthSize, finestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[5]); // now actually attach it
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[5]); // now actually attach it
 }
 
 void TrainView::Jacobi() {

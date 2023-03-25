@@ -83,7 +83,6 @@ class TrainView : public Fl_Gl_Window
 		void Jacobi();
 
 
-
 		void push_vertexDatas(Pnt3f, int Area);
 	public:
 
@@ -96,14 +95,7 @@ class TrainView : public Fl_Gl_Window
 		int 			SelectedCurve;
 		int 			SelectedNode;
 
-		float vertices[12] = {
-			// positions           // texture coords
-			1.0f,  1.0f, 
-			1.0f, -1.0f, 
-		   -1.0f,  1.0f, 
-			1.0f, -1.0f, 
-		   -1.0f, -1.0f, 
-		   -1.0f,  1.0f, 		};
+
 
 		float borderColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -130,8 +122,8 @@ class TrainView : public Fl_Gl_Window
 
 		unsigned int vao2D[1];
 		unsigned int vbo2D[1];
-		unsigned int vaoRasterization[1];
-		unsigned int vboRasterization[1];
+		GLuint vaoRasterization;
+		GLuint vboRasterization;
 
 		/// <summary>
 		/// Elevation
@@ -166,8 +158,8 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureCross;
 		unsigned int rboCross;
 
-		int CanvasHeight = 400;
-		int CanvasWidth = 400;
+		int CanvasHeight = 256;
+		int CanvasWidth = 256;
 
 		float coarsestWidthSize = CanvasWidth;
 		float coarsestHeightSize = CanvasHeight;
@@ -179,12 +171,7 @@ class TrainView : public Fl_Gl_Window
 		float finestHeightSize = middleHeightSize * 2;
 
 		int iteration = 20;
-		//int finestSize = 2048;
-		//int coarsestSize = finestSize / 4;
-		//int middleSize = finestSize / 2;
 
-
-		
 		vector<float> vertexDatas;
 
 		glm::mat4 view;
