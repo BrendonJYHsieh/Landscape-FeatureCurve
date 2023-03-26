@@ -158,8 +158,6 @@ void TrainView::initElevationMap() {
 	glGenFramebuffers(1, &framebufferElevetionMap);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferElevetionMap);
 
-
-
 	// Create a color attachment texture, and bind to the FB
 	glGenTextures(1, &textureElevetionMap);
 	glActiveTexture(GL_TEXTURE0 + textureElevetionMap);
@@ -335,7 +333,6 @@ void TrainView::initGradientMapDiffuse() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[0], 0);
 
-
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]);
 
@@ -353,8 +350,6 @@ void TrainView::initGradientMapDiffuse() {
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[1]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[1]); // now actually attach it
-
-
 
 	// Set the VAO
 	float vertices[12] = {
@@ -420,13 +415,6 @@ void TrainView::initJacobi() {
 	glGenFramebuffers(6, framebufferJacobi);
 	glGenTextures(6, textureJacobi);
 	glGenRenderbuffers(6, rboJacobi);
-
-	cout << "j0:" << textureJacobi[0] << endl;
-	cout << "j1:" << textureJacobi[1] << endl;
-	cout << "j2:" << textureJacobi[2] << endl;
-	cout << "j3:" << textureJacobi[3] << endl;
-	cout << "j4:" << textureJacobi[4] << endl;
-	cout << "j5:" << textureJacobi[5] << endl;
 
 	// Bind to the FB1
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
