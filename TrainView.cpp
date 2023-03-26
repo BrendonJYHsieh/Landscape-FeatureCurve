@@ -326,7 +326,6 @@ void TrainView::initGradientMapDiffuse() {
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[0], 0);
 
-	cout << textureDiffuse[0] << endl;
 
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]);
