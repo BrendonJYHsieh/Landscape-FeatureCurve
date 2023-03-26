@@ -129,33 +129,25 @@ void TrainView::push_vertexDatas(Pnt3f q0,int Area) {
 }
 void TrainView::SetCamera() {
 
-	float wi = coarsestWidthSize, he = coarsestHeightSize;
-	if ((coarsestWidthSize / coarsestHeightSize) > 1) {
-		wi = wi * coarsestHeightSize / coarsestWidthSize;
+	float wi = coarsestWidth, he = coarsestHeight;
+
+	if ((coarsestWidth / coarsestHeight) > 1) {
+		wi = wi * coarsestHeight / coarsestWidth;
 	}
 	else {
-		he = he * coarsestWidthSize / coarsestHeightSize;
+		he = he * coarsestWidth / coarsestHeight;
 	}
 
 	glm::vec3 eye, center, up;
-	center = glm::vec3(0.0f, 0.0f, -coarsestHeightSize / 2.0f);
+	center = glm::vec3(0.0f, 0.0f, -coarsestHeight / 2.0f);
 	eye = glm::vec3(0, 1, 0);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
+
 	view = glm::lookAt(eye, center, up);
 	view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	projection = glm::ortho(-wi / 2.0f, wi / 2.0f, -he / 2.0f, he / 2.0f, 65535.0f, 0.0f);
 
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//glOrtho(-wi/2, wi/2, -he/2, he/2, 65535, 0);
-	//glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
-	//glRotatef(-90, 1, 0, 0);
-	//glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	//glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
-
-	glViewport(0, 0, coarsestWidthSize, coarsestHeightSize);
-
+	glViewport(0, 0, coarsestWidth, coarsestHeight);
 }
 
 void TrainView::initElevationMap() {
@@ -167,7 +159,7 @@ void TrainView::initElevationMap() {
 	glGenTextures(1, &textureElevetionMap);
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidthSize, coarsestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -178,7 +170,7 @@ void TrainView::initElevationMap() {
 	// Create a renderbuffer object for depth and stencil attachment, and bind it to the FB
 	glGenRenderbuffers(1, &rboElevetionMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); 
 	
 	// Set the VAO
@@ -243,7 +235,7 @@ void TrainView::initGradientMap() {
 	glGenTextures(1, &textureGradientMap);
 	glActiveTexture(GL_TEXTURE9);
 	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidthSize, coarsestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -254,7 +246,7 @@ void TrainView::initGradientMap() {
 	// Create a renderbuffer object for depth and stencil attachment, and bind it to the FB
 	glGenRenderbuffers(1, &rboGradientMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboGradientMap); // now actually attach it
 
 	// Bind to the default FB
@@ -327,7 +319,7 @@ void TrainView::initGradientMapDiffuse() {
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[0]);
 	glActiveTexture(GL_TEXTURE21);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidthSize, coarsestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -335,14 +327,14 @@ void TrainView::initGradientMapDiffuse() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[0], 0);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]);
 
 	// Bind texture to FB2
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
 	glActiveTexture(GL_TEXTURE22);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[1]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidthSize, coarsestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -350,7 +342,7 @@ void TrainView::initGradientMapDiffuse() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[1], 0);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[1]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[1]); // now actually attach it
 
 
@@ -381,8 +373,8 @@ void TrainView::Diffuse_GradientMap() {
 
 	// Bind shader
 	diffuse_shader->Use();
-	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "heightResolution"), coarsestHeightSize);
-	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "widthResolution"), coarsestWidthSize);
+	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "heightResolution"), coarsestHeight);
+	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "widthResolution"), coarsestWidth);
 
 	glBindVertexArray(vao2D[0]);
 
@@ -422,7 +414,7 @@ void TrainView::initJacobi() {
 	// Bind the Texture to FB1
 	glActiveTexture(GL_TEXTURE23);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidthSize, coarsestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -431,7 +423,7 @@ void TrainView::initJacobi() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[0], 0);
 	// Bind to the RBO1
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[0]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[0]);
 
 	// Bind to the FB2
@@ -439,7 +431,7 @@ void TrainView::initJacobi() {
 	// Bind the Texture to the FB2
 	glActiveTexture(GL_TEXTURE24);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[1]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidthSize, coarsestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -448,7 +440,7 @@ void TrainView::initJacobi() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[1], 0);
 	// Bind to the RBO2
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[1]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidthSize, coarsestHeightSize);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[1]);
 
 	// Bind to the FB3
@@ -456,7 +448,7 @@ void TrainView::initJacobi() {
 	// Bind the Texture to the FB3
 	glActiveTexture(GL_TEXTURE25);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[2]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleWidthSize, middleHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleWidth, middleHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -465,7 +457,7 @@ void TrainView::initJacobi() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[2], 0);
 	// Bind to the RBO3
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[2]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleWidthSize, middleHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleWidth, middleHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[2]); // now actually attach it
 
 
@@ -474,7 +466,7 @@ void TrainView::initJacobi() {
 	// Bind the Texture to the FB4
 	glActiveTexture(GL_TEXTURE26);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[3]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleWidthSize, middleHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleWidth, middleHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -483,7 +475,7 @@ void TrainView::initJacobi() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[3], 0);
 	// Bind to the RBO4
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[3]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleWidthSize, middleHeightSize);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, middleWidth, middleHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[3]);
 
 	// Bind to the FB5
@@ -491,7 +483,7 @@ void TrainView::initJacobi() {
 	// Bind the Texture to the FB5
 	glActiveTexture(GL_TEXTURE27);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[4]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestWidthSize, finestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestWidth, finestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -500,7 +492,7 @@ void TrainView::initJacobi() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[4], 0);
 	// Bind to the RBO5
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[4]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestWidthSize, finestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestWidth, finestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[4]); // now actually attach it
 
 
@@ -509,7 +501,7 @@ void TrainView::initJacobi() {
 	// Bind the Texture to the FB6
 	glActiveTexture(GL_TEXTURE28);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[5]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestWidthSize, finestHeightSize, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestWidth, finestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -518,7 +510,7 @@ void TrainView::initJacobi() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureJacobi[5], 0);
 	// Bind to the RBO5
 	glBindRenderbuffer(GL_RENDERBUFFER, rboJacobi[5]);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestWidthSize, finestHeightSize); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, finestWidth, finestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboJacobi[5]); // now actually attach it
 }
 
@@ -528,14 +520,14 @@ void TrainView::Jacobi() {
 		initJacobi();
 	}
 	
-	/* coarsestHeightSize */
+	/* coarsestHeight */
 
-	glViewport(0, 0, coarsestWidthSize, coarsestHeightSize);
+	glViewport(0, 0, coarsestWidth, coarsestHeight);
 	jacobi_shader->Use();
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), coarsestHeightSize);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), coarsestWidthSize);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), coarsestHeight);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), coarsestWidth);
 	glBindVertexArray(vao2D[0]);
 
 	for (int ii = 0; ii < iteration; ii++) {
@@ -556,7 +548,7 @@ void TrainView::Jacobi() {
 
 	/* middleSize */
 
-	glViewport(0, 0, middleWidthSize, middleHeightSize);
+	glViewport(0, 0, middleWidth, middleHeight);
 	jacobi_shader->Use();
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
@@ -571,21 +563,21 @@ void TrainView::Jacobi() {
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 26);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), middleWidthSize);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), middleHeightSize);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), middleWidth);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), middleHeight);
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), middleWidthSize);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), middleHeightSize);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), middleWidth);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), middleHeight);
 		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	/* finestHeightSize */
+	/* finestHeight */
 
-	glViewport(0, 0, finestWidthSize, finestHeightSize);
+	glViewport(0, 0, finestWidth, finestHeight);
 	jacobi_shader->Use();
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
@@ -600,14 +592,14 @@ void TrainView::Jacobi() {
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 28);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), finestWidthSize);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), finestHeightSize);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), finestWidth);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), finestHeight);
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 27);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), finestWidthSize);
-			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), finestHeightSize);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), finestWidth);
+			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), finestHeight);
 		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}

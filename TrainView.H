@@ -161,14 +161,14 @@ class TrainView : public Fl_Gl_Window
 		int CanvasHeight = 512;
 		int CanvasWidth = 1024;
 
-		float coarsestWidthSize = CanvasWidth;
-		float coarsestHeightSize = CanvasHeight;
+		float coarsestWidth = CanvasWidth;
+		float coarsestHeight = CanvasHeight;
 
-		float middleWidthSize = coarsestWidthSize * 2;
-		float middleHeightSize = coarsestHeightSize * 2;
+		float middleWidth = coarsestWidth * 2;
+		float middleHeight = coarsestHeight * 2;
 
-		float finestWidthSize = middleWidthSize * 2;
-		float finestHeightSize = middleHeightSize * 2;
+		float finestWidth = middleWidth * 2;
+		float finestHeight = middleHeight * 2;
 
 		int iteration = 20;
 
