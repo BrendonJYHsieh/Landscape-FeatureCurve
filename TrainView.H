@@ -82,8 +82,8 @@ class TrainView : public Fl_Gl_Window
 		void initJacobi();
 		void Jacobi();
 
-
 		void push_vertexDatas(Pnt3f, int Area);
+
 	public:
 
 		ArcBallCam		arcball;			// keep an ArcBall for the UI
@@ -117,7 +117,6 @@ class TrainView : public Fl_Gl_Window
 
 		Texture2D* background_texture = nullptr;
 
-		unsigned int framebuffer;
 
 
 		unsigned int vao2D[1];
@@ -128,37 +127,31 @@ class TrainView : public Fl_Gl_Window
 		/// <summary>
 		/// Elevation
 		/// </summary>
-		unsigned int framebufferElevetionMap=0;
-		unsigned int textureElevetionMap;
+		GLuint framebufferElevetionMap=0;
+		GLenum textureElevetionMap;
 		unsigned int rboElevetionMap;
 		/// <summary>
 		/// Gradient
 		/// </summary>
-		unsigned int framebufferGradientMap =0;
-		unsigned int textureGradientMap;
+		GLuint framebufferGradientMap =0;
+		GLenum textureGradientMap;
 		unsigned int rboGradientMap;
 		/// <summary>
 		/// Diffuse Gradient
 		/// </summary>
 		GLuint framebufferDiffuse[2] = { 0 };
-		unsigned int textureDiffuse[2];
+		GLenum textureDiffuse[2];
 		unsigned int rboDiffuse[2];
 
 		/// <summary>
 		/// Jacobi Gradient
 		/// </summary>
-		unsigned int framebufferJacobi[6] = {0};
-		unsigned int textureJacobi[6];
+		GLuint framebufferJacobi[6] = {0};
+		GLenum textureJacobi[6];
 		unsigned int rboJacobi[6];
 
-		/// <summary>
-		/// Gradient Cross
-		/// </summary>
-		unsigned int framebufferCross = -1;
-		unsigned int textureCross;
-		unsigned int rboCross;
 
-		int CanvasHeight = 512;
+		int CanvasHeight = 1024;
 		int CanvasWidth = 1024;
 
 		float coarsestWidth = CanvasWidth;

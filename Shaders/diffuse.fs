@@ -17,6 +17,7 @@ void main()
         vec4 right = texture2D(GradientMap,  vec2(p.x + (1.0/widthResolution),p.y));
         vec4 top  = texture2D(GradientMap,   vec2(p.x , p.y + (1.0/heightResolution)));
         vec4 bottom = texture2D(GradientMap, vec2(p.x , p.y - (1.0/heightResolution)));
+        
         vec4 center = texture2D(GradientMap, vec2(p.x , p.y));
 
         vec4 sum = (left+right+top+bottom)/4;
