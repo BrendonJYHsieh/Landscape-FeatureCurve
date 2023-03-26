@@ -14,6 +14,8 @@
 #include "TrainWindow.H"
 #include "Utilities/3DUtils.H"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -135,16 +137,25 @@ void TrainView::SetCamera() {
 		he = he * coarsestWidthSize / coarsestHeightSize;
 	}
 
+	glm::vec3 eye, center, up;
+	center = glm::vec3(0.0f, 0.0f, -coarsestHeightSize / 2.0f);
+	eye = glm::vec3(0, 1, 0);
+	up = glm::vec3(0.0f, 1.0f, 0.0f);
+	view = glm::lookAt(eye, center, up);
+	view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	projection = glm::ortho(-wi / 2.0f, wi / 2.0f, -he / 2.0f, he / 2.0f, 65535.0f, 0.0f);
+
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	//glOrtho(-wi/2, wi/2, -he/2, he/2, 65535, 0);
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
+	//glRotatef(-90, 1, 0, 0);
+	//glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
+	//glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
 	glViewport(0, 0, coarsestWidthSize, coarsestHeightSize);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	/*glOrtho(-CanvasWidth / 2, CanvasWidth / 2, -CanvasHeight / 2, CanvasHeight / 2, 65535, -200);*/
-	glOrtho(-wi/2, wi/2, -he/2, he/2, 65535, 0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glRotatef(-90, 1, 0, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, &view[0][0]);
-	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
+
 }
 
 void TrainView::initElevationMap() {

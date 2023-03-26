@@ -158,8 +158,8 @@ class TrainView : public Fl_Gl_Window
 		unsigned int textureCross;
 		unsigned int rboCross;
 
-		int CanvasHeight = 256;
-		int CanvasWidth = 256;
+		int CanvasHeight = 512;
+		int CanvasWidth = 1024;
 
 		float coarsestWidthSize = CanvasWidth;
 		float coarsestHeightSize = CanvasHeight;
