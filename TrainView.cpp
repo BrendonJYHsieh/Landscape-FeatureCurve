@@ -266,8 +266,6 @@ void TrainView::Rasterization_GradientMap() {
 
 	// Bind the VAO
 	glBindVertexArray(vaoRasterization);
-	glBindBuffer(GL_ARRAY_BUFFER, vboRasterization);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertexDatas.size(), &vertexDatas[0], GL_DYNAMIC_DRAW); //Size may not be the same so it is  improper to use glBufferSubData
 
 	// Enable and clear buffer
 	glEnable(GL_DEPTH_TEST);

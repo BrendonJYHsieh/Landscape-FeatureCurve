@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 
 out vec4 FragColor;
 in vec2 pos; 
@@ -60,8 +60,7 @@ void main()
     vec4 D = texture2D(F, vec2(p.x + (1.0/widthResolution),p.y + (1.0/heightResolution)));
 
     float Gradient = sqrt(((A.r-B.r)*(A.r-B.r) + (C.r-D.r)*(C.r-D.r))*G_pixel.b*G_pixel.b);
-    //float Gradient=0;
-
+    
     FL = (A+B+C+D).r/4.0;
    
     float length = sqrt(G_pixel.r*G_pixel.r+G_pixel.g*G_pixel.g);
