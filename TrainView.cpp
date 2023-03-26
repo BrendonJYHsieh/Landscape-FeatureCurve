@@ -157,7 +157,7 @@ void TrainView::initElevationMap() {
 
 	// Create a color attachment texture, and bind to the FB
 	glGenTextures(1, &textureElevetionMap);
-	glActiveTexture(GL_TEXTURE10);
+	glActiveTexture(GL_TEXTURE0 + textureElevetionMap);
 	glBindTexture(GL_TEXTURE_2D, textureElevetionMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -233,7 +233,7 @@ void TrainView::initGradientMap() {
 
 	// Create a color attachment texture, and bind to the FB
 	glGenTextures(1, &textureGradientMap);
-	glActiveTexture(GL_TEXTURE9);
+	glActiveTexture(GL_TEXTURE0 + textureGradientMap);
 	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -315,7 +315,7 @@ void TrainView::initGradientMapDiffuse() {
 
 	// Bind texture to FB1
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[0]);
-	glActiveTexture(GL_TEXTURE21);
+	glActiveTexture(GL_TEXTURE0 + textureDiffuse[0]);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -325,12 +325,15 @@ void TrainView::initGradientMapDiffuse() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureDiffuse[0], 0);
+
+	cout << textureDiffuse[0] << endl;
+
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[0]);
 
 	// Bind texture to FB2
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
-	glActiveTexture(GL_TEXTURE22);
+	glActiveTexture(GL_TEXTURE0 + textureDiffuse[1]);
 	glBindTexture(GL_TEXTURE_2D, textureDiffuse[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -380,15 +383,15 @@ void TrainView::Diffuse_GradientMap() {
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
-			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 9);
+			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), textureGradientMap);
 		}
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[0]);
-			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 22);
+			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), textureDiffuse[0]);
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferDiffuse[1]);
-			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), 21);
+			glUniform1i(glGetUniformLocation(diffuse_shader->Program, "GradientMap"), textureDiffuse[0]);
 		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -410,7 +413,7 @@ void TrainView::initJacobi() {
 	// Bind to the FB1
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
 	// Bind the Texture to FB1
-	glActiveTexture(GL_TEXTURE23);
+	glActiveTexture(GL_TEXTURE0 + framebufferJacobi[0]);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -427,7 +430,7 @@ void TrainView::initJacobi() {
 	// Bind to the FB2
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[1]);
 	// Bind the Texture to the FB2
-	glActiveTexture(GL_TEXTURE24);
+	glActiveTexture(GL_TEXTURE0 + framebufferJacobi[1]);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, coarsestWidth, coarsestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -444,7 +447,7 @@ void TrainView::initJacobi() {
 	// Bind to the FB3
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
 	// Bind the Texture to the FB3
-	glActiveTexture(GL_TEXTURE25);
+	glActiveTexture(GL_TEXTURE0 + framebufferJacobi[2]);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[2]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleWidth, middleHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -462,7 +465,7 @@ void TrainView::initJacobi() {
 	// Bind to the FB4
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
 	// Bind the Texture to the FB4
-	glActiveTexture(GL_TEXTURE26);
+	glActiveTexture(GL_TEXTURE0 + framebufferJacobi[3]);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[3]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, middleWidth, middleHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -479,7 +482,7 @@ void TrainView::initJacobi() {
 	// Bind to the FB5
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
 	// Bind the Texture to the FB5
-	glActiveTexture(GL_TEXTURE27);
+	glActiveTexture(GL_TEXTURE0 + framebufferJacobi[4]);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[4]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestWidth, finestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -497,7 +500,7 @@ void TrainView::initJacobi() {
 	// Bind to the FB6
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
 	// Bind the Texture to the FB6
-	glActiveTexture(GL_TEXTURE28);
+	glActiveTexture(GL_TEXTURE0 + framebufferJacobi[5]);
 	glBindTexture(GL_TEXTURE_2D, textureJacobi[5]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, finestWidth, finestHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -522,8 +525,8 @@ void TrainView::Jacobi() {
 
 	glViewport(0, 0, coarsestWidth, coarsestHeight);
 	jacobi_shader->Use();
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), textureElevetionMap);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), textureDiffuse[0]);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), coarsestHeight);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), coarsestWidth);
 	glBindVertexArray(vao2D[0]);
@@ -531,15 +534,15 @@ void TrainView::Jacobi() {
 	for (int ii = 0; ii < iteration; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 10);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), textureElevetionMap);
 		}
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 24);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[1]);
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[1]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 23);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[0]);
 		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -548,25 +551,25 @@ void TrainView::Jacobi() {
 
 	glViewport(0, 0, middleWidth, middleHeight);
 	jacobi_shader->Use();
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), textureElevetionMap);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), textureDiffuse[0]);
 	glBindVertexArray(vao2D[0]);
 	for (int ii = 0; ii < iteration*2/3; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 23);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[0]);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), 0);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), 0);
 		}
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 26);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[3]);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), middleWidth);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), middleHeight);
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[3]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[2]);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), middleWidth);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), middleHeight);
 		}
@@ -577,25 +580,25 @@ void TrainView::Jacobi() {
 
 	glViewport(0, 0, finestWidth, finestHeight);
 	jacobi_shader->Use();
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), 10);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), 21);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), textureElevetionMap);
+	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), textureDiffuse[0]);
 	glBindVertexArray(vao2D[0]);
 	for (int ii = 0; ii < iteration / 3; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 25);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[2]);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), 0);
 			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), 0);
 		}
 		else if (ii % 2 == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 28);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[5]);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), finestWidth);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), finestHeight);
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[5]);
-			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), 27);
+			glUniform1i(glGetUniformLocation(jacobi_shader->Program, "F"), framebufferJacobi[4]);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), finestWidth);
 			glUniform1f(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), finestHeight);
 		}
@@ -1149,7 +1152,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 10);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureElevetionMap);
 
 	glBindVertexArray(vao2D[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -1162,7 +1165,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 21);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureDiffuse[0]);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1174,7 +1177,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 21);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureDiffuse[0]);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1186,7 +1189,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), 24);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), framebufferJacobi[1]);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1201,7 +1204,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
 	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
 	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), 0);
-	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), 27);
+	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), framebufferJacobi[4]);
 	wave_model->Draw(*heightmap_shader);
 
 	//Curve
