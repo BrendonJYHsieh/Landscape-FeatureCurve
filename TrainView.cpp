@@ -421,12 +421,12 @@ void TrainView::initJacobi() {
 	glGenTextures(6, textureJacobi);
 	glGenRenderbuffers(6, rboJacobi);
 
-	cout << "j0:" << framebufferJacobi[0] << endl;
-	cout << "j1:" << framebufferJacobi[1] << endl;
-	cout << "j2:" << framebufferJacobi[2] << endl;
-	cout << "j3:" << framebufferJacobi[3] << endl;
-	cout << "j4:" << framebufferJacobi[4] << endl;
-	cout << "j5:" << framebufferJacobi[5] << endl;
+	cout << "j0:" << textureJacobi[0] << endl;
+	cout << "j1:" << textureJacobi[1] << endl;
+	cout << "j2:" << textureJacobi[2] << endl;
+	cout << "j3:" << textureJacobi[3] << endl;
+	cout << "j4:" << textureJacobi[4] << endl;
+	cout << "j5:" << textureJacobi[5] << endl;
 
 	// Bind to the FB1
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[0]);
@@ -1119,18 +1119,6 @@ void TrainView::drawStuff(bool doingShadows)
 	}
 	if (minHeight < 0) {
 		minHeight = 0;
-	}
-
-	if (framebufferJacobi[0] == 0) {
-		
-		initElevationMap();
-		initGradientMap();
-		initJacobi();
-		initGradientMapDiffuse();
-
-		
-		
-		
 	}
 
 	Rasterization_ElevationMap();
