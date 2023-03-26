@@ -549,10 +549,6 @@ void TrainView::Jacobi() {
 	/* middleSize */
 
 	glViewport(0, 0, middleWidth, middleHeight);
-	jacobi_shader->Use();
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), textureElevetionMap);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), textureDiffuse[0]);
-	glBindVertexArray(vao2D[0]);
 	for (int ii = 0; ii < iteration*2/3; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[2]);
@@ -578,10 +574,6 @@ void TrainView::Jacobi() {
 	/* finestHeight */
 
 	glViewport(0, 0, finestWidth, finestHeight);
-	jacobi_shader->Use();
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "E"), textureElevetionMap);
-	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), textureDiffuse[0]);
-	glBindVertexArray(vao2D[0]);
 	for (int ii = 0; ii < iteration / 3; ii++) {
 		if (ii == 0) {
 			glBindFramebuffer(GL_FRAMEBUFFER, framebufferJacobi[4]);
