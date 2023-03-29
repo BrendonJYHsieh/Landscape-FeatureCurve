@@ -32,7 +32,7 @@ using namespace std;
 
 Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 
-	float x = pow(1-t,3) * p1.x + 3*t * pow(1-t,2) * p2.x + 3*t*t*(1-t)* p3.x + t*t*t *p4.x;
+	float x =  pow(1-t,3) * p1.x + 3*t * pow(1-t,2) * p2.x + 3*t*t*(1-t)* p3.x + t*t*t *p4.x;
 	float y  = pow(1-t,3) * p1.y + 3*t * pow(1-t,2) * p2.y + 3*t*t*(1-t)* p3.y + t*t*t *p4.y;
 	float z  = pow(1-t,3) * p1.z + 3*t * pow(1-t,2) * p2.z + 3*t*t*(1-t)* p3.z + t*t*t *p4.z;
 
@@ -40,42 +40,26 @@ Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 }
 
 Pnt3f Intersect(Pnt3f start, Pnt3f end, float length, bool reverse) {
+
 	if (reverse) {
 		length *= -1;
 	}
 
-	// 要刪
-	start = Pnt3f(start.x, start.z, start.y);
-	end = Pnt3f(end.x, end.z, end.y);
-
 	// 計算線段的斜率
 	float slope = (end.y - start.y) / (end.x - start.x);
 
-	//cout << slope << endl;
-
-	// 計算斜率的倒數
-	float invSlope;
-	if (std::abs(slope) < 1e-6) {
-		invSlope = 0;
+	if ((end.y - start.y) == 0) {
+		return Pnt3f(end.x + length, start.y, end.z);
 	}
-	else if (std::isinf(slope)) {
-		invSlope = std::numeric_limits<float>::infinity();
-	}
-	else {
-		invSlope = -1 / slope;
+	else if ((end.x - start.x) == 0) {
+		return Pnt3f(end.x, start.y + length, end.z);
 	}
 
-	// 計算線段端點的 y 軸值
-	float yIntercept;
-	if (invSlope == 0) {
-		yIntercept = end.y;
-	}
-	else if (invSlope == std::numeric_limits<float>::infinity()) {
-		yIntercept = 0;
-	}
-	else {
-		yIntercept = (invSlope * end.x) - end.y;
-	}
+	// �p��ײv���˼�
+	float invSlope = -1.0 / slope;
+
+	// �p��u�q���I�� y �b��
+	float yIntercept = (invSlope * end.x) - end.y;
 
 	float a = invSlope;
 	float b = -1;
@@ -84,28 +68,21 @@ Pnt3f Intersect(Pnt3f start, Pnt3f end, float length, bool reverse) {
 	float f = length * sqrt(slope * slope + 1) + (slope * end.x - end.y);
 	float det = -invSlope + slope;
 
-	// 要留
-	//float x = (yIntercept * e - b * f) / det;
-	//float y = (-d * yIntercept + a * f) / det;
-	//float z = end.z;
 
-	// 要刪
 	float x = (yIntercept * e - b * f) / det;
-	float y = end.z;
-	float z = (-d * yIntercept + a * f) / det;
+	float y = (-d * yIntercept + a * f) / det;
+	float z = end.z;
 
 	return Pnt3f( x, y, z);
 }
 
 glm::vec3 Rotate(glm::vec3 n, glm::vec3 v, float degree) {
-	float theta = (degree)/180.0*3.1415926;
+	float theta = glm::radians(degree);
 	n = glm::normalize(n);
-
-	float x = (n.x * n.x * (1 - cos(theta)) + cos(theta) * v.x) + (n.x * n.y * (1 - cos(theta)) - n.z * sin(theta) * v.y) + (n.x * n.z * (1 - cos(theta)) + n.y * sin(theta) * v.z);
-	float y = n.x * n.y * (1 - cos(theta)) * v.x + n.z * sin(theta) + n.y* n.y* (1 - cos(theta)) * v.y + cos(theta) + n.y* n.z* (1 - cos(theta)) - n.x * sin(theta) * v.z;
-	float z = n.x * n.z * (1 - cos(theta)) * v.x + n.y * sin(theta) + n.y * n.z * (1 - cos(theta)) + n.z * sin(theta) * v.y + n.z * n.z * (1 - cos(theta)) + cos(theta) * v.z;
-
-	return glm::vec3(x, y, z) ;
+	float x = v.x * (n.x * n.x * (1 - cos(theta)) + cos(theta)) + v.y * (n.x * n.y * (1 - cos(theta)) - n.z * sin(theta)) + v.z * (n.x * n.z * (1 - cos(theta)) + n.y * sin(theta));
+	float y = v.x * (n.x * n.y * (1 - cos(theta)) + n.z * sin(theta)) + v.y * (n.y * n.y * (1 - cos(theta)) + cos(theta)) + v.z * (n.y * n.z * (1 - cos(theta)) - n.x * sin(theta));
+	float z = v.x * (n.x * n.z * (1 - cos(theta)) - n.y * sin(theta)) + v.y * (n.y * n.z * (1 - cos(theta)) + n.z * sin(theta)) + v.z * (n.z * n.z * (1 - cos(theta)) + cos(theta));
+	return glm::vec3(x, y, z);
 }
 
 glm::vec3 Pnt3_to_Vec3(Pnt3f a) {
@@ -162,12 +139,11 @@ void TrainView::SetCamera() {
 	}
 
 	glm::vec3 eye, center, up;
-	center = glm::vec3(0.0f, 0.0f, -coarsestHeight / 2.0f);
-	eye = glm::vec3(0, 1, 0);
+	center = glm::vec3(0.0f, 0.0f, 0.0f);
+	eye = glm::vec3(0.0f, 0.0f, 65535.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 
 	view = glm::lookAt(eye, center, up);
-	view = glm::rotate(view, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	projection = glm::ortho(-wi / 2.0f, wi / 2.0f, -he / 2.0f, he / 2.0f, 65535.0f, 0.0f);
 
 	glViewport(0, 0, coarsestWidth, coarsestHeight);
@@ -211,6 +187,22 @@ void TrainView::initElevationMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindVertexArray(0);
 
+	// Set the VAO
+	float vertices[12] = {
+		1.0f,  1.0f,
+		1.0f, -1.0f,
+	   -1.0f,  1.0f,
+		1.0f, -1.0f,
+	   -1.0f, -1.0f,
+	   -1.0f,  1.0f, };
+	glGenVertexArrays(1, vao2D);
+	glGenBuffers(1, vbo2D);
+	glBindVertexArray(vao2D[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2D[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
 	cout << "elevation:" << textureElevetionMap << endl;
 }
 
@@ -240,6 +232,7 @@ void TrainView::Rasterization_ElevationMap() {
 	SetCamera();
 
 	// Set variable
+	glBindVertexArray(vaoRasterization);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7);
@@ -371,21 +364,21 @@ void TrainView::initGradientMapDiffuse() {
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[1]); // now actually attach it
 
-	// Set the VAO
-	float vertices[12] = {
-		1.0f,  1.0f,
-		1.0f, -1.0f,
-	   -1.0f,  1.0f,
-		1.0f, -1.0f,
-	   -1.0f, -1.0f,
-	   -1.0f,  1.0f, };
-	glGenVertexArrays(1, vao2D);
-	glGenBuffers(1, vbo2D);
-	glBindVertexArray(vao2D[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	//// Set the VAO
+	//float vertices[12] = {
+	//	1.0f,  1.0f,
+	//	1.0f, -1.0f,
+	//   -1.0f,  1.0f,
+	//	1.0f, -1.0f,
+	//   -1.0f, -1.0f,
+	//   -1.0f,  1.0f, };
+	//glGenVertexArrays(1, vao2D);
+	//glGenBuffers(1, vbo2D);
+	//glBindVertexArray(vao2D[0]);
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo2D[0]);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
 
 	cout << "diffuse_gradient:" << textureDiffuse[0] << endl;
 	cout << "diffuse_gradient1:" << textureDiffuse[1] << endl;
@@ -973,11 +966,11 @@ void TrainView::drawStuff(bool doingShadows)
 
 			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z));
 
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + phi_init + phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + phi_init + phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), + 90 - phi_init - phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2)); //Need to fixed
+			
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), + 90 - phi_init - phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
-
 
 			/* Mentioned in 4.1
 				For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -1040,8 +1033,8 @@ void TrainView::drawStuff(bool doingShadows)
 
 			Axis = glm::normalize(glm::vec3(q3.x - q2.x,q3.y-q2.y, q3.z - q2.z));
 
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - theta_init - theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - theta_init - theta_interporate * j))) + Pnt3_to_Vec3(q3));
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + theta_init + theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + theta_init + theta_interporate * j))) + Pnt3_to_Vec3(q3));
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
@@ -1122,9 +1115,9 @@ void TrainView::drawStuff(bool doingShadows)
 	}
 
 	Rasterization_ElevationMap();
-	Rasterization_GradientMap();
-	Diffuse_GradientMap();
-	Jacobi();
+	//Rasterization_GradientMap();
+	//Diffuse_GradientMap();
+	//Jacobi();
 
 	// Code below are using for visulization
 	float wi, he;
@@ -1142,7 +1135,6 @@ void TrainView::drawStuff(bool doingShadows)
 	glOrtho(-wi, wi, -he, he, 200, -200);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glRotatef(-90, 1, 0, 0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	setProjection();
@@ -1158,66 +1150,64 @@ void TrainView::drawStuff(bool doingShadows)
 	glBindVertexArray(vao2D[0]);
 	//Ground of Elevation
 	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::translate(trans, glm::vec3(200, 0, 0));
-	trans = glm::scale(trans, glm::vec3(100, 0, 100));
+	trans = glm::translate(trans, glm::vec3(0, 0, 0));
+	trans = glm::scale(trans, glm::vec3(100, 100, 1));
 	
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
 	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureElevetionMap);
-
-	glBindVertexArray(vao2D[1]);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	//Ground of Gradient
-	glm::mat4 transs = glm::mat4(1.0f);
-	transs = glm::translate(transs, glm::vec3(-200, 1, 0));
-	transs = glm::scale(transs, glm::vec3(100, 1, 100));
+	////Ground of Gradient
+	//glm::mat4 transs = glm::mat4(1.0f);
+	//transs = glm::translate(transs, glm::vec3(-200, 0, 0));
+	//transs = glm::scale(transs, glm::vec3(100, 100, 1));
 
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureDiffuse[0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &transs[0][0]);
+	//glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureDiffuse[0]);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	// 左下
-	glm::mat4 trans_gradient= glm::mat4(1.0f);
-	trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 0, 200));
-	trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 1, 100));
+	//// 左下
+	//glm::mat4 trans_gradient= glm::mat4(1.0f);
+	//trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 200, 0));
+	//trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 100, 1));
 
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureDiffuse[1]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
+	//glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureDiffuse[1]);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	// 左上
-	glm::mat4 trans_height = glm::mat4(1.0f);
-	trans_height = glm::translate(trans_height, glm::vec3(-200, 0, -200));
-	trans_height = glm::scale(trans_height, glm::vec3(100, 1, 100));
+	//// 左上
+	//glm::mat4 trans_height = glm::mat4(1.0f);
+	//trans_height = glm::translate(trans_height, glm::vec3(-200, -200, 0));
+	//trans_height = glm::scale(trans_height, glm::vec3(100, 100, 1));
 
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
-	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureJacobi[0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
+	//glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureJacobi[0]);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	heightmap_shader->Use();
-	//Ground of Height Map
-	glm::mat4 transss = glm::mat4(1.0f);
-	transss = glm::translate(transss, glm::vec3(0, 0,400));
-	transss = glm::scale(transss, glm::vec3(100, 1.0f, 100));
+	//heightmap_shader->Use();
+	////Ground of Height Map
+	//glm::mat4 transss = glm::mat4(1.0f);
+	//transss = glm::translate(transss, glm::vec3(0, 400,0));
+	//transss = glm::scale(transss, glm::vec3(100, 100.0f, 1));
 
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
-	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
-	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), 0);
-	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), textureJacobi[4]);
-	wave_model->Draw(*heightmap_shader);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
+	//glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
+	//glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), 0);
+	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), textureJacobi[4]);
+	//wave_model->Draw(*heightmap_shader);
 
 	//Curve
 	//gradient_shader->Use();
@@ -1229,6 +1219,14 @@ void TrainView::drawStuff(bool doingShadows)
 	//glDeleteFramebuffers(1, &framebufferCross);
 	//glDeleteTextures(1, &textureCross);
 	//glDeleteRenderbuffers(1, &rboCross);
+
+		// Bind shader
+	elevation_shader->Use();
+	// Set variable
+	glBindVertexArray(vaoRasterization);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
 
 	glUseProgram(0);
 

@@ -82,7 +82,7 @@ normalize()
 	}
 }
 float Pnt3f::length2D() {
-	return sqrtf(x * x  + z * z);
+	return sqrtf(x * x  + y * y);
 }
 float Pnt3f::length() {
 	return sqrtf(x * x+ y*y + z * z);
