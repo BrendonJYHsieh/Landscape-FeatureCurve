@@ -1117,7 +1117,7 @@ void TrainView::drawStuff(bool doingShadows)
 	Rasterization_ElevationMap();
 	Rasterization_GradientMap();
 	Diffuse_GradientMap();
-	//Jacobi();
+	Jacobi();
 
 	// Code below are using for visulization
 	float wi, he;
@@ -1171,17 +1171,17 @@ void TrainView::drawStuff(bool doingShadows)
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	//// 左下
-	//glm::mat4 trans_gradient= glm::mat4(1.0f);
-	//trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 200, 0));
-	//trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 100, 1));
+	// 左下
+	glm::mat4 trans_gradient= glm::mat4(1.0f);
+	trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 200, 0));
+	trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 100, 1));
 
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
-	//glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureDiffuse[1]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_gradient[0][0]);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureGradientMap);
 
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	//// 左上
 	//glm::mat4 trans_height = glm::mat4(1.0f);
@@ -1210,12 +1210,12 @@ void TrainView::drawStuff(bool doingShadows)
 	//wave_model->Draw(*heightmap_shader);
 
 	// Bind shader
-	elevation_shader->Use();
-	// Set variable
-	glBindVertexArray(vaoRasterization);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
+	//elevation_shader->Use();
+	//// Set variable
+	//glBindVertexArray(vaoRasterization);
+	//glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
 
 	glUseProgram(0);
 
