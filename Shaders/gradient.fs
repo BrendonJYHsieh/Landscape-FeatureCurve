@@ -16,5 +16,5 @@ void main()
         color.z = color.z / length;
     }
 
-    FragColor = vec4(normalize(color.xy),color.z, 1.0f);
+    FragColor = vec4(color, 1.0f);
 }

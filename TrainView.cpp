@@ -1183,23 +1183,23 @@ void TrainView::drawStuff(bool doingShadows)
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	//// 左上
-	//glm::mat4 trans_height = glm::mat4(1.0f);
-	//trans_height = glm::translate(trans_height, glm::vec3(-200, -200, 0));
-	//trans_height = glm::scale(trans_height, glm::vec3(100, 100, 1));
+	// 左上
+	glm::mat4 trans_height = glm::mat4(1.0f);
+	trans_height = glm::translate(trans_height, glm::vec3(-200, -200, 0));
+	trans_height = glm::scale(trans_height, glm::vec3(100, 100, 1));
 
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
-	//glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureJacobi[0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans_height[0][0]);
+	glUniform1i(glGetUniformLocation(screen_shader->Program, "Texture"), textureJacobi[0]);
 
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	//heightmap_shader->Use();
 	////Ground of Height Map
 	//glm::mat4 transss = glm::mat4(1.0f);
-	//transss = glm::translate(transss, glm::vec3(0, 400,0));
-	//transss = glm::scale(transss, glm::vec3(100, 100.0f, 1));
+	//transss = glm::translate(transss, glm::vec3(0, 200,0));
+	//transss = glm::scale(transss, glm::vec3(100, 100, 1));
 
 	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
@@ -1208,6 +1208,21 @@ void TrainView::drawStuff(bool doingShadows)
 	//glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), 0);
 	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), textureJacobi[4]);
 	//wave_model->Draw(*heightmap_shader);
+
+		heightmap_shader->Use();
+	//Ground of Height Map
+	glm::mat4 transss = glm::mat4(1.0f);
+	transss = glm::translate(transss, glm::vec3(0, 0,400));
+	transss = glm::scale(transss, glm::vec3(1000, 100000.0f, 1));
+
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
+	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "maxHeight"), maxHeight);
+	glUniform1f(glGetUniformLocation(heightmap_shader->Program, "minHeight"), 0);
+	glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), textureJacobi[4]);
+	wave_model->Draw(*heightmap_shader);
+
 
 	// Bind shader
 	//elevation_shader->Use();
