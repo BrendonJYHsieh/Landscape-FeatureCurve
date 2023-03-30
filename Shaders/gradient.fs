@@ -4,17 +4,17 @@ in vec3 ourColor;
 
 void main()
 {
+    
     vec3 color = ourColor.rgb;
-    vec2 n = vec2(0);
-
-    float length = sqrt(ourColor.x * ourColor.x + ourColor.z * ourColor.z);
+    float length = sqrt(ourColor.x * ourColor.x + ourColor.y * ourColor.y);
+    
     if (length == 0){
-        color.y = 0;
+        color.z = 0;
     }
     else{
         color = normalize(color);
-        color.y = color.y / length;
-        n = normalize(color.xz);
+        color.z = color.z / length;
     }
-    FragColor = vec4(n,color.y, 1.0f);
+
+    FragColor = vec4(normalize(color.xy),color.z, 1.0f);
 }
