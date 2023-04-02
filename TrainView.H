@@ -151,7 +151,7 @@ class TrainView : public Fl_Gl_Window
 		unsigned int rboJacobi[6];
 
 
-		int CanvasHeight = 512;
+		int CanvasHeight = 256;
 		int CanvasWidth = 512;
 
 		float coarsestWidth = CanvasWidth;

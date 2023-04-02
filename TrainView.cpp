@@ -32,11 +32,11 @@ using namespace std;
 
 Pnt3f GMT(Pnt3f p1, Pnt3f p2, Pnt3f p3, Pnt3f p4, float t) {
 
-	float x =  pow(1-t,3) * p1.x + 3*t * pow(1-t,2) * p2.x + 3*t*t*(1-t)* p3.x + t*t*t *p4.x;
-	float y  = pow(1-t,3) * p1.y + 3*t * pow(1-t,2) * p2.y + 3*t*t*(1-t)* p3.y + t*t*t *p4.y;
-	float z  = pow(1-t,3) * p1.z + 3*t * pow(1-t,2) * p2.z + 3*t*t*(1-t)* p3.z + t*t*t *p4.z;
+	float x = pow(1 - t, 3) * p1.x + 3 * t * pow(1 - t, 2) * p2.x + 3 * t * t * (1 - t) * p3.x + t * t * t * p4.x;
+	float y = pow(1 - t, 3) * p1.y + 3 * t * pow(1 - t, 2) * p2.y + 3 * t * t * (1 - t) * p3.y + t * t * t * p4.y;
+	float z = pow(1 - t, 3) * p1.z + 3 * t * pow(1 - t, 2) * p2.z + 3 * t * t * (1 - t) * p3.z + t * t * t * p4.z;
 
-	return Pnt3f(x,y,z);
+	return Pnt3f(x, y, z);
 }
 
 Pnt3f Intersect(Pnt3f start, Pnt3f end, float length, bool reverse) {
@@ -73,7 +73,7 @@ Pnt3f Intersect(Pnt3f start, Pnt3f end, float length, bool reverse) {
 	float y = (-d * yIntercept + a * f) / det;
 	float z = end.z;
 
-	return Pnt3f( x, y, z);
+	return Pnt3f(x, y, z);
 }
 
 glm::vec3 Rotate(glm::vec3 n, glm::vec3 v, float degree) {
@@ -142,7 +142,6 @@ void TrainView::SetCamera() {
 	center = glm::vec3(0.0f, 0.0f, 0.0f);
 	eye = glm::vec3(0.0f, 0.0f, 65535.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
-
 	view = glm::lookAt(eye, center, up);
 	projection = glm::ortho(-wi / 2.0f, wi / 2.0f, -he / 2.0f, he / 2.0f, 65535.0f, 0.0f);
 
@@ -170,8 +169,8 @@ void TrainView::initElevationMap() {
 	glGenRenderbuffers(1, &rboElevetionMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboElevetionMap);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap); 
-	
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboElevetionMap);
+
 	// Set the VAO
 	glGenVertexArrays(1, &vaoRasterization);
 	glBindVertexArray(vaoRasterization);
@@ -235,7 +234,32 @@ void TrainView::Rasterization_ElevationMap() {
 	glBindVertexArray(vaoRasterization);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
+
+
+	//std::vector<float> pixels(4 * coarsestWidth * coarsestHeight);
+	//std::vector<unsigned char> pixels2(4 * coarsestWidth * coarsestHeight);
+	//glReadPixels(0, 0, coarsestWidth, coarsestHeight, GL_RGBA, GL_FLOAT, pixels.data());
+
+	//for (int line = 0; line != coarsestHeight / 2; ++line) {
+	//	std::swap_ranges(pixels.begin() + 4 * coarsestWidth * line,
+	//		pixels.begin() + 4 * coarsestWidth * (line + 1),
+	//		pixels.begin() + 4 * coarsestWidth * (coarsestHeight - line - 1));
+	//}
+
+	//cv::Mat image(coarsestWidth, coarsestHeight, CV_32FC4, pixels.data());
+	//cv::Mat src, src_f;
+	//image.convertTo(src_f, CV_8UC4);
+
+	cv::Mat img(coarsestHeight, coarsestWidth, CV_8UC4);
+	glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
+	glPixelStorei(GL_PACK_ROW_LENGTH, img.step / img.elemSize()); // 这句不加好像也没问题？
+	glReadPixels(0, 0, img.cols, img.rows, GL_BGRA, GL_UNSIGNED_BYTE, img.data);
+	cv::Mat flipped;
+	cv::flip(img, flipped, 0);
+	cv::imwrite("elevationMap.jpg", flipped);
+
+	//free(data);
 
 	// Render is finished, then bind to the default FB and initialize
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -307,18 +331,27 @@ void TrainView::Rasterization_GradientMap() {
 	// Render the gradient map and record the stencil
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size()/7);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
 	glStencilMask(0x00); // each bit ends up as 0 in the stencil buffer (disabling writes)
 
-	// Render (0.0,0.0,0.0, 0.5) in the graident intersected area
-	overlay_shader->Use();
-	glStencilFunc(GL_LESS, 1, 0xFF);
-	glDisable(GL_DEPTH_TEST);
+	//// Render (0.0,0.0,0.0, 0.5) in the graident intersected area
+	//overlay_shader->Use();
+	//glStencilFunc(GL_LESS, 1, 0xFF);
+	//glDisable(GL_DEPTH_TEST);
 
-	// Set variable
-	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
+	//// Set variable
+	//glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	//glUniformMatrix4fv(glGetUniformLocation(overlay_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
+
+	cv::Mat img(coarsestHeight, coarsestWidth, CV_8UC4);
+	glPixelStorei(GL_PACK_ALIGNMENT, (img.step & 3) ? 1 : 4);
+	glPixelStorei(GL_PACK_ROW_LENGTH, img.step / img.elemSize()); // 这句不加好像也没问题？
+	glReadPixels(0, 0, img.cols, img.rows, GL_BGRA, GL_UNSIGNED_BYTE, img.data);
+	cv::Mat flipped;
+	cv::flip(img, flipped, 0);
+	cv::imwrite("gradient.jpg", flipped);
+
 
 	// Render is finished, then bind to the default FB and initialize
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -363,22 +396,6 @@ void TrainView::initGradientMapDiffuse() {
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDiffuse[1]);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDiffuse[1]); // now actually attach it
-
-	//// Set the VAO
-	//float vertices[12] = {
-	//	1.0f,  1.0f,
-	//	1.0f, -1.0f,
-	//   -1.0f,  1.0f,
-	//	1.0f, -1.0f,
-	//   -1.0f, -1.0f,
-	//   -1.0f,  1.0f, };
-	//glGenVertexArrays(1, vao2D);
-	//glGenBuffers(1, vbo2D);
-	//glBindVertexArray(vao2D[0]);
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo2D[0]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	//glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
 
 	cout << "diffuse_gradient:" << textureDiffuse[0] << endl;
 	cout << "diffuse_gradient1:" << textureDiffuse[1] << endl;
@@ -535,11 +552,11 @@ void TrainView::initJacobi() {
 }
 
 void TrainView::Jacobi() {
-	
+
 	if (framebufferJacobi[0] == 0) {
 		initJacobi();
 	}
-	
+
 	/* coarsestHeight */
 	glViewport(0, 0, coarsestWidth, coarsestHeight);
 	jacobi_shader->Use();
@@ -629,11 +646,11 @@ void TrainView::Jacobi() {
 
 
 TrainView::
-TrainView(int x, int y, int w, int h, const char* l) 
-	: Fl_Gl_Window(x,y,w,h,l)
-//========================================================================
+TrainView(int x, int y, int w, int h, const char* l)
+	: Fl_Gl_Window(x, y, w, h, l)
+	//========================================================================
 {
-	mode( FL_RGB|FL_ALPHA|FL_DOUBLE | FL_STENCIL );
+	mode(FL_RGB | FL_ALPHA | FL_DOUBLE | FL_STENCIL);
 
 	resetArcball();
 
@@ -659,84 +676,84 @@ resetArcball()
 int TrainView::handle(int event)
 {
 	if (tw->worldCam->value())
-		if (arcball.handle(event)) 
+		if (arcball.handle(event))
 			return 1;
 
 	// remember what button was used
 	static int last_push;
 
-	switch(event) {
+	switch (event) {
 		// Mouse button being pushed event
-		case FL_PUSH:
-			last_push = Fl::event_button();
-			// if the left button be pushed is left mouse button
-			if (last_push == FL_LEFT_MOUSE  ) {
-				doPick();
-				damage(1);
-				return 1;
-			};
-			break;
-
-	   // Mouse button release event
-		case FL_RELEASE: // button release
+	case FL_PUSH:
+		last_push = Fl::event_button();
+		// if the left button be pushed is left mouse button
+		if (last_push == FL_LEFT_MOUSE) {
+			doPick();
 			damage(1);
-			last_push = 0;
 			return 1;
+		};
+		break;
+
+		// Mouse button release event
+	case FL_RELEASE: // button release
+		damage(1);
+		last_push = 0;
+		return 1;
 
 		// Mouse button drag event
-		case FL_DRAG:
+	case FL_DRAG:
 
-			// Compute the new control point position
-			if ((last_push == FL_LEFT_MOUSE) && (selectedCube >= 0)) {
-				ControlPoint *cp = &Curves[SelectedCurve].points[SelectedNode];
-				
-				double r1x, r1y, r1z, r2x, r2y, r2z;
-				getMouseLine(r1x, r1y, r1z, r2x, r2y, r2z);
+		// Compute the new control point position
+		if ((last_push == FL_LEFT_MOUSE) && (selectedCube >= 0)) {
+			ControlPoint* cp = &Curves[SelectedCurve].points[SelectedNode];
 
-				double rx, ry, rz;
-				mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z, 
-								static_cast<double>(cp->pos.x), 
-								static_cast<double>(cp->pos.y),
-								static_cast<double>(cp->pos.z),
-								rx, ry, rz,
-								(Fl::event_state() & FL_CTRL) != 0);
+			double r1x, r1y, r1z, r2x, r2y, r2z;
+			getMouseLine(r1x, r1y, r1z, r2x, r2y, r2z);
 
-				cp->pos.x = (float) rx;
-				cp->pos.y = (float) ry;
-				cp->pos.z = (float) rz;
-				damage(1);
-			}
-			break;
+			double rx, ry, rz;
+			mousePoleGo(r1x, r1y, r1z, r2x, r2y, r2z,
+				static_cast<double>(cp->pos.x),
+				static_cast<double>(cp->pos.y),
+				static_cast<double>(cp->pos.z),
+				rx, ry, rz,
+				(Fl::event_state() & FL_CTRL) != 0);
+
+			cp->pos.x = (float)rx;
+			cp->pos.y = (float)ry;
+			cp->pos.z = (float)rz;
+			damage(1);
+		}
+		break;
 
 		// in order to get keyboard events, we need to accept focus
-		case FL_FOCUS:
-			return 1;
+	case FL_FOCUS:
+		return 1;
 
 		// every time the mouse enters this window, aggressively take focus
-		case FL_ENTER:	
-			focus(this);
-			break;
+	case FL_ENTER:
+		focus(this);
+		break;
 
-		case FL_KEYBOARD:
-		 		int k = Fl::event_key();
-				int ks = Fl::event_state();
-				if (k == 'p') {
-					// Print out the selected control point information
-					if (selectedCube >= 0) 
-						printf("Selected(%d) (%g %g %g) (%g %g %g)\n",
-								 selectedCube,
-								 m_pTrack->points[selectedCube].pos.x,
-								 m_pTrack->points[selectedCube].pos.y,
-								 m_pTrack->points[selectedCube].pos.z,
-								 m_pTrack->points[selectedCube].orient.x,
-								 m_pTrack->points[selectedCube].orient.y,
-								 m_pTrack->points[selectedCube].orient.z);
-					else
-						printf("Nothing Selected\n");
+	case FL_KEYBOARD:
+		int k = Fl::event_key();
+		int ks = Fl::event_state();
+		if (k == 'p') {
+			// Print out the selected control point information
+			if (selectedCube >= 0)
+				printf("Selected(%d) (%g %g %g) (%g %g %g)\n",
+					selectedCube,
+					m_pTrack->points[selectedCube].pos.x,
+					m_pTrack->points[selectedCube].pos.y,
+					m_pTrack->points[selectedCube].pos.z,
+					m_pTrack->points[selectedCube].orient.x,
+					m_pTrack->points[selectedCube].orient.y,
+					m_pTrack->points[selectedCube].orient.z);
+			else
+				printf("Nothing Selected\n");
 
-					return 1;
-				};
-				break;
+			return 1;
+		};
+		break;
 	}
 
 	return Fl_Gl_Window::handle(event);
@@ -812,23 +829,23 @@ void TrainView::draw()
 		throw std::runtime_error("Could not initialize GLAD!");
 
 	// Set up the view port
-	glViewport(0,0,w(),h());
+	glViewport(0, 0, w(), h());
 
 	// clear the window, be sure to clear the Z-Buffer too
-	glClearColor(0,0,.3f,0);		// background should be blue
+	glClearColor(0, 0, .3f, 0);		// background should be blue
 
 	// we need to clear out the stencil buffer since we'll use
 	// it for shadows
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 
 	// Blayne prefers GL_DIFFUSE
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
 	// prepare for projection
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	setProjection();		
+	setProjection();
 	// enable the lighting
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_DEPTH_TEST);
@@ -840,7 +857,8 @@ void TrainView::draw()
 	if (tw->topCam->value()) {
 		glDisable(GL_LIGHT1);
 		glDisable(GL_LIGHT2);
-	} else {
+	}
+	else {
 		glEnable(GL_LIGHT1);
 		glEnable(GL_LIGHT2);
 	}
@@ -850,13 +868,13 @@ void TrainView::draw()
 	// * set the light parameters
 	//
 	//**********************************************************************
-	GLfloat lightPosition1[]	= {0,1,1,0}; // {50, 200.0, 50, 1.0};
-	GLfloat lightPosition2[]	= {1, 0, 0, 0};
-	GLfloat lightPosition3[]	= {0, -1, 0, 0};
-	GLfloat yellowLight[]		= {0.5f, 0.5f, .1f, 1.0};
-	GLfloat whiteLight[]	    = {1.0f, 1.0f, 1.0f, 1.0};
-	GLfloat blueLight[]			= {.1f,.1f,.3f,1.0};
-	GLfloat grayLight[]			= {.3f, .3f, .3f, 1.0};
+	GLfloat lightPosition1[] = { 0,1,1,0 }; // {50, 200.0, 50, 1.0};
+	GLfloat lightPosition2[] = { 1, 0, 0, 0 };
+	GLfloat lightPosition3[] = { 0, -1, 0, 0 };
+	GLfloat yellowLight[] = { 0.5f, 0.5f, .1f, 1.0 };
+	GLfloat whiteLight[] = { 1.0f, 1.0f, 1.0f, 1.0 };
+	GLfloat blueLight[] = { .1f,.1f,.3f,1.0 };
+	GLfloat grayLight[] = { .3f, .3f, .3f, 1.0 };
 
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition1);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, whiteLight);
@@ -916,12 +934,12 @@ void TrainView::drawStuff(bool doingShadows)
 		*/
 		for (int j = 0; j < divide; j++) {
 			Pnt3f Q0 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t);
-			Pnt3f Q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 1/divide);
+			Pnt3f Q1 = GMT(p1.pos, p2.pos, p3.pos, p4.pos, t += 1 / divide);
 			count += (Q1 - Q0).length2D();
 			if (count > interval) {
 				count = 0;
 				Curves[i].arclength_points.push_back(Q1);
-			}	
+			}
 		}
 		Curves[i].arclength_points.push_back(p4.pos);
 	}
@@ -935,27 +953,28 @@ void TrainView::drawStuff(bool doingShadows)
 	for (int i = 0; i < Curves.size(); i++) {
 
 		float r_init = Curves[i].arclength_points[0].r;
-		float r_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].r - Curves[i].arclength_points[0].r)/ (Curves[i].arclength_points.size()-1);
+		float r_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].r - Curves[i].arclength_points[0].r) / (Curves[i].arclength_points.size() - 1);
 
 		float a_init = Curves[i].arclength_points[0].a;
 		float a_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].a - Curves[i].arclength_points[0].a) / (Curves[i].arclength_points.size() - 1);
 
 		float b_init = Curves[i].arclength_points[0].b;
-		float b_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].b - Curves[i].arclength_points[0].b)/ (Curves[i].arclength_points.size()-1);
+		float b_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].b - Curves[i].arclength_points[0].b) / (Curves[i].arclength_points.size() - 1);
 
 		float phi_init = Curves[i].arclength_points[0].phi;
 		float phi_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].phi - Curves[i].arclength_points[0].phi) / (Curves[i].arclength_points.size() - 1);
 
 		float theta_init = Curves[i].arclength_points[0].theta;
 		float theta_interporate = (Curves[i].arclength_points[Curves[i].arclength_points.size() - 1].theta - Curves[i].arclength_points[0].theta) / (Curves[i].arclength_points.size() - 1);
-		
+
 		/* Mentioned in 3.1
-			To calcualte the point which is parallel with the feature curve 
+			To calcualte the point which is parallel with the feature curve
 		*/
-		Pnt3f p2,_p2,p4,_p4, p6, _p6;
-		for (int j = 0; j < Curves[i].arclength_points.size()-1; j++) {
-			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j+1],q2,q3,q4,q5,q6,q7;
-			
+		Pnt3f p2, _p2, p4, _p4, p6, _p6;
+		glm::vec3 p_normal, _p_normal;
+		for (int j = 0; j < Curves[i].arclength_points.size() - 1; j++) {
+			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j + 1], q2, q3, q4, q5, q6, q7;
+
 			// Point in right of feature curve
 			q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1), q0.x < q1.x);
 			q3 = Intersect(q1, q0, r_init + r_interporate * j, q0.x < q1.x);
@@ -966,11 +985,13 @@ void TrainView::drawStuff(bool doingShadows)
 
 			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z));
 
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), + 90 - phi_init - phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2)); //Need to fixed
-			
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), + 90 - phi_init - phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), +90 - phi_init - phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2)); //Need to fixed
+
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), +90 - phi_init - phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
+
+			
 
 			/* Mentioned in 4.1
 				For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -998,7 +1019,7 @@ void TrainView::drawStuff(bool doingShadows)
 				,q6.x, q6.y, q6.z, 0.5f, _normal.x, _normal.y, _normal.z
 				,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
 				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
-			});
+				});
 
 			// In order to fill the hole caused by quadrangle
 			if (j > 0) {
@@ -1008,20 +1029,21 @@ void TrainView::drawStuff(bool doingShadows)
 					,q3.x, q3.y, q3.z, 0.0f, 0.0f, 0.0f, 0.0f
 					,p2.x, p2.y, p2.z, 0.0f, 0.0f, 0.0f, 0.0f
 					//p4,q5,p7
-					,p4.x, p4.y, p4.z, 0.5f, _normal.x, _normal.y, _normal.z
+					,p4.x, p4.y, p4.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
 					,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
 					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
 					//q7,p6,p4
 					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
-					,p6.x, p6.y, p6.z, 0.5f, _normal.x, _normal.y, _normal.z
-					,p4.x, p4.y, p4.z, 0.5f, _normal.x, _normal.y, _normal.z
-				});
+					,p6.x, p6.y, p6.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
+					,p4.x, p4.y, p4.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
+					});
 			}
 
 			/*Previous Points*/
 			p2 = q2;
 			p4 = q4;
 			p6 = q6;
+			p_normal = _normal;
 
 			// Point in left of feature curve
 			q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1), q0.x > q1.x);
@@ -1031,76 +1053,68 @@ void TrainView::drawStuff(bool doingShadows)
 			q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1), q0.x > q1.x);
 			q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j, q0.x > q1.x);
 
-			Axis = glm::normalize(glm::vec3(q3.x - q2.x,q3.y-q2.y, q3.z - q2.z));
-
 			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + theta_init + theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
 			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + theta_init + theta_interporate * j))) + Pnt3_to_Vec3(q3));
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
-			q0.normal = glm::vec3(0.0, 0.0, 0.0);
-			q1.normal = glm::vec3(0.0, 0.0, 0.0);
-			q2.normal = glm::vec3(0.0, 0.0, 0.0);
-			q3.normal = glm::vec3(0.0, 0.0, 0.0);
-			q4.normal = _normal;
-			q5.normal = normal;
-			q6.normal = _normal;
-			q7.normal = normal;
+
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
 			the end of the quadrangle so as to avoid gradient discontinuities and artifacts
 
-			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0). 
+			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0).
 			Furthermore q6, q7 are the points in the end of the quadrangle.
 			*/
 
 			/*Elevation Vertex*/
 			vertexDatas.insert(vertexDatas.end(), {
 				//q0,q1,q2
-				 q0.x, q0.y, q0.z, 0.0f, q0.normal.x, q0.normal.y, q0.normal.z
-				,q1.x, q1.y, q1.z, 0.0f, q1.normal.x, q1.normal.y, q1.normal.z
-				,q2.x, q2.y, q2.z, 0.0f, q2.normal.x, q2.normal.y, q2.normal.z
+				 q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
+				,q1.x, q1.y, q1.z, 0.0f, 0.0f, 0.0f, 0.0f
+				,q2.x, q2.y, q2.z, 0.0f, 0.0f, 0.0f, 0.0f
 				//q2,q3,q0
-				,q2.x, q2.y, q2.z, 0.0f, q2.normal.x, q2.normal.y, q2.normal.z
-				,q3.x, q3.y, q3.z, 0.0f, q3.normal.x, q3.normal.y, q3.normal.z 
-				,q0.x, q0.y, q0.z, 0.0f, q0.normal.x, q0.normal.y, q0.normal.z
+				,q2.x, q2.y, q2.z, 0.0f, 0.0f, 0.0f, 0.0f
+				,q3.x, q3.y, q3.z, 0.0f, 0.0f, 0.0f, 0.0f
+				,q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
 				//q2,q4,q5
-				,q4.x, q4.y, q4.z, 0.5f, q4.normal.x, q4.normal.y, q4.normal.z
-				,q6.x, q6.y, q6.z, 0.5f, q6.normal.x, q6.normal.y, q6.normal.z
-				,q5.x, q5.y, q5.z, 0.5f, q5.normal.x, q5.normal.y, q5.normal.z
+				,q4.x, q4.y, q4.z, 0.5f, _normal.x, _normal.y, _normal.z
+				,q6.x, q6.y, q6.z, 0.5f, _normal.x, _normal.y, _normal.z
+				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
 				//q6,q7,q5
-				,q6.x, q6.y, q6.z, 0.5f, q6.normal.x, q6.normal.y, q6.normal.z
-				,q7.x, q7.y, q7.z, 0.5f, q7.normal.x, q7.normal.y, q7.normal.z
-				,q5.x, q5.y, q5.z, 0.5f, q5.normal.x, q5.normal.y, q5.normal.z
-			});
+				,q6.x, q6.y, q6.z, 0.5f, _normal.x, _normal.y, _normal.z
+				,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
+				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
+				});
 
 			//Fill holes
 			if (j > 0) {
 				vertexDatas.insert(vertexDatas.end(), {
 					//q0,q3,p2
-					 q0.x, q0.y, q0.z, 0.0f, q0.normal.x, q0.normal.y, q0.normal.z
-					,q3.x, q3.y, q3.z, 0.0f, q3.normal.x, q3.normal.y, q3.normal.z
-					,_p2.x, _p2.y, _p2.z, 0.0f, _p2.normal.x, _p2.normal.y, _p2.normal.z
+					 q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
+					,q3.x, q3.y, q3.z, 0.0f, 0.0f, 0.0f, 0.0f
+					,_p2.x, _p2.y, _p2.z, 0.0f, 0.0f, 0.0f, 0.0f
 					//p4,q5,p7
-					,_p4.x, _p4.y, _p4.z, 0.5f, _p4.normal.x, _p4.normal.y, _p4.normal.z
-					,q5.x, q5.y, q5.z, 0.5f, q5.normal.x, q5.normal.y, q5.normal.z
-					,q7.x, q7.y, q7.z, 0.5f, q7.normal.x, q7.normal.y, q7.normal.z
+					,_p4.x, _p4.y, _p4.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
+					,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
+					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
 					//q7,p6,p4
-					,q7.x, q7.y, q7.z, 0.5f, q7.normal.x, q7.normal.y, q7.normal.z
-					,_p6.x, _p6.y, _p6.z, 0.5f, _p6.normal.x, _p6.normal.y, _p6.normal.z
-					,_p4.x, _p4.y, _p4.z, 0.5f, _p4.normal.x, _p4.normal.y, _p4.normal.z
-				});
+					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
+					,_p6.x, _p6.y, _p6.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
+					,_p4.x, _p4.y, _p4.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
+					});
 			}
 			_p2 = q2;
 			_p4 = q4;
 			_p6 = q6;
+			_p_normal = _normal;
 		}
 	}
 
 	float maxHeight = -9999999999;
 	float minHeight = 99999999999;
-	for (int i = 0; i < vertexDatas.size() / 7;++i) {
+	for (int i = 0; i < vertexDatas.size() / 7; ++i) {
 		float temp;
 		temp = vertexDatas[i * 7 + 1];
 		if (temp < minHeight) {
@@ -1142,7 +1156,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glGetFloatv(GL_PROJECTION_MATRIX, &projection[0][0]);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0, 0, .3f, 0);	
+	glClearColor(0, 0, .3f, 0);
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1152,7 +1166,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, glm::vec3(0, 0, 0));
 	trans = glm::scale(trans, glm::vec3(100, 100, 1));
-	
+
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(screen_shader->Program, "model"), 1, GL_FALSE, &trans[0][0]);
@@ -1172,7 +1186,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	// 左下
-	glm::mat4 trans_gradient= glm::mat4(1.0f);
+	glm::mat4 trans_gradient = glm::mat4(1.0f);
 	trans_gradient = glm::translate(trans_gradient, glm::vec3(-200, 200, 0));
 	trans_gradient = glm::scale(trans_gradient, glm::vec3(100, 100, 1));
 
@@ -1209,10 +1223,10 @@ void TrainView::drawStuff(bool doingShadows)
 	//glUniform1i(glGetUniformLocation(heightmap_shader->Program, "HeightMap"), textureJacobi[4]);
 	//wave_model->Draw(*heightmap_shader);
 
-		heightmap_shader->Use();
+	heightmap_shader->Use();
 	//Ground of Height Map
 	glm::mat4 transss = glm::mat4(1.0f);
-	transss = glm::translate(transss, glm::vec3(0, 0,400));
+	transss = glm::translate(transss, glm::vec3(0, 0, 400));
 	transss = glm::scale(transss, glm::vec3(1000, 100000.0f, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
@@ -1272,10 +1286,10 @@ doPick()
 {
 	// since we'll need to do some GL stuff so we make this window as 
 	// active window
-	make_current();		
+	make_current();
 
 	// where is the mouse?
-	int mx = Fl::event_x(); 
+	int mx = Fl::event_x();
 	int my = Fl::event_y();
 
 	// get the viewport - most reliable way to turn mouse coords into GL coords
@@ -1285,24 +1299,24 @@ doPick()
 	// Set up the pick matrix on the stack - remember, FlTk is
 	// upside down!
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity ();
-	gluPickMatrix((double)mx, (double)(viewport[3]-my), 
-						5, 5, viewport);
+	glLoadIdentity();
+	gluPickMatrix((double)mx, (double)(viewport[3] - my),
+		5, 5, viewport);
 
 	// now set up the projection
 	setProjection();
 
 	// now draw the objects - but really only see what we hit
 	GLuint buf[100];
-	glSelectBuffer(100,buf);
+	glSelectBuffer(100, buf);
 	glRenderMode(GL_SELECT);
 	glInitNames();
 	glPushName(0);
 
 	int count = 0;
-	for (int i = 0;i < Curves.size(); i++) {
-		for(int j=0;j<Curves[i].points.size();j++){
-			glLoadName((GLuint) ((count++)+1));
+	for (int i = 0; i < Curves.size(); i++) {
+		for (int j = 0; j < Curves[i].points.size(); j++) {
+			glLoadName((GLuint)((count++) + 1));
 			Curves[i].points[j].draw();
 		}
 	}
@@ -1315,7 +1329,7 @@ doPick()
 		// are multiple objects, you really want to pick the closest
 		// one - see the OpenGL manual 
 		// remember: we load names that are one more than the index
-		selectedCube = buf[3]-1;
+		selectedCube = buf[3] - 1;
 		int ii = 0;
 		int temp = selectedCube;
 		for (ii = 0; ii < Curves.size(); ii++) {
@@ -1335,8 +1349,9 @@ doPick()
 		tw->theta->value(Curves[ii].points[temp].pos.theta);
 		tw->phi->value(Curves[ii].points[temp].pos.phi);
 
-	} else // nothing hit, nothing selected
+	}
+	else // nothing hit, nothing selected
 		selectedCube = -1;
 
-	printf("Selected Cube %d\n",selectedCube);
+	printf("Selected Cube %d\n", selectedCube);
 }
