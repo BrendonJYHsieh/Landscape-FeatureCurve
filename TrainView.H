@@ -117,10 +117,9 @@ class TrainView : public Fl_Gl_Window
 
 		Texture2D* background_texture = nullptr;
 
+		GLuint vao_2d;
+		GLuint vbo_2d;
 
-
-		unsigned int vao2D[1];
-		unsigned int vbo2D[1];
 		GLuint vaoRasterization;
 		GLuint vboRasterization;
 

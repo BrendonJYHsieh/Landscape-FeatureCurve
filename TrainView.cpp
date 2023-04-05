@@ -194,10 +194,10 @@ void TrainView::initElevationMap() {
 		1.0f, -1.0f,
 	   -1.0f, -1.0f,
 	   -1.0f,  1.0f, };
-	glGenVertexArrays(1, vao2D);
-	glGenBuffers(1, vbo2D);
-	glBindVertexArray(vao2D[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2D[0]);
+	glGenVertexArrays(1, &vao_2d);
+	glGenBuffers(1, &vbo_2d);
+	glBindVertexArray(vao_2d);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_2d);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -283,12 +283,16 @@ void TrainView::initGradientMap() {
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureGradientMap, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Create a renderbuffer object for depth and stencil attachment, and bind it to the FB
 	glGenRenderbuffers(1, &rboGradientMap);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboGradientMap);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, coarsestWidth, coarsestHeight); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	
+	glBindTexture(GL_TEXTURE_2D, textureGradientMap);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureGradientMap, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboGradientMap); // now actually attach it
 
 	// Bind to the default FB
@@ -413,7 +417,7 @@ void TrainView::Diffuse_GradientMap() {
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "heightResolution"), coarsestHeight);
 	glUniform1f(glGetUniformLocation(diffuse_shader->Program, "widthResolution"), coarsestWidth);
 
-	glBindVertexArray(vao2D[0]);
+	glBindVertexArray(vao_2d);
 
 	// Use the two FBs render by turns to diffuse the gradientMap  
 	for (int i = 0; i < iteration * 2; i++) {
@@ -564,7 +568,7 @@ void TrainView::Jacobi() {
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "G"), textureDiffuse[0]);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "heightResolution"), coarsestHeight);
 	glUniform1i(glGetUniformLocation(jacobi_shader->Program, "widthResolution"), coarsestWidth);
-	glBindVertexArray(vao2D[0]);
+	glBindVertexArray(vao_2d);
 
 	for (int ii = 0; ii < iteration * 2; ii++) {
 		if (ii == 0) {
@@ -1161,7 +1165,7 @@ void TrainView::drawStuff(bool doingShadows)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	screen_shader->Use();
-	glBindVertexArray(vao2D[0]);
+	glBindVertexArray(vao_2d);
 	//Ground of Elevation
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, glm::vec3(0, 0, 0));
