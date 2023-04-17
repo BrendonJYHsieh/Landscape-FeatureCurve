@@ -984,26 +984,24 @@ void TrainView::drawStuff(bool doingShadows)
 		/* Mentioned in 3.1
 			To calcualte the point which is parallel with the feature curve
 		*/
-		Pnt3f p2, _p2, p4, _p4, p6, _p6;
+		Pnt3f p2, _p2, p4, _p4;
 		glm::vec3 p_normal, _p_normal;
 		for (int j = 0; j < Curves[i].arclength_points.size() - 1; j++) {
-			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j + 1], q2, q3, q4, q5, q6, q7;
+			Pnt3f q0 = Curves[i].arclength_points[j], q1 = Curves[i].arclength_points[j + 1], q2, q3, q4, q5;
 
 			// Point in right of feature curve
 			q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1), q0.x < q1.x);
 			q3 = Intersect(q1, q0, r_init + r_interporate * j, q0.x < q1.x);
-			q4 = q2;
-			q5 = q3;
-			q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1), q0.x < q1.x);
-			q7 = Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j, q0.x < q1.x);
+			q4 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + b_init + b_interporate * (j + 1), q0.x < q1.x);
+			q5 = Intersect(q1, q0, r_init + r_interporate * j + b_init + b_interporate * j, q0.x < q1.x);
 
 			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z));
 
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - phi_init - phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2)); //Need to fixed
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - phi_init - phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
+			q4 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q4 - q2), 90 - phi_init - phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2)); //Need to fixed
+			q5 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q5 - q3), 90 - phi_init - phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
-			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
+			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q5) - Pnt3_to_Vec3(q3)));
+			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q4) - Pnt3_to_Vec3(q2)));
 
 			_normal.z = sin(glm::radians(90 - phi_init - phi_interporate * (j + 1)));
 			normal.z = sin(glm::radians(90 - phi_init - phi_interporate * (j)));
@@ -1012,8 +1010,8 @@ void TrainView::drawStuff(bool doingShadows)
 				For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
 				the end of the quadrangle so as to avoid gradient discontinuities and artifacts
 
-				if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0).
-				Furthermore q6, q7 are the points in the end of the quadrangle.
+				if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q4, q5 will be (0,0,0).
+				Furthermore q4, q5 are the points in the end of the quadrangle.
 			*/
 
 			/*Elevation Vertex*/
@@ -1026,14 +1024,14 @@ void TrainView::drawStuff(bool doingShadows)
 				,q2.x, q2.y, q2.z, 0.0f, 0.0f, 0.0f, 0.0f
 				,q3.x, q3.y, q3.z, 0.0f, 0.0f, 0.0f, 0.0f
 				,q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
-				//q2,q4,q5
-				,q4.x, q4.y, q4.z, 0.5f, _normal.x, _normal.y, _normal.z
-				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
-				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
-				//q6,q7,q5
-				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
-				,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
-				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
+				//q2,q2,q3
+				,q2.x, q2.y, q2.z, 0.5f, _normal.x, _normal.y, _normal.z
+				,q4.x, q4.y, q4.z, 0.5f, 0.0f, 0.0f, _normal.z
+				,q3.x, q3.y, q3.z, 0.5f, normal.x, normal.y, normal.z
+				//q4,q5,q3
+				,q4.x, q4.y, q4.z, 0.5f, 0.0f, 0.0f, _normal.z
+				,q5.x, q5.y, q5.z, 0.5f, 0.0f, 0.0f, normal.z
+				,q3.x, q3.y, q3.z, 0.5f, normal.x, normal.y, normal.z
 				});
 
 			// In order to fill the hole caused by quadrangle
@@ -1043,35 +1041,32 @@ void TrainView::drawStuff(bool doingShadows)
 					 q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
 					,q3.x, q3.y, q3.z, 0.0f, 0.0f, 0.0f, 0.0f
 					,p2.x, p2.y, p2.z, 0.0f, 0.0f, 0.0f, 0.0f
-					//p4,q5,p7
-					,p4.x, p4.y, p4.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
-					,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
-					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
-					//q7,p6,p4
-					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
-					,p6.x, p6.y, p6.z, 0.5f, 0.0f, 0.0f, p_normal.z
-					,p4.x, p4.y, p4.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
+					//p2,q3,p7
+					,p2.x, p2.y, p2.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
+					,q3.x, q3.y, q3.z, 0.5f, normal.x, normal.y, normal.z
+					,q5.x, q5.y, q5.z, 0.5f, 0.0f, 0.0f, normal.z
+					//q5,p4,p2
+					,q5.x, q5.y, q5.z, 0.5f, 0.0f, 0.0f, normal.z
+					,p4.x, p4.y, p4.z, 0.5f, 0.0f, 0.0f, p_normal.z
+					,p2.x, p2.y, p2.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
 					});
 			}
 
 			/*Previous Points*/
 			p2 = q2;
 			p4 = q4;
-			p6 = q6;
 			p_normal = _normal;
 
 			// Point in left of feature curve
 			q2 = Intersect(q0, q1, r_init + r_interporate * (j + 1), q0.x > q1.x);
 			q3 = Intersect(q1, q0, r_init + r_interporate * j, q0.x > q1.x);
-			q4 = q2;
-			q5 = q3;
-			q6 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1), q0.x > q1.x);
-			q7 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j, q0.x > q1.x);
+			q4 = Intersect(q0, q1, r_init + r_interporate * (j + 1) + a_init + a_interporate * (j + 1), q0.x > q1.x);
+			q5 = Intersect(q1, q0, r_init + r_interporate * j + a_init + a_interporate * j, q0.x > q1.x);
 
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), -90 + theta_init + theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), -90 + theta_init + theta_interporate * j))) + Pnt3_to_Vec3(q3));
-			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
-			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
+			q4 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q4 - q2), -90 + theta_init + theta_interporate * (j + 1)))) + Pnt3_to_Vec3(q2));
+			q5 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q5 - q3), -90 + theta_init + theta_interporate * j))) + Pnt3_to_Vec3(q3));
+			normal = glm::normalize((Pnt3_to_Vec3(q5) - Pnt3_to_Vec3(q3)));
+			_normal = glm::normalize((Pnt3_to_Vec3(q4) - Pnt3_to_Vec3(q2)));
 
 			_normal.z = sin(glm::radians(abs(-90 + theta_init + theta_interporate * (j + 1))));
 			normal.z = sin(glm::radians(abs(-90 + theta_init + theta_interporate * (j))));
@@ -1082,8 +1077,8 @@ void TrainView::drawStuff(bool doingShadows)
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
 			the end of the quadrangle so as to avoid gradient discontinuities and artifacts
 
-			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q6, q7 will be (0,0,0).
-			Furthermore q6, q7 are the points in the end of the quadrangle.
+			if not set point's normal value for the point, the value initially will be (0,0,0). So that normal of q4, q5 will be (0,0,0).
+			Furthermore q4, q5 are the points in the end of the quadrangle.
 			*/
 
 			/*Elevation Vertex*/
@@ -1096,14 +1091,14 @@ void TrainView::drawStuff(bool doingShadows)
 				,q2.x, q2.y, q2.z, 0.0f, 0.0f, 0.0f, 0.0f
 				,q3.x, q3.y, q3.z, 0.0f, 0.0f, 0.0f, 0.0f
 				,q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
-				//q2,q4,q5
-				,q4.x, q4.y, q4.z, 0.5f, _normal.x, _normal.y, _normal.z
-				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
-				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
-				//q6,q7,q5
-				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
-				,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
-				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
+				//q2,q4,q3
+				,q2.x, q2.y, q2.z, 0.5f, _normal.x, _normal.y, _normal.z
+				,q4.x, q4.y, q4.z, 0.5f, 0.0f, 0.0f, _normal.z
+				,q3.x, q3.y, q3.z, 0.5f, normal.x, normal.y, normal.z
+				//q4,q5,q3
+				,q4.x, q4.y, q4.z, 0.5f, 0.0f, 0.0f, _normal.z
+				,q5.x, q5.y, q5.z, 0.5f, 0.0f, 0.0f, normal.z
+				,q3.x, q3.y, q3.z, 0.5f, normal.x, normal.y, normal.z
 				});
 
 			//Fill holes
@@ -1113,19 +1108,18 @@ void TrainView::drawStuff(bool doingShadows)
 					 q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
 					,q3.x, q3.y, q3.z, 0.0f, 0.0f, 0.0f, 0.0f
 					,_p2.x, _p2.y, _p2.z, 0.0f, 0.0f, 0.0f, 0.0f
-					//p4,q5,p7
-					,_p4.x, _p4.y, _p4.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
-					,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
-					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
-					//q7,p6,p4
-					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
-					,_p6.x, _p6.y, _p6.z, 0.5f, 0.0f, 0.0f, _p_normal.z
-					,_p4.x, _p4.y, _p4.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
+					//p2,q3,p7
+					,_p2.x, _p2.y, _p2.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
+					,q3.x, q3.y, q3.z, 0.5f, normal.x, normal.y, normal.z
+					,q5.x, q5.y, q5.z, 0.5f, 0.0f, 0.0f, normal.z
+					//q5,p4,p2
+					,q5.x, q5.y, q5.z, 0.5f, 0.0f, 0.0f, normal.z
+					,_p4.x, _p4.y, _p4.z, 0.5f, 0.0f, 0.0f, _p_normal.z
+					,_p2.x, _p2.y, _p2.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
 					});
 			}
 			_p2 = q2;
 			_p4 = q4;
-			_p6 = q6;
 			_p_normal = _normal;
 		}
 	}
