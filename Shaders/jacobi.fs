@@ -12,8 +12,6 @@ uniform float heightResolution;
 
 uniform bool init;
 
-
-
 float sign(float n,float Resolution){
     if (n > 0) {
 		return 1.0/Resolution;
@@ -25,7 +23,6 @@ float sign(float n,float Resolution){
 		return 0.0;
 	}
 }
-
 
 void main()
 {
@@ -48,11 +45,6 @@ void main()
         a = E_pixel.a;
         b = 1.0 - a;
     }
-
-    // vec4 A = texture2D(F, vec2(p.x ,p.y - (1.0/heightResolution)));
-    // vec4 B = texture2D(F, vec2(p.x ,p.y + (1.0/heightResolution)));
-    // vec4 C = texture2D(F, vec2(p.x + (1.0/widthResolution),p.y));
-    // vec4 D = texture2D(F, vec2(p.x - (1.0/widthResolution),p.y));
 
     vec4 A = texture2D(F, vec2(p.x - (1.0/widthResolution),p.y - (1.0/heightResolution)));
     vec4 B = texture2D(F, vec2(p.x - (1.0/widthResolution),p.y + (1.0/heightResolution)));
@@ -89,5 +81,4 @@ void main()
     else{
         FragColor = vec4(f,0.0,0.0,0.0);
     }
-
 }

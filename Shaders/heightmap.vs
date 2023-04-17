@@ -14,9 +14,8 @@ out vec4 ourColor;
 void main()
 {
     TexCoords = texture_coordinate;
-    vec3 height_map = position;
+    vec3 height_map = vec3(position.x,position.z,position.y);
     height_map.z = height_map.z + (texture(HeightMap,texture_coordinate).r);
 	gl_Position =  projection * view * model * vec4(height_map, 1.0f);
     ourColor = texture(HeightMap,texture_coordinate).rgba;
-    
 }

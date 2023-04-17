@@ -1228,7 +1228,6 @@ void TrainView::drawStuff(bool doingShadows)
 	//glm::mat4 transss = glm::mat4(1.0f);
 	//transss = glm::translate(transss, glm::vec3(0, 200,0));
 	//transss = glm::scale(transss, glm::vec3(100, 100, 1));
-
 	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
 	//glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "model"), 1, GL_FALSE, &transss[0][0]);
@@ -1240,8 +1239,8 @@ void TrainView::drawStuff(bool doingShadows)
 	heightmap_shader->Use();
 	//Ground of Height Map
 	glm::mat4 transss = glm::mat4(1.0f);
-	transss = glm::translate(transss, glm::vec3(0, 0, 400));
-	transss = glm::scale(transss, glm::vec3(1000, 100000.0f, 1));
+	transss = glm::translate(transss, glm::vec3(0, 200, 0));
+	transss = glm::scale(transss, glm::vec3(100, 100, 1));
 
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(heightmap_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
@@ -1252,13 +1251,12 @@ void TrainView::drawStuff(bool doingShadows)
 	wave_model->Draw(*heightmap_shader);
 
 
-	// Bind shader
-	//elevation_shader->Use();
-	//// Set variable
-	//glBindVertexArray(vaoRasterization);
-	//glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
-	//glUniformMatrix4fv(glGetUniformLocation(elevation_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
-	//glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
+	//Curve
+	gradient_shader->Use();
+	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "projection"), 1, GL_FALSE, &projection[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(gradient_shader->Program, "view"), 1, GL_FALSE, &view[0][0]);
+	glBindVertexArray(vaoRasterization);
+	glDrawArrays(GL_TRIANGLES, 0, vertexDatas.size() / 7);
 
 	glUseProgram(0);
 
