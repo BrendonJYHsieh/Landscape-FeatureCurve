@@ -999,13 +999,14 @@ void TrainView::drawStuff(bool doingShadows)
 
 			glm::vec3 Axis = glm::normalize(glm::vec3(q3.x - q2.x, q3.y - q2.y, q3.z - q2.z));
 
-			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), +90 - phi_init - phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2)); //Need to fixed
+			q6 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q6 - q2), 90 - phi_init - phi_interporate * (j + 1)))) + Pnt3_to_Vec3(q2)); //Need to fixed
+			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), 90 - phi_init - phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 
-			q7 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q7 - q3), +90 - phi_init - phi_interporate * (j)))) + Pnt3_to_Vec3(q3));
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
-			
+			_normal.z = sin(glm::radians(90 - phi_init - phi_interporate * (j + 1)));
+			normal.z = sin(glm::radians(90 - phi_init - phi_interporate * (j)));
 
 			/* Mentioned in 4.1
 				For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
@@ -1027,11 +1028,11 @@ void TrainView::drawStuff(bool doingShadows)
 				,q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
 				//q2,q4,q5
 				,q4.x, q4.y, q4.z, 0.5f, _normal.x, _normal.y, _normal.z
-				,q6.x, q6.y, q6.z, 0.5f, _normal.x, _normal.y, _normal.z
+				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
 				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
 				//q6,q7,q5
-				,q6.x, q6.y, q6.z, 0.5f, _normal.x, _normal.y, _normal.z
-				,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
+				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
+				,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
 				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
 				});
 
@@ -1045,10 +1046,10 @@ void TrainView::drawStuff(bool doingShadows)
 					//p4,q5,p7
 					,p4.x, p4.y, p4.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
 					,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
-					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
+					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
 					//q7,p6,p4
-					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
-					,p6.x, p6.y, p6.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
+					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
+					,p6.x, p6.y, p6.z, 0.5f, 0.0f, 0.0f, p_normal.z
 					,p4.x, p4.y, p4.z, 0.5f, p_normal.x, p_normal.y, p_normal.z
 					});
 			}
@@ -1072,6 +1073,9 @@ void TrainView::drawStuff(bool doingShadows)
 			normal = glm::normalize((Pnt3_to_Vec3(q7) - Pnt3_to_Vec3(q5)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q6) - Pnt3_to_Vec3(q4)));
 
+			_normal.z = sin(glm::radians(abs(-90 + theta_init + theta_interporate * (j + 1))));
+			normal.z = sin(glm::radians(abs(-90 + theta_init + theta_interporate * (j))));
+
 
 
 			/* Mentioned in 4.1
@@ -1094,11 +1098,11 @@ void TrainView::drawStuff(bool doingShadows)
 				,q0.x, q0.y, q0.z, 0.0f, 0.0f, 0.0f, 0.0f
 				//q2,q4,q5
 				,q4.x, q4.y, q4.z, 0.5f, _normal.x, _normal.y, _normal.z
-				,q6.x, q6.y, q6.z, 0.5f, _normal.x, _normal.y, _normal.z
+				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
 				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
 				//q6,q7,q5
-				,q6.x, q6.y, q6.z, 0.5f, _normal.x, _normal.y, _normal.z
-				,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
+				,q6.x, q6.y, q6.z, 0.5f, 0.0f, 0.0f, _normal.z
+				,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
 				,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
 				});
 
@@ -1112,10 +1116,10 @@ void TrainView::drawStuff(bool doingShadows)
 					//p4,q5,p7
 					,_p4.x, _p4.y, _p4.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
 					,q5.x, q5.y, q5.z, 0.5f, normal.x, normal.y, normal.z
-					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
+					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
 					//q7,p6,p4
-					,q7.x, q7.y, q7.z, 0.5f, normal.x, normal.y, normal.z
-					,_p6.x, _p6.y, _p6.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
+					,q7.x, q7.y, q7.z, 0.5f, 0.0f, 0.0f, normal.z
+					,_p6.x, _p6.y, _p6.z, 0.5f, 0.0f, 0.0f, _p_normal.z
 					,_p4.x, _p4.y, _p4.z, 0.5f, _p_normal.x, _p_normal.y, _p_normal.z
 					});
 			}
