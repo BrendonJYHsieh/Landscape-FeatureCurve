@@ -79,9 +79,9 @@ Pnt3f Intersect(Pnt3f start, Pnt3f end, float length, bool reverse) {
 glm::vec3 Rotate(glm::vec3 n, glm::vec3 v, float degree) {
 	float theta = glm::radians(degree);
 	n = glm::normalize(n);
-	float x = v.x * (n.x * n.x * (1 - cos(theta)) + cos(theta)) + v.y * (n.x * n.y * (1 - cos(theta)) - n.z * sin(theta)) + v.z * (n.x * n.z * (1 - cos(theta)) + n.y * sin(theta));
-	float y = v.x * (n.x * n.y * (1 - cos(theta)) + n.z * sin(theta)) + v.y * (n.y * n.y * (1 - cos(theta)) + cos(theta)) + v.z * (n.y * n.z * (1 - cos(theta)) - n.x * sin(theta));
-	float z = v.x * (n.x * n.z * (1 - cos(theta)) - n.y * sin(theta)) + v.y * (n.y * n.z * (1 - cos(theta)) + n.z * sin(theta)) + v.z * (n.z * n.z * (1 - cos(theta)) + cos(theta));
+	float x = v.x * (n.x * n.x * (1 - cos(theta)) +  1  * cos(theta)) + v.y * (n.x * n.y * (1 - cos(theta)) - n.z * sin(theta)) + v.z * (n.x * n.z * (1 - cos(theta)) + n.y * sin(theta));
+	float y = v.x * (n.x * n.y * (1 - cos(theta)) + n.z * sin(theta)) + v.y * (n.y * n.y * (1 - cos(theta)) +  1  * cos(theta)) + v.z * (n.y * n.z * (1 - cos(theta)) - n.x * sin(theta));
+	float z = v.x * (n.x * n.z * (1 - cos(theta)) - n.y * sin(theta)) + v.y * (n.y * n.z * (1 - cos(theta)) + n.x * sin(theta)) + v.z * (n.z * n.z * (1 - cos(theta)) +   1 * cos(theta));
 	return glm::vec3(x, y, z);
 }
 
@@ -634,6 +634,16 @@ void TrainView::Jacobi() {
 		}
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
+
+
+	// Save Gradient Image
+	cv::Mat img3(finestHeight, finestWidth, CV_8UC4);
+	glPixelStorei(GL_PACK_ALIGNMENT, (img3.step & 3) ? 1 : 4);
+	glPixelStorei(GL_PACK_ROW_LENGTH, img3.step / img3.elemSize());
+	glReadPixels(0, 0, img3.cols, img3.rows, GL_BGRA, GL_UNSIGNED_BYTE, img3.data);
+	cv::Mat flipped3;
+	cv::flip(img3, flipped3, 0);
+	cv::imwrite("jacobi.jpg", flipped3);
 
 	// Render is finished, then bind to the default FB and initialize
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
