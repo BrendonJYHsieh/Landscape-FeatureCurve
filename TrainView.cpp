@@ -1003,9 +1003,6 @@ void TrainView::drawStuff(bool doingShadows)
 			glm::vec3 normal = glm::normalize((Pnt3_to_Vec3(q5) - Pnt3_to_Vec3(q3)));
 			glm::vec3 _normal = glm::normalize((Pnt3_to_Vec3(q4) - Pnt3_to_Vec3(q2)));
 
-			_normal.z = sin(glm::radians(90 - phi_init - phi_interporate * (j + 1)));
-			normal.z = sin(glm::radians(90 - phi_init - phi_interporate * (j)));
-
 			/* Mentioned in 4.1
 				For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
 				the end of the quadrangle so as to avoid gradient discontinuities and artifacts
@@ -1067,11 +1064,6 @@ void TrainView::drawStuff(bool doingShadows)
 			q5 = Vec3_to_Pnt3(((Rotate(Axis, Pnt3_to_Vec3(q5 - q3), -90 + theta_init + theta_interporate * j))) + Pnt3_to_Vec3(q3));
 			normal = glm::normalize((Pnt3_to_Vec3(q5) - Pnt3_to_Vec3(q3)));
 			_normal = glm::normalize((Pnt3_to_Vec3(q4) - Pnt3_to_Vec3(q2)));
-
-			_normal.z = sin(glm::radians(abs(-90 + theta_init + theta_interporate * (j + 1))));
-			normal.z = sin(glm::radians(abs(-90 + theta_init + theta_interporate * (j))));
-
-
 
 			/* Mentioned in 4.1
 			For slope angle primitives, the vertex color is set to its corresponding interpolated value along the curve and is set to 0 at
